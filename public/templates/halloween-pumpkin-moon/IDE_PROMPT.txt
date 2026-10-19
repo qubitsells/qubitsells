@@ -1,0 +1,46 @@
+Build a Halloween cinematic template named "Pumpkin Moon Date" in my existing Bonded app at E:\Desktop Projects\cpltools-app.
+
+Use the six supplied numbered PNGs in order. Reuse the app's current personalization and recipient-link flow, and its existing visual conventions where appropriate.
+
+Theme:
+- Original Disney-inspired 3D illustration; plum, midnight indigo and warm pumpkin amber.
+- The same adult couple appears throughout: a witch-costumed woman and vampire-costumed man.
+- Keep the supplied artwork unchanged. Render all names, messages and controls as separate HTML; no text in image files.
+- Copy the assets into a dedicated public template folder; preserve existing themes.
+
+Sequence:
+1. The Halloween meeting.
+2. Picking our pumpkins.
+3. Lanterns we made.
+4. A friendly little boo.
+5. The moonlit invitation.
+6. Our pumpkin moon date.
+Use a 16:9 desktop/laptop frame and object-fit:cover. Source files are 1672x941, approximately 16:9.
+Offer a usable mobile layout that keeps faces visible, or letterbox the full wide scene where cropping loses faces.
+
+Presentation:
+- Keep the default motion gentle: five seconds per scene and 500ms overlapping crossfades, total 27.5 seconds.
+- Optional subtle scale change 1.00 to 1.025 per scene.
+- With still images, use layered image elements and opacity crossfades rather than unnecessary video.
+- Show an Open invitation button, Pause, Replay and Skip.
+- Do not force people to finish the sequence before reading or responding.
+- Respect reduced motion; offer manual navigation and no auto-advance in that mode.
+- No sound autoplay, flashes, jump scares, intrusive particles, fake progress or escaping decline buttons.
+
+Personalization:
+- Sender name, partner name, editable Halloween message and optional offered date/time.
+- Use safe text rendering for all user-provided content.
+- Reveal the editable message during scene 5, near the blank card but readable independently of it.
+- Keep the message available after the scene.
+
+Final invitation:
+- Heading: "Will you be my Halloween date?"
+- Activities: "Cozy movie night", "Pumpkin picnic", "Moonlit walk".
+- Also allow "Suggest another plan", "Maybe later" and declining.
+- A choice is a proposal, not a completed reservation.
+- Offer date/time selection and confirmation through the existing app flow.
+- Persist real responses before showing saved/confirmed success. Do not simulate backend success.
+- Save to the couple calendar or memory timeline only with the appropriate identity, agreement and existing supported flow.
+
+Use sequence.json for timing, image-prompts.json for regeneration and video-prompts.json for optional image-to-video animation. Animating the images is optional; the still-image version should be fully usable.
+

@@ -1,0 +1,191 @@
+@import "tailwindcss";
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+
+/* ─── Luxury Soft Pink & Silk White Romantic Theme ─── */
+:root {
+  --bg-main: #fff8f9;
+  --bg-secondary: #fff0f3;
+  --bg-card: rgba(255, 255, 255, 0.88);
+  --bg-glass: rgba(255, 255, 255, 0.78);
+  --text-main: #280816;
+  --text-muted: #6e2b46;
+  --text-subtle: #9c4c6a;
+  --rose-primary: #f43f5e;
+  --rose-dark: #be123c;
+  --rose-light: #fce7f3;
+  --rose-border: rgba(244, 63, 94, 0.2);
+  --rose-glow: rgba(244, 63, 94, 0.25);
+  --gold-accent: #d97706;
+}
+
+/* ─── Standard Font Families (Zero IDE Linter Warnings) ─── */
+body {
+  font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.font-sans {
+  font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.font-serif {
+  font-family: var(--font-playfair), Georgia, serif;
+}
+
+.font-script {
+  font-family: var(--font-feeling-lovely), "Brush Script MT", cursive;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+}
+
+/* ─── Halloween Midnight Font ─── */
+@font-face {
+  font-family: 'PlaydoughHalloween';
+  src: url('/templates/halloween-midnight-key/Playdough%20Halloween.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.font-halloween {
+  font-family: 'PlaydoughHalloween', var(--font-playfair), Georgia, serif;
+  letter-spacing: 0.02em;
+}
+
+/* ─── Haunted Waltz Gothic Horror Font ─── */
+@font-face {
+  font-family: 'MysticalHorror';
+  src: url('/templates/spooky-the-haunted-waltz/Mystical%20Horror%20Collection%202%20Demo.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.font-mystical-horror {
+  font-family: 'MysticalHorror', Georgia, serif;
+  letter-spacing: 0.03em;
+}
+
+/* ─── Starlit Story Fairytale Celestial Font ─── */
+.font-starlit {
+  font-family: var(--font-starlit), 'Cinzel Decorative', Georgia, serif;
+  letter-spacing: 0.02em;
+}
+
+/* ─── Anime Storm & Flame Kurotsyma Font ─── */
+@font-face {
+  font-family: 'Kurotsyma';
+  src: url('/templates/anime-storm-and-flame/Kurotsyma%20DEMO.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.font-storm-flame, .font-kurotsyma {
+  font-family: 'Kurotsyma', var(--font-playfair), Georgia, sans-serif;
+  letter-spacing: 0.03em;
+}
+
+/* ─── Smooth Custom Scrollbar ─── */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f7f9fb;
+}
+::-webkit-scrollbar-thumb {
+  background: #acbec8;
+  border-radius: 999px;
+  border: 2px solid #f7f9fb;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #4f6270;
+}
+
+/* ─── Luxury Light Glassmorphism & Card Styles ─── */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(251, 113, 133, 0.22);
+  box-shadow: 0 10px 30px -5px rgba(244, 63, 94, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
+}
+
+.glass-panel-subtle {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(251, 113, 133, 0.14);
+}
+
+.glass-panel-glow {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(251, 113, 133, 0.3);
+  box-shadow: 0 18px 45px -10px rgba(244, 63, 94, 0.14), 0 0 25px 0 rgba(253, 164, 175, 0.18);
+}
+
+.glass-card-hover {
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card-hover:hover {
+  transform: translateY(-4px);
+  border-color: rgba(244, 63, 94, 0.4);
+  box-shadow: 0 22px 50px -10px rgba(244, 63, 94, 0.16), 0 0 30px 2px rgba(253, 164, 175, 0.2);
+}
+
+/* ─── Light Romantic Gradient Text & High-Contrast Script ─── */
+.text-gradient-rose {
+  background: linear-gradient(135deg, #9f1239 0%, #e11d48 50%, #f43f5e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-script {
+  background: linear-gradient(135deg, #881337 0%, #be123c 45%, #e11d48 85%, #f43f5e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 1px 4px rgba(225, 29, 72, 0.15));
+}
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, #b45309 0%, #d97706 50%, #f59e0b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Premium Romantic Buttons ─── */
+.btn-love-primary {
+  background: linear-gradient(135deg, #f43f5e 0%, #e11d48 60%, #be123c 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 10px 25px -4px rgba(225, 29, 72, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-love-primary:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 15px 35px -5px rgba(225, 29, 72, 0.5), 0 0 20px rgba(251, 113, 133, 0.35);
+}
+
+.btn-love-secondary {
+  background: rgba(255, 255, 255, 0.9);
+  color: #881337;
+  border: 1px solid rgba(244, 63, 94, 0.28);
+  box-shadow: 0 4px 15px -2px rgba(244, 63, 94, 0.08);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-love-secondary:hover {
+  background: #fff0f3;
+  border-color: rgba(244, 63, 94, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px -3px rgba(244, 63, 94, 0.16);
+}

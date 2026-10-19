@@ -1,0 +1,2540 @@
+"use client";
+
+import { useState, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Heart,
+  Sparkles,
+  ArrowRight,
+  ArrowLeft,
+  Calendar,
+  MessageSquare,
+  Gift,
+  Lock,
+  Mail,
+  Music,
+  Check,
+  Copy,
+  ExternalLink,
+  HelpCircle,
+  Clock,
+  Play,
+  Pause,
+  ChevronRight,
+  Eye,
+  Plus,
+  Trash2,
+  Share2,
+  Smartphone,
+  ShieldCheck,
+  Sliders,
+  MapPin,
+  BarChart2,
+  Wand2,
+  BookOpen,
+  Compass,
+  Upload,
+  Quote as QuoteIcon,
+  ImageIcon,
+} from "lucide-react";
+import {
+  PINK_DAY_SCENES,
+  PINK_DAY_CONFIG,
+  PINK_DAY_PALETTE,
+  DEFAULT_FLOATING_GALLERY_ITEMS,
+} from "@/lib/constants/pinkDayTemplate";
+import {
+  FloatingQuoteGallery,
+  type FloatingGalleryItem,
+} from "@/components/templates/FloatingQuoteGallery";
+import type { MusicTrack, TemplateTool } from "@/lib/supabase/coupleTemplates";
+import type { FreeTouseTrack } from "@/lib/freetouse";
+import { CURATED_TRACKS } from "@/lib/curatedTracks";
+import Navbar from "@/components/Navbar";
+
+const MUSIC_CATEGORIES = [
+  { id: "trending", label: "🔥 Trending", query: "love" },
+  { id: "romantic", label: "💕 Romantic", query: "romantic" },
+  { id: "anime", label: "🌸 Anime Lofi", query: "lofi" },
+  { id: "piano", label: "🎹 Sweet Piano", query: "piano" },
+  { id: "acoustic", label: "🎸 Acoustic", query: "guitar" },
+  { id: "relaxing", label: "✨ Relaxing", query: "relaxing" },
+];
+
+export default function OurLittlePinkDayStudio() {
+  const [step, setStep] = useState(0); // 0 = Story & Names, 1 = Tools Selection, 2 = Floating Gallery, 3 = Soundtrack & Expiry, 4 = Share
+
+  // Step 1: Couple & Message
+  const [partnerName, setPartnerName] = useState("");
+  const [yourName, setYourName] = useState("");
+  const [openingTagline, setOpeningTagline] = useState(PINK_DAY_CONFIG.tagline);
+  const [personalMessage, setPersonalMessage] = useState(PINK_DAY_CONFIG.defaultMessage);
+
+  // ─────────────────────────────────────────────
+  // Step 2: All 11 QubitSells Tools State
+  // ─────────────────────────────────────────────
+
+  // 1. T01 Reply Tool (Voice memos, photo selfies, text)
+  const [replyToolEnabled, setReplyToolEnabled] = useState(true);
+  const [replyAllowVoice, setReplyAllowVoice] = useState(true);
+  const [replyAllowPhoto, setReplyAllowPhoto] = useState(true);
+
+  // 2. T02 Date Invitation & Proposed Slots
+  const [dateToolEnabled, setDateToolEnabled] = useState(true);
+  const [dateSlots, setDateSlots] = useState([
+    { id: "slot_1", start_time: "Friday Evening, 7:00 PM", label: "Friday Evening (7:00 PM)" },
+    { id: "slot_2", start_time: "Saturday Sunset, 6:30 PM", label: "Saturday Sunset (6:30 PM)" },
+  ]);
+  const [newSlotInput, setNewSlotInput] = useState("");
+
+  // 3. T03 Date Location & Venue Map
+  const [locationToolEnabled, setLocationToolEnabled] = useState(false);
+  const [dateFormat, setDateFormat] = useState<"in_person" | "online">("in_person");
+  const [dateLocation, setDateLocation] = useState("Our Favorite Cozy Cafe");
+
+  // 4. T04 Vibe Check & Choice Polls
+  const [pollToolEnabled, setPollToolEnabled] = useState(false);
+  const [pollQuestion, setPollQuestion] = useState("What should we do for our date tonight?");
+  const [pollOptions, setPollOptions] = useState([
+    "Dessert & Bubble Tea",
+    "Photo booth & Arcade Games",
+    "Cozy Movie Night at Home",
+  ]);
+  const [newPollOption, setNewPollOption] = useState("");
+
+  // 5. T05 Heart-to-Heart Question Prompt
+  const [questionToolEnabled, setQuestionToolEnabled] = useState(false);
+  const [questionPrompt, setQuestionPrompt] = useState("What was your favorite little moment from our first date?");
+
+  // 6. T06 Synchronized Secret Reveal
+  const [revealToolEnabled, setRevealToolEnabled] = useState(false);
+  const [revealPrompt, setRevealPrompt] = useState("A secret confession that only unlocks when we both open it...");
+
+  // 7. T07 Scratch-to-Reveal Card
+  const [scratchToolEnabled, setScratchToolEnabled] = useState(false);
+  const [scratchTitle, setScratchTitle] = useState("A secret surprise for you ✨");
+  const [scratchSecret, setScratchSecret] = useState("I fell in love with your smile first. Happy Little Pink Day!");
+
+  // 8. T08 Sweet Love Coupon Voucher
+  const [couponToolEnabled, setCouponToolEnabled] = useState(false);
+  const [couponTitle, setCouponTitle] = useState("One Cozy Backrub & Warm Hug");
+  const [couponDesc, setCouponDesc] = useState("Redeemable whenever you feel tired or need extra love.");
+
+  // 9. T09 Open When Sealed Letter
+  const [openWhenEnabled, setOpenWhenEnabled] = useState(false);
+  const [openWhenOccasion, setOpenWhenOccasion] = useState("Open when you miss me");
+  const [openWhenLetter, setOpenWhenLetter] = useState("Whenever you feel lonely, remember that my heart is always right beside you.");
+
+  // 10. T10 Our Story Timeline Memories
+  const [ourStoryEnabled, setOurStoryEnabled] = useState(false);
+  const [storyCards, setStoryCards] = useState([
+    { photo_url: "/templates/our-little-pink-day/01-my-favorite-meetup.png", caption: "Where it all began — our favorite meetup." },
+    { photo_url: "/templates/our-little-pink-day/02-one-dessert-two-spoons.png", caption: "Sweet moments shared between just the two of us." },
+    { photo_url: "/templates/our-little-pink-day/04-a-little-photo-booth-moment.png", caption: "Our silly photo booth smile." },
+  ]);
+
+  // 11. T11 Couple Bucket List
+  const [bucketListEnabled, setBucketListEnabled] = useState(false);
+  const [bucketItems, setBucketItems] = useState([
+    "Watch sunset from our cozy spot",
+    "Late night dessert and boba run",
+    "A spontaneous weekend road trip",
+  ]);
+  const [newBucketItem, setNewBucketItem] = useState("");
+
+  // Floating Photo & Quote Gallery State (Collage style with hover quotes)
+  const [floatingGalleryEnabled, setFloatingGalleryEnabled] = useState(false);
+  const [galleryTitle, setGalleryTitle] = useState("Our Floating Memories & Whispers");
+  const [gallerySubtitle, setGallerySubtitle] = useState("Hover over each memory to reveal the secret quote inside my heart ✨");
+  const [galleryItems, setGalleryItems] = useState<FloatingGalleryItem[]>(DEFAULT_FLOATING_GALLERY_ITEMS);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  // Step 3: Music & Expiry
+  const [selectedTrack, setSelectedTrack] = useState<MusicTrack | null>(null);
+  const [musicTab, setMusicTab] = useState<"catalog" | "youtube">("catalog");
+  const [selectedCategory, setSelectedCategory] = useState("trending");
+  const [musicSearchQuery, setMusicSearchQuery] = useState("");
+  const [tracks, setTracks] = useState<FreeTouseTrack[]>(CURATED_TRACKS);
+  const [loadingMusic, setLoadingMusic] = useState(false);
+  const [previewTrackId, setPreviewTrackId] = useState<string | null>(null);
+  const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [youtubeLoading, setYoutubeLoading] = useState(false);
+  const [youtubeError, setYoutubeError] = useState<string | null>(null);
+  const [expiryHours, setExpiryHours] = useState(168); // Default 7 days
+  const [trackStartAt, setTrackStartAt] = useState(0); // Starting timestamp in seconds
+  const [isYtTesting, setIsYtTesting] = useState(false);
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Format seconds into MM:SS
+  const formatTime = (seconds: number) => {
+    const s = Math.max(0, Math.floor(seconds || 0));
+    const m = Math.floor(s / 60);
+    const rem = s % 60;
+    return `${m}:${rem < 10 ? "0" : ""}${rem}`;
+  };
+
+  // Step 4: Submission & Results
+  const [isCreating, setIsCreating] = useState(false);
+  const [creationError, setCreationError] = useState<string | null>(null);
+  const [generatedCode, setGeneratedCode] = useState("");
+  const [generatedUrl, setGeneratedUrl] = useState("");
+  const [generatedManageUrl, setGeneratedManageUrl] = useState("");
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  // Pre-load recommended music tracks
+  const fetchMusic = useCallback(async (query: string) => {
+    setLoadingMusic(true);
+    try {
+      const q = query.trim() || "love";
+      const res = await fetch(`/api/music/search?q=${encodeURIComponent(q)}&limit=8`);
+      const data = await res.json();
+      if (data?.tracks && Array.isArray(data.tracks) && data.tracks.length > 0) {
+        setTracks(data.tracks);
+        setSelectedTrack((prev) => {
+          if (!prev) {
+            const first = data.tracks[0];
+            return {
+              id: first.id,
+              title: first.title,
+              artist: first.artists?.[0]?.[1]?.name || "Artist",
+              thumbnailUrl: first.thumbnails?.md || first.thumbnails?.sm || "",
+              mp3Url: first.files?.mp3 || "",
+              duration: first.duration,
+              startAt: 0,
+              waveform: first.waveform || [],
+              type: "freetouse",
+            };
+          }
+          return prev;
+        });
+      } else {
+        setTracks(CURATED_TRACKS);
+      }
+    } catch {
+      setTracks(CURATED_TRACKS);
+    } finally {
+      setLoadingMusic(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void fetchMusic("love");
+  }, [fetchMusic]);
+
+  const handlePreviewMusic = (track: FreeTouseTrack, startAtSeconds = 0) => {
+    if (previewTrackId === track.id) {
+      previewAudioRef.current?.pause();
+      setPreviewTrackId(null);
+    } else {
+      if (previewAudioRef.current) {
+        previewAudioRef.current.pause();
+      }
+      const audio = new Audio(track.files.mp3);
+      const applyTime = () => {
+        if (startAtSeconds > 0) {
+          try {
+            audio.currentTime = startAtSeconds;
+          } catch {}
+        }
+      };
+      audio.addEventListener("loadedmetadata", applyTime);
+      audio.onended = () => setPreviewTrackId(null);
+      audio.play().then(() => {
+        applyTime();
+        previewAudioRef.current = audio;
+        setPreviewTrackId(track.id);
+      }).catch(() => {});
+    }
+  };
+
+  const handleStartAtChange = (newSec: number) => {
+    const maxSec = selectedTrack ? Math.max(0, Math.floor(selectedTrack.duration || 300) - 1) : 600;
+    const clamped = Math.max(0, Math.min(newSec, maxSec));
+    setTrackStartAt(clamped);
+    setSelectedTrack((prev) => (prev ? { ...prev, startAt: clamped } : null));
+
+    if (previewAudioRef.current && previewTrackId === selectedTrack?.id) {
+      try {
+        previewAudioRef.current.currentTime = clamped;
+      } catch {}
+    }
+  };
+
+  const toggleSelectedPreview = () => {
+    if (!selectedTrack) return;
+    if (selectedTrack.type === "youtube") {
+      setIsYtTesting((prev) => !prev);
+      return;
+    }
+    if (previewTrackId === selectedTrack.id) {
+      previewAudioRef.current?.pause();
+      setPreviewTrackId(null);
+    } else {
+      if (previewAudioRef.current) {
+        previewAudioRef.current.pause();
+      }
+      const audio = new Audio(selectedTrack.mp3Url);
+      const applyTime = () => {
+        if (trackStartAt > 0) {
+          try {
+            audio.currentTime = trackStartAt;
+          } catch {}
+        }
+      };
+      audio.addEventListener("loadedmetadata", applyTime);
+      audio.onended = () => setPreviewTrackId(null);
+      audio
+        .play()
+        .then(() => {
+          applyTime();
+          previewAudioRef.current = audio;
+          setPreviewTrackId(selectedTrack.id);
+        })
+        .catch(() => {});
+    }
+  };
+
+  const handleSelectTrack = (track: FreeTouseTrack) => {
+    if (previewAudioRef.current) {
+      previewAudioRef.current.pause();
+      setPreviewTrackId(null);
+    }
+    setIsYtTesting(false);
+    setTrackStartAt(0);
+    setSelectedTrack({
+      id: track.id,
+      title: track.title,
+      artist: track.artists?.[0]?.[1]?.name || "Artist",
+      thumbnailUrl: track.thumbnails?.md || track.thumbnails?.sm || "",
+      mp3Url: track.files?.mp3 || "",
+      duration: track.duration,
+      startAt: 0,
+      waveform: track.waveform || [],
+      type: "freetouse",
+    });
+  };
+
+  const handleVerifyYoutube = async () => {
+    const cleanUrl = youtubeUrl.trim();
+    if (!cleanUrl) return;
+    setYoutubeLoading(true);
+    setYoutubeError(null);
+    try {
+      const res = await fetch("/api/music/youtube", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: cleanUrl }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Could not load YouTube track.");
+      const startSec = data.track?.startAt || 0;
+      const track: MusicTrack = data.track || {
+        id: `yt-${data.videoId}`,
+        title: data.title || "YouTube Romantic Track",
+        artist: data.author || data.artist || "YouTube Artist",
+        thumbnailUrl: data.thumbnailUrl || `https://img.youtube.com/vi/${data.videoId}/hqdefault.jpg`,
+        mp3Url: `https://www.youtube.com/watch?v=${data.videoId}`,
+        duration: data.duration || 300,
+        startAt: startSec,
+        waveform: [],
+        type: "youtube",
+        youtubeId: data.videoId,
+        youtubeUrl: `https://www.youtube.com/watch?v=${data.videoId}`,
+      };
+      setSelectedTrack(track);
+      setTrackStartAt(startSec);
+      setIsYtTesting(false);
+    } catch (err: unknown) {
+      setYoutubeError((err as Error).message || "Invalid YouTube link. Please check the URL.");
+    } finally {
+      setYoutubeLoading(false);
+    }
+  };
+
+  const handleAddSlot = () => {
+    if (!newSlotInput.trim()) return;
+    setDateSlots((prev) => [
+      ...prev,
+      {
+        id: `slot_${Date.now()}`,
+        start_time: newSlotInput.trim(),
+        label: newSlotInput.trim(),
+      },
+    ]);
+    setNewSlotInput("");
+  };
+
+  const handleRemoveSlot = (id: string) => {
+    setDateSlots((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  const handleAddPollOption = () => {
+    if (!newPollOption.trim()) return;
+    setPollOptions((prev) => [...prev, newPollOption.trim()]);
+    setNewPollOption("");
+  };
+
+  const handleRemovePollOption = (index: number) => {
+    setPollOptions((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleAddBucketItem = () => {
+    if (!newBucketItem.trim()) return;
+    setBucketItems((prev) => [...prev, newBucketItem.trim()]);
+    setNewBucketItem("");
+  };
+
+  const handleRemoveBucketItem = (index: number) => {
+    setBucketItems((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Floating Photo & Quote Gallery Handlers
+  const handleUploadPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingPhoto(true);
+    setUploadError(null);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "bonded/couple_templates");
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Upload failed");
+      const newItem: FloatingGalleryItem = {
+        id: `float_${Date.now()}`,
+        url: data.url || data.secure_url,
+        quote: "A precious moment that will live in my heart forever.",
+        author: yourName.trim() || "You & Me",
+        aspect: "tall",
+      };
+      setGalleryItems((prev) => [...prev, newItem]);
+    } catch (err: unknown) {
+      setUploadError((err as Error).message || "Could not upload image. Please try again.");
+    } finally {
+      setIsUploadingPhoto(false);
+      if (e.target) e.target.value = "";
+    }
+  };
+
+  const handleUpdateItemQuote = (id: string, quote: string) => {
+    setGalleryItems((prev) => prev.map((item) => (item.id === id ? { ...item, quote } : item)));
+  };
+
+  const handleUpdateItemAuthor = (id: string, author: string) => {
+    setGalleryItems((prev) => prev.map((item) => (item.id === id ? { ...item, author } : item)));
+  };
+
+  const handleUpdateItemAspect = (id: string, aspect: "tall" | "wide" | "square" | "circle" | "badge") => {
+    setGalleryItems((prev) => prev.map((item) => (item.id === id ? { ...item, aspect } : item)));
+  };
+
+  const handleRemoveGalleryItem = (id: string) => {
+    setGalleryItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const handleResetDefaultGallery = () => {
+    setGalleryItems(DEFAULT_FLOATING_GALLERY_ITEMS);
+  };
+
+  // Compile all tools into valid payload
+  const buildToolsPayload = (): TemplateTool[] => {
+    const tools: TemplateTool[] = [];
+
+    // 1. T01: Reply Tool
+    if (replyToolEnabled) {
+      tools.push({
+        id: "reply_t01",
+        type: "reply",
+        enabled: true,
+        prompt: "Leave a love note or message for me...",
+        enabledFormats: {
+          text: true,
+          photo: replyAllowPhoto,
+          voice: replyAllowVoice,
+        },
+        maxChars: 2000,
+        maxPhotos: 3,
+        maxVoiceSeconds: 60,
+        allowMultiple: true,
+        quickReactions: ["❤️", "🥰", "🥺", "✨", "💋"],
+      });
+    }
+
+    // 2 & 3. T02 & T03: Date Invitation & Location
+    if (dateToolEnabled) {
+      tools.push({
+        id: "invitation_t02",
+        type: "invitation",
+        enabled: true,
+        activity: "Our Next Little Date",
+        invitationMessage: "Pick our next little date?",
+        format: locationToolEnabled ? dateFormat : "in_person",
+        location: locationToolEnabled ? dateLocation.trim() || "Our Favorite Cozy Cafe" : undefined,
+        dateMode: "slots",
+        durationMinutes: 120,
+        senderTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+        proposedSlots: dateSlots.map((s) => ({
+          id: s.id,
+          start_time: s.start_time,
+          label: s.label,
+        })),
+        allowCounterproposal: true,
+      });
+    }
+
+    // 4. T04: Choice Poll
+    if (pollToolEnabled) {
+      tools.push({
+        id: "poll_t04",
+        type: "poll",
+        enabled: true,
+        question: pollQuestion.trim() || "What should we do for our date tonight?",
+        description: "Vote for your favorite idea!",
+        selectionMode: "both_vote",
+        allowMultiple: false,
+        allowCustomSuggestion: true,
+        options: pollOptions.map((opt, i) => ({
+          id: `opt_${i + 1}`,
+          text: opt.trim(),
+        })),
+      });
+    }
+
+    // 5. T05: Heart-to-Heart Question
+    if (questionToolEnabled) {
+      tools.push({
+        id: "question_t05",
+        type: "question",
+        enabled: true,
+        title: "A Little Question For You",
+        description: "Share your heartfelt thoughts with me.",
+        questions: [
+          {
+            id: "q_pink_1",
+            prompt: questionPrompt.trim() || "What was your favorite little moment from our first date?",
+            type: "short",
+            skippable: true,
+            reveal_mode: "after_partner_answers",
+          },
+        ],
+      });
+    }
+
+    // 6. T06: Synchronized Secret Reveal
+    if (revealToolEnabled) {
+      tools.push({
+        id: "reveal_t06",
+        type: "private_reveal",
+        enabled: true,
+        prompt: revealPrompt.trim() || "A secret confession that only unlocks when we both open it...",
+        description: "Locked surprise unlocked together.",
+        countdownSeconds: 3,
+      });
+    }
+
+    // 7. T07: Scratch-to-Reveal Card
+    if (scratchToolEnabled) {
+      tools.push({
+        id: "scratch_t07",
+        type: "scratch_reveal",
+        enabled: true,
+        coverTitle: scratchTitle.trim() || "A secret surprise for you ✨",
+        coverInstruction: "Scratch with your finger or mouse to reveal",
+        contentType: "message",
+        hiddenMessage: scratchSecret.trim() || "I fell in love with your smile first. Happy Little Pink Day!",
+      });
+    }
+
+    // 8. T08: Sweet Love Coupon
+    if (couponToolEnabled) {
+      tools.push({
+        id: "coupon_t08",
+        type: "coupon",
+        enabled: true,
+        title: couponTitle.trim() || "One Cozy Backrub & Warm Hug",
+        description: couponDesc.trim() || "Redeemable whenever you feel tired or need extra love.",
+        enableScheduling: true,
+      });
+    }
+
+    // 9. T09: Open When Letter
+    if (openWhenEnabled) {
+      tools.push({
+        id: "open_when_t09",
+        type: "open_when",
+        enabled: true,
+        title: "Open When Sealed Letter",
+        description: "A letter for when you need a hug.",
+        attachReply: true,
+        envelopes: [
+          {
+            id: "env_pink_1",
+            occasion: openWhenOccasion.trim() || "Open when you miss me",
+            message: openWhenLetter.trim() || "Whenever you feel lonely, remember that my heart is always right beside you.",
+          },
+        ],
+      });
+    }
+
+    // 10. T10: Our Story Memories
+    if (ourStoryEnabled) {
+      tools.push({
+        id: "our_story_t10",
+        type: "our_story",
+        enabled: true,
+        title: "Our Story Memories",
+        description: "A journey through our favorite moments together.",
+        cards: storyCards.map((c, i) => ({
+          id: `card_${i + 1}`,
+          photo_url: c.photo_url,
+          caption: c.caption,
+          order: i + 1,
+        })),
+      });
+    }
+
+    // 11. T11: Couple Bucket List
+    if (bucketListEnabled) {
+      tools.push({
+        id: "bucket_list_t11",
+        type: "bucket_list",
+        enabled: true,
+        title: "Mini Couple Bucket List",
+        description: "Adventures and dreams we want to experience together.",
+        items: bucketItems.map((item, i) => ({
+          id: `b_${i + 1}`,
+          title: item.trim(),
+          status: "wished",
+          created_by: "creator",
+        })),
+      });
+    }
+
+    // 12. Floating Photo & Quote Gallery
+    if (floatingGalleryEnabled && galleryItems.length > 0) {
+      tools.push({
+        id: "floating_gallery",
+        type: "floating_gallery",
+        enabled: true,
+        title: galleryTitle.trim() || "Our Floating Memories & Whispers",
+        subtitle: gallerySubtitle.trim() || "Hover over each memory to reveal the secret quote inside my heart ✨",
+        items: galleryItems,
+      } as unknown as TemplateTool);
+    }
+
+    return tools;
+  };
+
+  const handleCreateTemplate = async () => {
+    if (!partnerName.trim() || !yourName.trim()) {
+      setStep(0);
+      return;
+    }
+
+    setIsCreating(true);
+    setCreationError(null);
+
+    try {
+      const toolsPayload = buildToolsPayload();
+
+      const payload = {
+        theme: "our-little-pink-day",
+        scene_index: 0,
+        partner_name: partnerName.trim(),
+        partner_from: yourName.trim(),
+        message: personalMessage.trim() || PINK_DAY_CONFIG.defaultMessage,
+        sender_gender: "male" as const,
+        music_track: selectedTrack ? { ...selectedTrack, startAt: trackStartAt } : null,
+        has_media: false,
+        media_items: [],
+        expiry_hours: expiryHours,
+        tools: toolsPayload,
+      };
+
+      const res = await fetch("/api/templates/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error || "Could not create your template. Please try again.");
+      }
+
+      setGeneratedCode(data.short_code);
+      setGeneratedUrl(data.url);
+      setGeneratedManageUrl(data.manage_url);
+      setStep(4); // Advance to completion screen
+    } catch (err: unknown) {
+      setCreationError((err as Error).message || "An error occurred during template creation.");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleCopyLink = () => {
+    if (generatedUrl) {
+      navigator.clipboard.writeText(generatedUrl);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    }
+  };
+
+  return (
+    <div
+      className="min-h-screen text-[#51253E] selection:bg-[#A43F66] selection:text-white"
+      style={{ backgroundColor: PINK_DAY_PALETTE.background }}
+    >
+      <Navbar />
+
+      <main className="max-w-4xl mx-auto pt-24 pb-20 px-4 sm:px-6">
+        {/* ─────────────────────────────────────────────
+            HEADER & STEP INDICATOR
+        ───────────────────────────────────────────── */}
+        <div className="text-center max-w-2xl mx-auto mb-10 space-y-4">
+          <Link
+            href="/templates"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white border border-[#F7BFD5] text-xs font-bold text-[#A43F66] hover:bg-[#FFE9F1] transition-all shadow-2xs"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Templates</span>
+          </Link>
+
+          <div>
+            <span className="text-xs font-bold uppercase tracking-widest text-[#A43F66] flex items-center justify-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#A43F66]" />
+              <span>Contemporary 2D Pastel Romance</span>
+            </span>
+            <h1 className="text-3xl sm:text-4xl font-black text-[#51253E] tracking-tight mt-1">
+              Create &quot;Our Little Pink Day&quot;
+            </h1>
+            <p className="text-xs sm:text-sm text-[#79566C] font-medium mt-1">
+              {PINK_DAY_CONFIG.tagline} • 6-scene illustrated date story with interactive RSVP
+            </p>
+          </div>
+
+          {/* Clean Stepper */}
+          <div className="flex items-center justify-center gap-2 pt-2">
+            {[
+              { num: 1, label: "Couple & Message" },
+              { num: 2, label: "Tools Selection" },
+              { num: 3, label: "Floating Gallery" },
+              { num: 4, label: "Music & Expiry" },
+              { num: 5, label: "Share Link" },
+            ].map((s, idx) => (
+              <div key={s.num} className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => idx < step && setStep(idx)}
+                  disabled={idx > step}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                    step === idx
+                      ? "bg-[#A43F66] text-white shadow-xs"
+                      : idx < step
+                      ? "bg-[#FFE9F1] text-[#A43F66] cursor-pointer"
+                      : "bg-white/60 text-[#79566C]/60"
+                  }`}
+                >
+                  <span className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center text-[10px]">
+                    {s.num}
+                  </span>
+                  <span className="hidden sm:inline">{s.label}</span>
+                </button>
+                {idx < 4 && <span className="text-[#F7BFD5] text-xs">→</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ─────────────────────────────────────────────
+            STEP 1: COUPLE & ROMANTIC MESSAGE
+        ───────────────────────────────────────────── */}
+        {step === 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-8"
+          >
+            {/* Story Filmstrip Preview */}
+            <div className="p-5 sm:p-6 rounded-3xl bg-white border border-[#F7BFD5] shadow-xs space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-[#51253E] flex items-center gap-2">
+                    <Heart className="w-4 h-4 fill-[#A43F66] text-[#A43F66]" />
+                    <span>Included 6-Scene Story Flow</span>
+                  </h3>
+                  <p className="text-xs text-[#79566C]">
+                    Your partner will watch this 27.5-second illustrated date unfold.
+                  </p>
+                </div>
+                <span className="text-[11px] font-bold text-[#A43F66] px-2.5 py-1 rounded-full bg-[#FFE9F1]">
+                  Fixed 16:9 2D Artwork
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
+                {PINK_DAY_SCENES.map((scene) => (
+                  <div key={scene.order} className="space-y-1">
+                    <div className="relative aspect-video rounded-xl overflow-hidden border border-[#F7BFD5] bg-[#FFE9F1]">
+                      <Image
+                        src={scene.file}
+                        alt={scene.title}
+                        fill
+                        sizes="160px"
+                        className="object-cover"
+                      />
+                      <span className="absolute bottom-1 right-1 px-1 rounded bg-black/60 text-white text-[9px] font-bold">
+                        #{scene.order}
+                      </span>
+                    </div>
+                    <p className="text-[10px] font-semibold text-[#51253E] truncate">
+                      {scene.title}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Names & Personal Note Card */}
+            <div className="p-6 sm:p-8 rounded-3xl bg-white border border-[#F7BFD5] shadow-sm space-y-6">
+              <h3 className="text-base font-bold text-[#51253E]">
+                Personalize Your Story
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-bold text-[#51253E] block mb-1">
+                    Partner&#39;s Name <span className="text-[#A43F66]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={partnerName}
+                    onChange={(e) => setPartnerName(e.target.value)}
+                    placeholder="E.g., Maya, Emma, My Love..."
+                    className="w-full px-4 py-2.5 rounded-xl bg-[#FFF8FC] border border-[#F7BFD5] text-xs font-semibold text-[#51253E] focus:outline-none focus:border-[#A43F66]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-[#51253E] block mb-1">
+                    Your Name <span className="text-[#A43F66]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={yourName}
+                    onChange={(e) => setYourName(e.target.value)}
+                    placeholder="E.g., Alex, Noah..."
+                    className="w-full px-4 py-2.5 rounded-xl bg-[#FFF8FC] border border-[#F7BFD5] text-xs font-semibold text-[#51253E] focus:outline-none focus:border-[#A43F66]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-[#51253E] block mb-1">
+                  Opening Story Tagline
+                </label>
+                <input
+                  type="text"
+                  value={openingTagline}
+                  onChange={(e) => setOpeningTagline(e.target.value)}
+                  placeholder="Little moments. Favorite person."
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#FFF8FC] border border-[#F7BFD5] text-xs font-medium text-[#51253E] focus:outline-none focus:border-[#A43F66]"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-[#51253E] block mb-1">
+                  Your Personal Message Card (Revealed in Scene 4)
+                </label>
+                <textarea
+                  rows={3}
+                  value={personalMessage}
+                  onChange={(e) => setPersonalMessage(e.target.value)}
+                  placeholder="My favorite part of any day is you."
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#FFF8FC] border border-[#F7BFD5] text-xs font-medium text-[#51253E] focus:outline-none focus:border-[#A43F66] leading-relaxed"
+                />
+                <p className="text-[11px] text-[#79566C] mt-1">
+                  This note appears in an elegant card that never covers the characters&#39; faces.
+                </p>
+              </div>
+
+              <div className="pt-2 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  disabled={!partnerName.trim() || !yourName.trim()}
+                  className="px-7 py-3 rounded-full text-white font-bold text-xs shadow-md hover:scale-105 active:scale-95 disabled:opacity-40 disabled:hover:scale-100 transition-all cursor-pointer flex items-center gap-2"
+                  style={{ backgroundColor: PINK_DAY_PALETTE.accent }}
+                >
+                  <span>Continue to Tools Selection</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ─────────────────────────────────────────────
+            STEP 2: TOOLS SELECTION (THE USER'S MANDATORY REQUIREMENT)
+            "make sure the second step should be tools selection and it should look easy to understand and beautiful and attractive not too much clutter or confussions"
+        ───────────────────────────────────────────── */}
+        {step === 1 && (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
+          >
+            <div className="p-5 rounded-2xl bg-[#FFE9F1] border border-[#F7BFD5] text-center space-y-1">
+              <h3 className="text-base font-bold text-[#51253E]">
+                Select Interactive Tools for {partnerName}
+              </h3>
+              <p className="text-xs text-[#79566C] max-w-lg mx-auto">
+                Toggle whichever moments you want included. Everything is pre-configured with sweet defaults so you can launch instantly without stress.
+              </p>
+            </div>
+
+            {/* Tools Grid: 3 in a row on desktop (lg:grid-cols-3) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Tool 1: Voice & Photo Love Notes */}
+              <div
+                className={`p-4 sm:p-5 rounded-3xl border-2 transition-all flex flex-col justify-between ${
+                  replyToolEnabled
+                    ? "bg-white border-[#A43F66] shadow-sm"
+                    : "bg-[#FFF8FC]/60 border-rose-100/80 opacity-75"
+                }`}
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-9 h-9 rounded-xl bg-[#FFE9F1] flex items-center justify-center text-lg shadow-2xs">
+                        💌
+                      </div>
+                      <span className="px-2 py-0.5 rounded-full bg-[#FFE9F1] text-[10px] font-bold text-[#A43F66]">
+                        Core Feature
+                      </span>
+                    </div>
+
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={replyToolEnabled}
+                        onChange={(e) => setReplyToolEnabled(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-10 h-5 bg-rose-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#A43F66]"></div>
+                    </label>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-bold text-[#51253E]">
+                      1. Voice &amp; Photo Notes
+                    </h4>
+                    <p className="text-xs text-[#79566C] mt-1 leading-snug">
+                      Lets {partnerName || "your partner"} record voice memos, send selfies, and react with emojis privately to you.
+                    </p>
+                  </div>
+
+                  {replyToolEnabled && (
+                    <div className="pt-2 flex items-center gap-3 border-t border-rose-100 text-xs">
+                      <label className="flex items-center gap-1.5 cursor-pointer text-[#51253E] font-medium">
+                        <input
+                          type="checkbox"
+                          checked={replyAllowVoice}
+                          onChange={(e) => setReplyAllowVoice(e.target.checked)}
+                          className="accent-[#A43F66]"
+                        />
+                        <span>🎙️ Voice Notes</span>
+                      </label>
+                      <label className="flex items-center gap-1.5 cursor-pointer text-[#51253E] font-medium">
+                        <input
+                          type="checkbox"
+                          checked={replyAllowPhoto}
+                          onChange={(e) => setReplyAllowPhoto(e.target.checked)}
+                          className="accent-[#A43F66]"
+                        />
+                        <span>📸 Photo Uploads</span>
+                      </label>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Tool 2: Date Night & RSVP */}
+              <div
+                className={`p-4 sm:p-5 rounded-3xl border-2 transition-all flex flex-col justify-between ${
+                  dateToolEnabled
+                    ? "bg-white border-[#A43F66] shadow-sm"
+                    : "bg-[#FFF8FC]/60 border-rose-100/80 opacity-75"
+                }`}
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-9 h-9 rounded-xl bg-[#FFE9F1] flex items-center justify-center text-lg shadow-2xs">
+                        📅
+                      </div>
+                      <span className="px-2 py-0.5 rounded-full bg-[#FFE9F1] text-[10px] font-bold text-[#A43F66]">
+                        Recommended
+                      </span>
+                    </div>
+
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={dateToolEnabled}
+                        onChange={(e) => setDateToolEnabled(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-10 h-5 bg-rose-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#A43F66]"></div>
+                    </label>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-bold text-[#51253E]">
+                      2. Date Night &amp; RSVP
+                    </h4>
+                    <p className="text-xs text-[#79566C] mt-1 leading-snug">
+                      Invites {partnerName || "your partner"} to choose your next date activity &amp; time. Their RSVP arrives in your dashboard.
+                    </p>
+                  </div>
+
+                  {dateToolEnabled && (
+                    <div className="pt-2 space-y-2 border-t border-rose-100">
+                      <div className="text-[11px] font-bold text-[#A43F66]">
+                        Proposed Time Slots:
+                      </div>
+                      <div className="space-y-1 max-h-28 overflow-y-auto">
+                        {dateSlots.map((slot) => (
+                          <div
+                            key={slot.id}
+                            className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-[#FFF8FC] border border-rose-100 text-xs text-[#51253E]"
+                          >
+                            <span className="truncate">{slot.label}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveSlot(slot.id)}
+                              className="text-rose-400 hover:text-rose-700 p-0.5 shrink-0"
+                              title="Delete slot"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex gap-1.5 pt-1">
+                        <input
+                          type="text"
+                          value={newSlotInput}
+                          onChange={(e) => setNewSlotInput(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && handleAddSlot()}
+                          placeholder="Add slot (e.g. Sunday 5:00 PM)..."
+                          className="flex-1 px-3 py-1.5 rounded-xl bg-[#FFF8FC] border border-[#F7BFD5] text-xs text-[#51253E] focus:outline-none focus:border-[#A43F66]"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddSlot}
+                          className="px-3 py-1.5 rounded-xl bg-[#A43F66] text-white text-xs font-bold hover:scale-105 active:scale-95 transition-all shadow-2xs"
+                        >
+                          Add
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Tool 3: Date Venue & Format */}
+              <div
+                className={`p-4 sm:p-5 rounded-3xl border-2 transition-all flex flex-col justify-between ${
+                  locationToolEnabled
+                    ? "bg-white border-[#A43F66] shadow-sm"
+                    : "bg-[#FFF8FC]/60 border-rose-100/80 opacity-75"
+                }`}
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-9 h-9 rounded-xl bg-[#FFE9F1] flex items-center justify-center text-lg shadow-2xs">
+                        📍
+                      </div>
+                      <span className="px-2 py-0.5 rounded-full bg-[#FFE9F1] text-[10px] font-bold text-[#A43F66]">
+                        Meetup Venue
+                      </span>
+                    </div>
+
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={locationToolEnabled}
+                        onChange={(e) => setLocationToolEnabled(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-10 h-5 bg-rose-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#A43F66]"></div>
+                    </label>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-bold text-[#51253E]">
+                      3. Date Venue &amp; Format
+                    </h4>
+                    <p className="text-xs text-[#79566C] mt-1 leading-snug">
+                      Set whether your date is in-person (cafe, cinema) or online (FaceTime date, watch party) and the venue name.
+                    </p>
+                  </div>
+
+                  {locationToolEnabled && (
+                    <div className="pt-2 space-y-2 border-t border-rose-100">
+                      <div>
+                        <label className="text-[10px] font-bold text-[#A43F66] block mb-1">
+                          Date Format:
+                        </label>
+                        <div className="grid grid-cols-2 gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setDateFormat("in_person")}
+                            className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                              dateFormat === "in_person"
+                                ? "bg-[#A43F66] text-white shadow-2xs"
+                                : "bg-[#FFF8FC] border border-[#F7BFD5] text-[#51253E]"
+                            }`}
+                          >
+                            🏡 In-Person
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDateFormat("online")}
+                            className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                              dateFormat === "online"
+                                ? "bg-[#A43F66] text-white shadow-2xs"
+                                : "bg-[#FFF8FC] border border-[#F7BFD5] text-[#51253E]"
+                            }`}
+                          >
+                            💻 Online Date
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-[10px] font-bold text-[#A43F66] block mb-0.5">
+                          Venue or Meeting Spot:
+                        </label>
+                        <input
+                          type="text"
+                          value={dateLocation}
+                          onChange={(e) => setDateLocation(e.target.value)}
+                          placeholder="E.g. Our Favorite Cozy Cafe..."
+                          className="w-full px-3 py-1.5 rounded-xl bg-[#FFF8FC] border border-[#F7BFD5] text-xs text-[#51253E] focus:outline-none focus:border-[#A43F66]"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Tool 4: Vibe Check & Choice Poll */}
+              <div
+                className={`p-4 sm:p-5 rounded-3xl border-2 transition-all flex flex-col justify-between ${
+                  pollToolEnabled
+                    ? "bg-white border-[#A43F66] shadow-sm"
+                    : "bg-[#FFF8FC]/60 border-rose-100/80 opacity-75"
+                }`}
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-9 h-9 rounded-xl bg-[#FFE9F1] flex items-center justify-center text-lg shadow-2xs">
+                        📊
+                      </div>
+                      <span className="px-2 py-0.5 rounded-full bg-[#FFE9F1] text-[10px] font-bold text-[#A43F66]">
+                        Fun Choice
+                      </span>
+                    </div>
+
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={pollToolEnabled}
+                        onChange={(e) => setPollToolEnabled(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-10 h-5 bg-rose-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#A43F66]"></div>
+                    </label>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-bold text-[#51253E]">
+                      4. Vibe Check &amp; Poll
+                    </h4>
+                    <p className="text-xs text-[#79566C] mt-1 leading-snug">
+                      Set up a poll so {partnerName || "your partner"} can vote on dinner plans, movie picks, or surprise weekend outings.
+                    </p>
+                  </div>
+
+                  {pollToolEnabled && (
+                    <div className="pt-2 space-y-2 border-t border-rose-100">
+                      <div>
+                        <label className="text-[10px] font-bold text-[#A43F66] block mb-0.5">
+                          Poll Question:
+                        </label>
+                        <input
+                          type="text"
+                          value={pollQuestion}
+                          onChange={(e) => setPollQuestion(e.target.value)}
+                          placeholder="What should we do tonight?..."
+                          className="w-full px-3 py-1.5 rounded-xl bg-[#FFF8FC] border border-[#F7BFD5] text-xs text-[#51253E] focus:outline-none focus:border-[#A43F66]"
+                        />
+                      </div>
+
+                      <div className="space-y-1 max-h-24 overflow-y-auto">
+                        {pollOptions.map((opt, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center justify-between px-2.5 py-1 rounded-xl bg-[#FFF8FC] border border-rose-100 text-xs text-[#51253E]"
+                          >
+                            <span className="truncate">{opt}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemovePollOption(idx)}
+                              className="text-rose-400 hover:text-rose-700 p-0.5 shrink-0"
+                              title="Delete option"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex gap-1.5 pt-0.5">
+                        <input
+                          type="text"
+                          value={newPollOption}
+                          onChange={(e) => setNewPollOption(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && handleAddPollOption()}
+                          placeholder="Add choice..."
+                          className="flex-1 px-3 py-1.5 rounded-xl bg-[#FFF8FC] border border-[#F7BFD5] text-xs text-[#51253E] focus:outline-none focus:border-[#A43F66]"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddPollOption}
+                          className="px-3 py-1.5 rounded-xl bg-[#A43F66] text-white text-xs font-bold hover:scale-105 active:scale-95 transition-all shadow-2xs"
+                        >
+                          Add
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Tool 5: Heart-to-Heart Q&A Prompt */}
+              <div
+                className={`p-4 sm:p-5 rounded-3xl border-2 transition-all flex flex-col justify-between ${
+                  questionToolEnabled
+                    ? "bg-white border-[#A43F66] shadow-sm"
+                    : "bg-[#FFF8FC]/60 border-rose-100/80 opacity-75"
+                }`}
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-9 h-9 rounded-xl bg-[#FFE9F1] flex items-center justify-center text-lg shadow-2xs">
+                        💭
+                      </div>
+                      <span className="px-2 py-0.5 rounded-full bg-[#FFE9F1] text-[10px] font-bold text-[#A43F66]">
+                        Romantic
+                      </span>
+                    </div>
+
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={questionToolEnabled}
+                        onChange={(e) => setQuestionToolEnabled(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-10 h-5 bg-rose-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#A43F66]"></div>
+                    </label>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-bold text-[#51253E]">
+                      5. Heart-to-Heart Q&amp;A
+                    </h4>
+                    <p className="text-xs text-[#79566C] mt-1 leading-snug">
+                      Ask a sweet question that {partnerName || "your partner"} answers before continuing through the story scenes.
+                    </p>
+                  </div>
+
+                  {questionToolEnabled && (
+                    <div className="pt-2 space-y-1.5 border-t border-rose-100">
+                      <label className="text-[11px] font-bold text-[#A43F66] block">
+                        Your Question:
+                      </label>
+                      <input
+                        type="text"
+                        value={questionPrompt}
+                        onChange={(e) => setQuestionPrompt(e.target.value)}
+                        placeholder="What was your favorite moment from our first date?..."
+                        className="w-full px-3 py-1.5 rounded-xl bg-[#FFF8FC] border border-[#F7BFD5] text-xs text-[#51253E] focus:outline-none focus:border-[#A43F66]"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Tool 6: Synchronized Secret Reveal */}
+              <div
+                className={`p-4 sm:p-5 rounded-3xl border-2 transition-all flex flex-col justify-between ${
+                  revealToolEnabled
+                    ? "bg-white border-[#A43F66] shadow-sm"
+                    : "bg-[#FFF8FC]/60 border-rose-100/80 opacity-75"
+                }`}
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-9 h-9 rounded-xl bg-[#FFE9F1] flex items-center justify-center text-lg shadow-2xs">
+                        🔒
+                      </div>
+                      <span className="px-2 py-0.5 rounded-full bg-[#FFE9F1] text-[10px] font-bold text-[#A43F66]">
+                        Mutual Lock
+                      </span>
+                    </div>
+
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={revealToolEnabled}
+                        onChange={(e) => setRevealToolEnabled(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-10 h-5 bg-rose-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#A43F66]"></div>
+                    </label>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-bold text-[#51253E]">
+                      6. Synchronized Secret
+                    </h4>
+                    <p className="text-xs text-[#79566C] mt-1 leading-snug">
+                      A locked confession or surprise note with a countdown that only unlocks when both of you open it together.
+                    </p>
+                  </div>
+
+                  {revealToolEnabled && (
+                    <div className="pt-2 space-y-1.5 border-t border-rose-100">
+                      <label className="text-[11px] font-bold text-[#A43F66] block">
+                        Confession / Secret Note:
+                      </label>
+                      <input
+                        type="text"
+                        value={revealPrompt}
+                        onChange={(e) => setRevealPrompt(e.target.value)}
+                        placeholder="A secret confession that unlocks together..."
+                        className="w-full px-3 py-1.5 rounded-xl bg-[#FFF8FC] border border-[#F7BFD5] text-xs text-[#51253E] focus:outline-none focus:border-[#A43F66]"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Tool 7: Scratch-to-Reveal Card */}
+              <div
+                className={`p-4 sm:p-5 rounded-3xl border-2 transition-all flex flex-col justify-between ${
+                  scratchToolEnabled
+                    ? "bg-white border-[#A43F66] shadow-sm"
+                    : "bg-[#FFF8FC]/60 border-rose-100/80 opacity-75"
+                }`}
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-9 h-9 rounded-xl bg-[#FFE9F1] flex items-center justify-center text-lg shadow-2xs">
+                        🪄
+                      </div>
+                      <span className="px-2 py-0.5 rounded-full bg-[#FFE9F1] text-[10px] font-bold text-[#A43F66]">
+                        Surprise
+                      </span>
+                    </div>
+
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={scratchToolEnabled}
+                        onChange={(e) => setScratchToolEnabled(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-10 h-5 bg-rose-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#A43F66]"></div>
+                    </label>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-bold text-[#51253E]">
+                      7. Scratch Card Surprise
+                    </h4>
+                    <p className="text-xs text-[#79566C] mt-1 leading-snug">
+                      A foil scratch card {partnerName || "your partner"} scratches off using their finger or mouse to uncover a hidden note.
+                    </p>
+                  </div>
+
+                  {scratchToolEnabled && (
+                    <div className="pt-2 space-y-2 border-t border-rose-100">
+                      <div>
+                        <label className="text-[10px] font-bold text-[#A43F66] block mb-0.5">
+                          Foil Cover Title:
+                        </label>
+                        <input
+                          type="text"
+                          value={scratchTitle}
+                          onChange={(e) => setScratchTitle(e.target.value)}
+                          placeholder="A secret surprise for you ✨..."
+                          className="w-full px-3 py-1.5 rounded-xl bg-[#FFF8FC] border border-[#F7BFD5] text-xs text-[#51253E] focus:outline-none focus:border-[#A43F66]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-[#A43F66] block mb-0.5">
+                          Hidden Secret Message:
+                        </label>
+                        <input
+                          type="text"
+                          value={scratchSecret}
+                          onChange={(e) => setScratchSecret(e.target.value)}
+                          placeholder="I fell in love with your smile first..."
+                          className="w-full px-3 py-1.5 rounded-xl bg-[#FFF8FC] border border-[#F7BFD5] text-xs text-[#51253E] focus:outline-none focus:border-[#A43F66]"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Tool 8: Sweet Love Coupon */}
+              <div
+                className={`p-4 sm:p-5 rounded-3xl border-2 transition-all flex flex-col justify-between ${
+                  couponToolEnabled
+                    ? "bg-white border-[#A43F66] shadow-sm"
+                    : "bg-[#FFF8FC]/60 border-rose-100/80 opacity-75"
+                }`}
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-9 h-9 rounded-xl bg-[#FFE9F1] flex items-center justify-center text-lg shadow-2xs">
+                        🎟️
+                      </div>
+                      <span className="px-2 py-0.5 rounded-full bg-[#FFE9F1] text-[10px] font-bold text-[#A43F66]">
+                        Love Voucher
+                      </span>
+                    </div>
+
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={couponToolEnabled}
+                        onChange={(e) => setCouponToolEnabled(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-10 h-5 bg-rose-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#A43F66]"></div>
+                    </label>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-bold text-[#51253E]">
+                      8. Sweet Love Coupon
+                    </h4>
+                    <p className="text-xs text-[#79566C] mt-1 leading-snug">
+                      A cute redeemable voucher {partnerName || "your partner"} can claim anytime (e.g., massage, late night snack, hug).
+                    </p>
+                  </div>
+
+                  {couponToolEnabled && (
+                    <div className="pt-2 space-y-2 border-t border-rose-100">
+                      <div>
+                        <label className="text-[10px] font-bold text-[#A43F66] block mb-0.5">
+                          Coupon Voucher Title:
+                        </label>
+                        <input
+                          type="text"
+                          value={couponTitle}
+                          onChange={(e) => setCouponTitle(e.target.value)}
+                          placeholder="E.g. One Cozy Backrub & Warm Hug..."
+                          className="w-full px-3 py-1.5 rounded-xl bg-[#FFF8FC] border border-[#F7BFD5] text-xs text-[#51253E] focus:outline-none focus:border-[#A43F66]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-[#A43F66] block mb-0.5">
+                          Voucher Perk / Description:
+                        </label>
+                        <input
+                          type="text"
+                          value={couponDesc}
+                          onChange={(e) => setCouponDesc(e.target.value)}
+                          placeholder="Redeemable whenever you feel tired or need love..."
+                          className="w-full px-3 py-1.5 rounded-xl bg-[#FFF8FC] border border-[#F7BFD5] text-xs text-[#51253E] focus:outline-none focus:border-[#A43F66]"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Tool 9: Open When Sealed Letter */}
+              <div
+                className={`p-4 sm:p-5 rounded-3xl border-2 transition-all flex flex-col justify-between ${
+                  openWhenEnabled
+                    ? "bg-white border-[#A43F66] shadow-sm"
+                    : "bg-[#FFF8FC]/60 border-rose-100/80 opacity-75"
+                }`}
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-9 h-9 rounded-xl bg-[#FFE9F1] flex items-center justify-center text-lg shadow-2xs">
+                        ✉️
+                      </div>
+                      <span className="px-2 py-0.5 rounded-full bg-[#FFE9F1] text-[10px] font-bold text-[#A43F66]">
+                        Emotional
+                      </span>
+                    </div>
+
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={openWhenEnabled}
+                        onChange={(e) => setOpenWhenEnabled(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-10 h-5 bg-rose-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#A43F66]"></div>
+                    </label>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-bold text-[#51253E]">
+                      9. Open When Letter
+                    </h4>
+                    <p className="text-xs text-[#79566C] mt-1 leading-snug">
+                      A sealed digital envelope {partnerName || "your partner"} saves and opens whenever they feel lonely, miss you, or need love.
+                    </p>
+                  </div>
+
+                  {openWhenEnabled && (
+                    <div className="pt-2 space-y-2 border-t border-rose-100">
+                      <div>
+                        <label className="text-[10px] font-bold text-[#A43F66] block mb-0.5">
+                          When to open:
+                        </label>
+                        <input
+                          type="text"
+                          value={openWhenOccasion}
+                          onChange={(e) => setOpenWhenOccasion(e.target.value)}
+                          placeholder="E.g. Open when you miss me..."
+                          className="w-full px-3 py-1.5 rounded-xl bg-[#FFF8FC] border border-[#F7BFD5] text-xs text-[#51253E] focus:outline-none focus:border-[#A43F66]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-[#A43F66] block mb-0.5">
+                          Letter content:
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={openWhenLetter}
+                          onChange={(e) => setOpenWhenLetter(e.target.value)}
+                          placeholder="Whenever you feel lonely, remember my heart is always beside you..."
+                          className="w-full px-3 py-1.5 rounded-xl bg-[#FFF8FC] border border-[#F7BFD5] text-xs text-[#51253E] leading-relaxed focus:outline-none focus:border-[#A43F66]"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Tool 10: Our Story Memories */}
+              <div
+                className={`p-4 sm:p-5 rounded-3xl border-2 transition-all flex flex-col justify-between ${
+                  ourStoryEnabled
+                    ? "bg-white border-[#A43F66] shadow-sm"
+                    : "bg-[#FFF8FC]/60 border-rose-100/80 opacity-75"
+                }`}
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-9 h-9 rounded-xl bg-[#FFE9F1] flex items-center justify-center text-lg shadow-2xs">
+                        📖
+                      </div>
+                      <span className="px-2 py-0.5 rounded-full bg-[#FFE9F1] text-[10px] font-bold text-[#A43F66]">
+                        Story Timeline
+                      </span>
+                    </div>
+
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={ourStoryEnabled}
+                        onChange={(e) => setOurStoryEnabled(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-10 h-5 bg-rose-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#A43F66]"></div>
+                    </label>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-bold text-[#51253E]">
+                      10. Our Story Memories
+                    </h4>
+                    <p className="text-xs text-[#79566C] mt-1 leading-snug">
+                      A sweet chronological photo timeline of your relationship milestones and favorite moments together.
+                    </p>
+                  </div>
+
+                  {ourStoryEnabled && (
+                    <div className="pt-2 space-y-1.5 border-t border-rose-100">
+                      <div className="text-[11px] font-bold text-[#A43F66]">
+                        Illustrated Milestones Included:
+                      </div>
+                      <div className="space-y-1 text-xs text-[#79566C]">
+                        {storyCards.map((c, i) => (
+                          <div
+                            key={i}
+                            className="px-2.5 py-1.5 rounded-xl bg-[#FFF8FC] border border-rose-100 truncate text-[11px] text-[#51253E]"
+                          >
+                            #{i + 1} {c.caption}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Tool 11: Couple Bucket List */}
+              <div
+                className={`p-4 sm:p-5 rounded-3xl border-2 transition-all flex flex-col justify-between ${
+                  bucketListEnabled
+                    ? "bg-white border-[#A43F66] shadow-sm"
+                    : "bg-[#FFF8FC]/60 border-rose-100/80 opacity-75"
+                }`}
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-9 h-9 rounded-xl bg-[#FFE9F1] flex items-center justify-center text-lg shadow-2xs">
+                        ✈️
+                      </div>
+                      <span className="px-2 py-0.5 rounded-full bg-[#FFE9F1] text-[10px] font-bold text-[#A43F66]">
+                        Adventures
+                      </span>
+                    </div>
+
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={bucketListEnabled}
+                        onChange={(e) => setBucketListEnabled(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-10 h-5 bg-rose-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#A43F66]"></div>
+                    </label>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-bold text-[#51253E]">
+                      11. Couple Bucket List
+                    </h4>
+                    <p className="text-xs text-[#79566C] mt-1 leading-snug">
+                      A shared wishlist of future dream dates, cute adventures, and travel goals you want to tick off together.
+                    </p>
+                  </div>
+
+                  {bucketListEnabled && (
+                    <div className="pt-2 space-y-2 border-t border-rose-100">
+                      <div className="text-[11px] font-bold text-[#A43F66]">
+                        Dream Adventures:
+                      </div>
+                      <div className="space-y-1 max-h-24 overflow-y-auto">
+                        {bucketItems.map((item, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center justify-between px-2.5 py-1 rounded-xl bg-[#FFF8FC] border border-rose-100 text-xs text-[#51253E]"
+                          >
+                            <span className="truncate">{item}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveBucketItem(idx)}
+                              className="text-rose-400 hover:text-rose-700 p-0.5 shrink-0"
+                              title="Delete adventure"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex gap-1.5 pt-0.5">
+                        <input
+                          type="text"
+                          value={newBucketItem}
+                          onChange={(e) => setNewBucketItem(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && handleAddBucketItem()}
+                          placeholder="Add adventure..."
+                          className="flex-1 px-3 py-1.5 rounded-xl bg-[#FFF8FC] border border-[#F7BFD5] text-xs text-[#51253E] focus:outline-none focus:border-[#A43F66]"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddBucketItem}
+                          className="px-3 py-1.5 rounded-xl bg-[#A43F66] text-white text-xs font-bold hover:scale-105 active:scale-95 transition-all shadow-2xs"
+                        >
+                          Add
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Stepper Navigation */}
+            <div className="pt-4 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => setStep(0)}
+                className="px-5 py-2.5 rounded-full bg-white border border-[#F7BFD5] text-xs font-bold text-[#51253E] hover:bg-[#FFE9F1] transition-all cursor-pointer"
+              >
+                ← Back to Message
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setStep(2)}
+                className="px-7 py-3 rounded-full text-white font-bold text-xs shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-2"
+                style={{ backgroundColor: PINK_DAY_PALETTE.accent }}
+              >
+                <span>Continue to Floating Gallery</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ─────────────────────────────────────────────
+            STEP 3: FLOATING PHOTO & QUOTE GALLERY (Step index 2)
+        ───────────────────────────────────────────── */}
+        {step === 2 && (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-6 sm:p-8 rounded-3xl bg-white border border-[#F7BFD5] shadow-sm space-y-6"
+          >
+            {/* Header + Master Switch */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-rose-100">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#FFE9F1] text-[#A43F66]">
+                    Floating Mosaic Wall
+                  </span>
+                  <span className="text-xs text-[#79566C] font-semibold">Hover Quotes • Zero-Gravity</span>
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-[#51253E] flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-[#A43F66]" />
+                  <span>Floating Photo &amp; Quote Gallery</span>
+                </h3>
+                <p className="text-xs text-[#79566C]">
+                  Display an organic floating mosaic of your memories. When your partner hovers or taps each photo, a romantic quote and note will appear on top ✨
+                </p>
+              </div>
+
+              <label className="inline-flex items-center gap-2.5 cursor-pointer select-none self-start sm:self-auto bg-[#FFF8FC] px-4 py-2 rounded-2xl border border-rose-200 hover:border-[#A43F66] transition-all">
+                <input
+                  type="checkbox"
+                  checked={floatingGalleryEnabled}
+                  onChange={(e) => setFloatingGalleryEnabled(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-10 h-6 bg-slate-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#A43F66] relative"></div>
+                <span className="text-xs font-bold text-[#51253E]">
+                  {floatingGalleryEnabled ? "Gallery Enabled" : "Gallery Disabled"}
+                </span>
+              </label>
+            </div>
+
+            {floatingGalleryEnabled && (
+              <div className="space-y-6">
+                {/* Gallery Title & Subtitle */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-[#51253E]">Gallery Section Title</label>
+                    <input
+                      type="text"
+                      value={galleryTitle}
+                      onChange={(e) => setGalleryTitle(e.target.value)}
+                      placeholder="Our Floating Memories & Whispers"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-rose-200 bg-[#FFF8FC] text-xs font-medium text-[#51253E] focus:outline-hidden focus:border-[#A43F66]"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-[#51253E]">Gallery Subtitle</label>
+                    <input
+                      type="text"
+                      value={gallerySubtitle}
+                      onChange={(e) => setGallerySubtitle(e.target.value)}
+                      placeholder="Hover over each memory to reveal the secret quote inside my heart ✨"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-rose-200 bg-[#FFF8FC] text-xs font-medium text-[#51253E] focus:outline-hidden focus:border-[#A43F66]"
+                    />
+                  </div>
+                </div>
+
+                {/* Upload & Preset toolbar */}
+                <div className="p-4 rounded-2xl bg-[#FFF8FC] border border-dashed border-rose-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#A43F66] text-white text-xs font-bold shadow-xs hover:bg-[#8D3455] cursor-pointer transition-all">
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>{isUploadingPhoto ? "Uploading..." : "Upload Couple Photo"}</span>
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/gif"
+                        className="hidden"
+                        disabled={isUploadingPhoto}
+                        onChange={handleUploadPhoto}
+                      />
+                    </label>
+                    <span className="text-[11px] text-[#79566C]">
+                      Supports PNG, JPG, WebP up to 10MB
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleResetDefaultGallery}
+                    className="text-xs font-bold text-[#A43F66] hover:underline cursor-pointer"
+                  >
+                    Reset to 7 Romantic Presets
+                  </button>
+                </div>
+
+                {uploadError && (
+                  <p className="text-xs text-rose-600 bg-rose-50 p-2.5 rounded-xl border border-rose-200 font-medium">
+                    {uploadError}
+                  </p>
+                )}
+
+                {/* Gallery Items List */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-[#A43F66]">
+                      Gallery Photos &amp; Hover Quotes ({galleryItems.length})
+                    </h4>
+                    <span className="text-[11px] text-[#79566C]">
+                      Customize quote, caption &amp; aspect shape
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                    {galleryItems.map((item, idx) => (
+                      <div
+                        key={item.id}
+                        className="p-3.5 rounded-2xl bg-white border border-rose-100 shadow-2xs hover:border-[#F7BFD5] transition-all flex gap-3 items-start"
+                      >
+                        {/* Thumbnail */}
+                        <div className="w-16 h-16 rounded-xl overflow-hidden relative shrink-0 border border-rose-200 bg-rose-50">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={item.url}
+                            alt={item.author || item.caption || "Gallery item"}
+                            className="w-full h-full object-cover"
+                          />
+                          <span className="absolute bottom-0 inset-x-0 bg-black/60 text-white text-[9px] font-bold text-center py-0.5 uppercase">
+                            #{idx + 1}
+                          </span>
+                        </div>
+
+                        {/* Fields */}
+                        <div className="flex-1 space-y-2 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <select
+                              value={item.aspect || (item.aspectRatio === "portrait" ? "tall" : item.aspectRatio) || "tall"}
+                              onChange={(e) =>
+                                handleUpdateItemAspect(
+                                  item.id,
+                                  e.target.value as "tall" | "wide" | "square" | "circle" | "badge"
+                                )
+                              }
+                              className="px-2 py-1 rounded-lg border border-rose-200 bg-[#FFF8FC] text-[11px] font-bold text-[#51253E] focus:outline-hidden"
+                            >
+                              <option value="tall">Tall Portrait (David style)</option>
+                              <option value="wide">Wide Landscape (Birds style)</option>
+                              <option value="square">Square</option>
+                              <option value="circle">Circular Emblem (Dolphin style)</option>
+                              <option value="badge">Mini Badge (ACBC/Yankees style)</option>
+                            </select>
+
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveGalleryItem(item.id)}
+                              className="text-rose-400 hover:text-rose-700 p-1 rounded-lg hover:bg-rose-50 transition-all cursor-pointer"
+                              title="Delete photo"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+
+                          <div className="space-y-1">
+                            <input
+                              type="text"
+                              value={item.quote}
+                              onChange={(e) => handleUpdateItemQuote(item.id, e.target.value)}
+                              placeholder="Hover Quote (e.g. You are my favorite hello...)"
+                              className="w-full px-2.5 py-1.5 rounded-lg border border-rose-200 bg-[#FFF8FC] text-xs text-[#51253E] placeholder:text-rose-300 focus:outline-hidden focus:border-[#A43F66]"
+                            />
+                            <input
+                              type="text"
+                              value={item.author || ""}
+                              onChange={(e) => handleUpdateItemAuthor(item.id, e.target.value)}
+                              placeholder="Photo Caption or Date (e.g. Tokyo, 2024)"
+                              className="w-full px-2.5 py-1.5 rounded-lg border border-rose-200 bg-[#FFF8FC] text-xs text-[#51253E] placeholder:text-rose-300 focus:outline-hidden focus:border-[#A43F66]"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Live Preview Box */}
+                <div className="pt-4 border-t border-rose-100 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[#51253E] flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-[#A43F66]" />
+                      <span>Live Interactive Floating Collage Wall Preview</span>
+                    </span>
+                    <span className="text-[11px] text-[#A43F66] font-semibold">
+                      Hover over any card below to see your quote reveal!
+                    </span>
+                  </div>
+
+                  <div className="rounded-3xl border border-[#F7BFD5] bg-[#FFF8FC]/60 p-4 overflow-hidden">
+                    <FloatingQuoteGallery
+                      title={galleryTitle}
+                      subtitle={gallerySubtitle}
+                      items={galleryItems}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Stepper Navigation */}
+            <div className="pt-4 flex items-center justify-between border-t border-rose-100">
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className="px-5 py-2.5 rounded-full bg-white border border-[#F7BFD5] text-xs font-bold text-[#51253E] hover:bg-[#FFE9F1] transition-all cursor-pointer"
+              >
+                ← Back to Tools Selection
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setStep(3)}
+                className="px-7 py-3 rounded-full text-white font-bold text-xs shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-2"
+                style={{ backgroundColor: PINK_DAY_PALETTE.accent }}
+              >
+                <span>Continue to Music &amp; Expiry</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ─────────────────────────────────────────────
+            STEP 4: MUSIC & EXPIRY (Step index 3)
+        ───────────────────────────────────────────── */}
+        {step === 3 && (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-6 sm:p-8 rounded-3xl bg-white border border-[#F7BFD5] shadow-sm space-y-6"
+          >
+            <div className="space-y-1">
+              <h3 className="text-base font-bold text-[#51253E]">
+                Romantic Soundtrack & Expiry
+              </h3>
+              <p className="text-xs text-[#79566C]">
+                Pick a gentle melody that plays when {partnerName} starts the story.
+              </p>
+            </div>
+
+            {/* Selected Track Banner & Timestamp Picker */}
+            {selectedTrack && (
+              <div className="p-4 sm:p-5 rounded-3xl bg-[#FFF8FC] border-2 border-[#F7BFD5] shadow-xs space-y-4">
+                {/* Header Info */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    {selectedTrack.thumbnailUrl ? (
+                      <div className="w-12 h-12 rounded-xl overflow-hidden relative shrink-0 border border-[#F7BFD5] shadow-2xs">
+                        <Image
+                          src={selectedTrack.thumbnailUrl}
+                          alt={selectedTrack.title}
+                          fill
+                          className="object-cover"
+                          unoptimized
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-xl shrink-0 border border-[#F7BFD5]">
+                        🎵
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#A43F66] uppercase tracking-wider">
+                        <Sparkles className="w-3 h-3" />
+                        <span>Active Soundtrack</span>
+                      </span>
+                      <h4 className="text-xs sm:text-sm font-bold text-[#51253E] truncate">
+                        {selectedTrack.title}
+                      </h4>
+                      <p className="text-[11px] text-[#79566C] truncate">
+                        {selectedTrack.artist} • {selectedTrack.type === "youtube" ? "YouTube Audio" : "Lofi Library"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={toggleSelectedPreview}
+                      className="px-3.5 py-1.5 rounded-full bg-white text-[#A43F66] text-xs font-bold border border-[#F7BFD5] shadow-2xs hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      {previewTrackId === selectedTrack.id || (selectedTrack.type === "youtube" && isYtTesting) ? (
+                        <>
+                          <Pause className="w-3.5 h-3.5 fill-[#A43F66]" />
+                          <span>Stop</span>
+                        </>
+                      ) : (
+                        <>
+                          <Play className="w-3.5 h-3.5 fill-[#A43F66]" />
+                          <span>Test from {formatTime(trackStartAt)}</span>
+                        </>
+                      )}
+                    </button>
+                    <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                      ✓ Active
+                    </span>
+                  </div>
+                </div>
+
+                {/* YouTube Preview Frame (when testing YouTube audio) */}
+                {selectedTrack.type === "youtube" && isYtTesting && selectedTrack.youtubeId && (
+                  <div className="rounded-2xl overflow-hidden aspect-video bg-black/90 border border-[#F7BFD5] shadow-md relative">
+                    <iframe
+                      src={`https://www.youtube-nocookie.com/embed/${selectedTrack.youtubeId}?autoplay=1&start=${trackStartAt}&enablejsapi=1`}
+                      className="w-full h-full border-0"
+                      referrerPolicy="strict-origin-when-cross-origin"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      title="YouTube Preview"
+                    />
+                  </div>
+                )}
+
+                {/* ── Timestamp Controller Card ── */}
+                <div className="p-4 rounded-2xl bg-white border border-[#F7BFD5] space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
+                    <div className="flex items-center gap-2 font-bold text-[#51253E]">
+                      <Clock className="w-3.5 h-3.5 text-[#A43F66]" />
+                      <span>Start song playback from:</span>
+                      <span className="px-2 py-0.5 rounded-lg bg-[#FFE9F1] text-[#A43F66] font-mono font-bold text-xs">
+                        {formatTime(trackStartAt)}
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-[#79566C]">
+                      Total length: {formatTime(selectedTrack.duration || 300)}
+                    </span>
+                  </div>
+
+                  {/* Interactive Waveform Visualizer & Scrubber */}
+                  {selectedTrack.waveform && selectedTrack.waveform.length > 0 && (
+                    <div
+                      className="relative h-12 rounded-xl bg-[#FFF8FC] border border-[#F7BFD5] overflow-hidden cursor-pointer select-none"
+                      onClick={(e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                        const newSec = Math.round(ratio * (selectedTrack.duration || 300));
+                        handleStartAtChange(newSec);
+                      }}
+                      title="Click anywhere to jump timestamp"
+                    >
+                      {/* Bars */}
+                      <div className="absolute inset-0 flex items-end gap-[1px] px-2 py-1.5">
+                        {selectedTrack.waveform.slice(0, 80).map((v, i, arr) => {
+                          const ratio = i / arr.length;
+                          const barSec = ratio * (selectedTrack.duration || 300);
+                          const isPastStart = barSec >= trackStartAt;
+                          return (
+                            <div
+                              key={i}
+                              className="flex-1 rounded-sm transition-colors duration-150"
+                              style={{
+                                height: `${Math.max(15, v)}%`,
+                                backgroundColor: isPastStart ? "#A43F66" : "#F7BFD5",
+                                opacity: isPastStart ? 0.9 : 0.45,
+                              }}
+                            />
+                          );
+                        })}
+                      </div>
+
+                      {/* Chosen Pin Marker */}
+                      <div
+                        className="absolute top-0 bottom-0 w-0.5 pointer-events-none transition-all duration-75"
+                        style={{
+                          left: `${(trackStartAt / Math.max(1, selectedTrack.duration || 300)) * 100}%`,
+                          backgroundColor: "#A43F66",
+                          boxShadow: "0 0 8px rgba(164, 63, 102, 0.6)",
+                        }}
+                      >
+                        <div className="absolute -top-1 -left-2 px-1.5 py-0.5 rounded-full bg-[#A43F66] text-white text-[9px] font-bold shadow-xs whitespace-nowrap">
+                          📍 {formatTime(trackStartAt)}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Timeline Slider */}
+                  <input
+                    type="range"
+                    min={0}
+                    max={Math.max(1, Math.floor(selectedTrack.duration || 300) - 2)}
+                    value={trackStartAt}
+                    onChange={(e) => handleStartAtChange(Number(e.target.value))}
+                    className="w-full accent-[#A43F66] h-1.5 rounded-lg cursor-pointer bg-rose-100"
+                  />
+
+                  {/* Precise Minutes & Seconds Input + Preset Moments */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-semibold text-[#79566C]">
+                        Exact timestamp:
+                      </span>
+                      <div className="flex items-center gap-1 font-mono text-xs">
+                        <input
+                          type="number"
+                          min={0}
+                          max={99}
+                          value={Math.floor(trackStartAt / 60)}
+                          onChange={(e) => {
+                            const m = Math.max(0, parseInt(e.target.value, 10) || 0);
+                            const s = trackStartAt % 60;
+                            handleStartAtChange(m * 60 + s);
+                          }}
+                          className="w-11 px-2 py-1 text-center rounded-lg bg-[#FFF8FC] border border-[#F7BFD5] font-bold text-[#51253E] focus:outline-none focus:border-[#A43F66]"
+                          placeholder="00"
+                        />
+                        <span className="font-bold text-[#A43F66]">:</span>
+                        <input
+                          type="number"
+                          min={0}
+                          max={59}
+                          value={trackStartAt % 60}
+                          onChange={(e) => {
+                            const s = Math.min(59, Math.max(0, parseInt(e.target.value, 10) || 0));
+                            const m = Math.floor(trackStartAt / 60);
+                            handleStartAtChange(m * 60 + s);
+                          }}
+                          className="w-11 px-2 py-1 text-center rounded-lg bg-[#FFF8FC] border border-[#F7BFD5] font-bold text-[#51253E] focus:outline-none focus:border-[#A43F66]"
+                          placeholder="00"
+                        />
+                        <span className="text-[10px] text-[#79566C]">(mm:ss)</span>
+                      </div>
+                    </div>
+
+                    {/* Quick presets */}
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[10px] font-semibold text-[#79566C]">Presets:</span>
+                      {[
+                        { label: "0:00 (Start)", sec: 0 },
+                        { label: "0:30", sec: 30 },
+                        { label: "0:45 (Chorus)", sec: 45 },
+                        { label: "1:00", sec: 60 },
+                        { label: "1:30", sec: 90 },
+                      ]
+                        .filter((p) => p.sec < (selectedTrack.duration || 300))
+                        .map((p) => (
+                          <button
+                            key={p.sec}
+                            type="button"
+                            onClick={() => handleStartAtChange(p.sec)}
+                            className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                              trackStartAt === p.sec
+                                ? "bg-[#A43F66] text-white shadow-2xs"
+                                : "bg-[#FFF8FC] text-[#51253E] border border-rose-200 hover:bg-rose-50"
+                            }`}
+                          >
+                            {p.label}
+                          </button>
+                        ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Tab switch: FreeTouse vs YouTube */}
+            <div className="flex gap-2 p-1 bg-[#FFF8FC] rounded-2xl border border-[#F7BFD5] max-w-xs">
+              <button
+                type="button"
+                onClick={() => setMusicTab("catalog")}
+                className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  musicTab === "catalog"
+                    ? "bg-[#A43F66] text-white shadow-xs"
+                    : "text-[#79566C] hover:bg-white"
+                }`}
+              >
+                🎵 Lofi Library
+              </button>
+              <button
+                type="button"
+                onClick={() => setMusicTab("youtube")}
+                className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  musicTab === "youtube"
+                    ? "bg-[#A43F66] text-white shadow-xs"
+                    : "text-[#79566C] hover:bg-white"
+                }`}
+              >
+                ▶️ YouTube Link
+              </button>
+            </div>
+
+            {musicTab === "catalog" ? (
+              <div className="space-y-4">
+                {/* Category Chips */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+                  {MUSIC_CATEGORIES.map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedCategory(cat.id);
+                        void fetchMusic(cat.query);
+                      }}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                        selectedCategory === cat.id
+                          ? "bg-[#A43F66] text-white shadow-2xs"
+                          : "bg-[#FFF8FC] text-[#79566C] border border-rose-100 hover:bg-white"
+                      }`}
+                    >
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Keyword Search */}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={musicSearchQuery}
+                    onChange={(e) => setMusicSearchQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && void fetchMusic(musicSearchQuery)}
+                    placeholder="Search library by keyword (e.g. lofi, sweet, piano, guitar)..."
+                    className="flex-1 px-4 py-2 rounded-xl bg-[#FFF8FC] border border-[#F7BFD5] text-xs text-[#51253E] focus:outline-none focus:border-[#A43F66]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void fetchMusic(musicSearchQuery)}
+                    className="px-4 py-2 rounded-xl bg-[#A43F66] text-white text-xs font-bold hover:scale-105 active:scale-95 transition-all shadow-2xs"
+                  >
+                    Search
+                  </button>
+                </div>
+
+                {/* Loading indicator */}
+                {loadingMusic ? (
+                  <div className="p-8 text-center text-xs font-bold text-[#A43F66] animate-pulse flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 rounded-full border-2 border-[#A43F66] border-t-transparent animate-spin" />
+                    <span>Finding sweet melodies...</span>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {tracks.map((t) => {
+                      const isSelected = selectedTrack?.id === t.id;
+                      const isPreviewing = previewTrackId === t.id;
+                      const thumb = t.thumbnails?.sm || t.thumbnails?.md;
+                      return (
+                        <div
+                          key={t.id}
+                          className={`p-3 rounded-2xl border flex items-center justify-between gap-3 transition-all ${
+                            isSelected
+                              ? "bg-[#FFE9F1] border-[#A43F66] shadow-xs"
+                              : "bg-[#FFF8FC] border-rose-100 hover:border-rose-300"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            {thumb ? (
+                              <div className="w-10 h-10 rounded-xl overflow-hidden relative shrink-0 border border-rose-200">
+                                <Image
+                                  src={thumb}
+                                  alt={t.title}
+                                  fill
+                                  className="object-cover"
+                                  unoptimized
+                                />
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handlePreviewMusic(t)}
+                                className="w-8 h-8 rounded-full bg-white shadow-xs flex items-center justify-center text-[#A43F66] hover:scale-105 transition-transform shrink-0"
+                                title={isPreviewing ? "Stop" : "Preview song"}
+                              >
+                                {isPreviewing ? <Pause className="w-3.5 h-3.5 fill-[#A43F66]" /> : <Play className="w-3.5 h-3.5 fill-[#A43F66]" />}
+                              </button>
+                            )}
+
+                            <div className="min-w-0">
+                              <h5 className="text-xs font-bold text-[#51253E] truncate">
+                                {t.title}
+                              </h5>
+                              <p className="text-[10px] text-[#79566C] truncate">
+                                {t.artists?.[0]?.[1]?.name || "Artist"}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => handlePreviewMusic(t)}
+                              className="w-7 h-7 rounded-full bg-white shadow-2xs flex items-center justify-center text-[#A43F66] hover:scale-105 transition-transform border border-rose-200"
+                              title={isPreviewing ? "Stop preview" : "Listen"}
+                            >
+                              {isPreviewing ? <Pause className="w-3 h-3 fill-[#A43F66]" /> : <Play className="w-3 h-3 fill-[#A43F66]" />}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleSelectTrack(t)}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                                isSelected
+                                  ? "bg-[#A43F66] text-white shadow-xs"
+                                  : "bg-white text-[#A43F66] border border-rose-200 hover:bg-rose-50"
+                              }`}
+                            >
+                              {isSelected ? "Selected" : "Select"}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-4 max-w-lg">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-[#51253E] block">
+                    Paste YouTube Song or Video URL:
+                  </label>
+                  <p className="text-[11px] text-[#79566C]">
+                    Supports any standard YouTube link, mobile share link (youtu.be), or Shorts.
+                  </p>
+                </div>
+
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={youtubeUrl}
+                    onChange={(e) => setYoutubeUrl(e.target.value)}
+                    placeholder="https://youtu.be/... or https://www.youtube.com/watch?v=..."
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-[#FFF8FC] border border-[#F7BFD5] text-xs text-[#51253E] focus:outline-none focus:border-[#A43F66]"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleVerifyYoutube}
+                    disabled={youtubeLoading || !youtubeUrl.trim()}
+                    className="px-5 py-2.5 rounded-xl bg-[#A43F66] text-white text-xs font-bold disabled:opacity-40 hover:scale-105 active:scale-95 transition-all shadow-2xs shrink-0"
+                  >
+                    {youtubeLoading ? "Verifying..." : "Load Song"}
+                  </button>
+                </div>
+
+                {youtubeError && (
+                  <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-semibold">
+                    {youtubeError}
+                  </div>
+                )}
+
+                {selectedTrack?.type === "youtube" && (
+                  <div className="p-4 rounded-2xl bg-white border-2 border-emerald-500/80 shadow-xs flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {selectedTrack.thumbnailUrl && (
+                        <div className="w-14 h-10 rounded-lg overflow-hidden relative shrink-0 border border-gray-200">
+                          <Image
+                            src={selectedTrack.thumbnailUrl}
+                            alt={selectedTrack.title}
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">
+                          ✓ YouTube Audio Loaded
+                        </span>
+                        <h4 className="text-xs font-bold text-[#51253E] truncate">
+                          {selectedTrack.title}
+                        </h4>
+                        <p className="text-[10px] text-[#79566C] truncate">
+                          Channel: {selectedTrack.artist}
+                        </p>
+                      </div>
+                    </div>
+
+                    <a
+                      href={selectedTrack.youtubeUrl || `https://www.youtube.com/watch?v=${selectedTrack.youtubeId}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[11px] font-bold text-[#A43F66] hover:underline shrink-0"
+                    >
+                      Open Link ↗
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Expiry Selector */}
+            <div className="pt-4 border-t border-rose-100 space-y-2">
+              <label className="text-xs font-bold text-[#51253E] block">
+                Link Expiry Duration:
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {[
+                  { hours: 24, label: "24 Hours" },
+                  { hours: 72, label: "3 Days" },
+                  { hours: 168, label: "7 Days (Recommended)" },
+                  { hours: 720, label: "30 Days" },
+                ].map((exp) => (
+                  <button
+                    key={exp.hours}
+                    type="button"
+                    onClick={() => setExpiryHours(exp.hours)}
+                    className={`p-2.5 rounded-xl border text-xs font-bold transition-all ${
+                      expiryHours === exp.hours
+                        ? "bg-[#FFE9F1] border-[#A43F66] text-[#A43F66] shadow-2xs"
+                        : "bg-[#FFF8FC] border-rose-100 text-[#79566C] hover:bg-white"
+                    }`}
+                  >
+                    {exp.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Creation Error notice */}
+            {creationError && (
+              <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium">
+                {creationError}
+              </div>
+            )}
+
+            {/* Stepper Navigation */}
+            <div className="pt-4 flex items-center justify-between border-t border-rose-100">
+              <button
+                type="button"
+                onClick={() => setStep(2)}
+                className="px-5 py-2.5 rounded-full bg-white border border-[#F7BFD5] text-xs font-bold text-[#51253E] hover:bg-[#FFE9F1] transition-all cursor-pointer"
+              >
+                ← Back to Floating Gallery
+              </button>
+
+              <button
+                type="button"
+                onClick={handleCreateTemplate}
+                disabled={isCreating}
+                className="px-8 py-3 rounded-full text-white font-bold text-xs shadow-md hover:scale-105 active:scale-95 disabled:opacity-40 transition-all cursor-pointer flex items-center gap-2"
+                style={{ backgroundColor: PINK_DAY_PALETTE.accent }}
+              >
+                <Sparkles className="w-4 h-4 text-white" />
+                <span>{isCreating ? "Generating Secret Webpage..." : "Generate Secret Link ✨"}</span>
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ─────────────────────────────────────────────
+            STEP 5: SHARE LINK & SUCCESS
+        ───────────────────────────────────────────── */}
+        {step === 4 && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="p-8 sm:p-10 rounded-3xl bg-white border border-[#F7BFD5] shadow-lg text-center space-y-6"
+          >
+            <div className="w-16 h-16 mx-auto rounded-full bg-[#FFE9F1] flex items-center justify-center text-3xl shadow-sm">
+              🌸
+            </div>
+
+            <div className="space-y-1">
+              <span className="text-xs font-bold uppercase tracking-widest text-[#A43F66]">
+                Your Story is Live
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-black text-[#51253E]">
+                &quot;Our Little Pink Day&quot; is Ready!
+              </h2>
+              <p className="text-xs sm:text-sm text-[#79566C] font-medium max-w-md mx-auto">
+                Send this private link to {partnerName}. When they view the story and respond to your date question, their answer will appear in your Creator Center.
+              </p>
+            </div>
+
+            {/* Generated Link Box */}
+            <div className="max-w-md mx-auto p-2 bg-[#FFF8FC] border border-[#F7BFD5] rounded-2xl flex items-center gap-2">
+              <input
+                type="text"
+                readOnly
+                value={generatedUrl}
+                className="flex-1 bg-transparent px-3 py-1.5 text-xs font-semibold text-[#51253E] select-all focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                className="px-4 py-2 rounded-xl text-white font-bold text-xs flex items-center gap-1.5 shadow-xs hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                style={{ backgroundColor: PINK_DAY_PALETTE.accent }}
+              >
+                {copiedLink ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5 text-white" />}
+                <span>{copiedLink ? "Copied!" : "Copy"}</span>
+              </button>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <a
+                href={generatedUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="px-6 py-2.5 rounded-full bg-white border border-[#F7BFD5] text-[#51253E] hover:bg-rose-50 text-xs font-bold flex items-center gap-2 shadow-2xs transition-all"
+              >
+                <Eye className="w-3.5 h-3.5 text-[#A43F66]" />
+                <span>Open Live Recipient View</span>
+                <ExternalLink className="w-3 h-3 text-[#79566C]" />
+              </a>
+
+              <Link
+                href="/creator-center"
+                className="px-6 py-2.5 rounded-full text-white text-xs font-bold flex items-center gap-2 shadow-md hover:scale-105 transition-all"
+                style={{ backgroundColor: PINK_DAY_PALETTE.accent }}
+              >
+                <span>Go to Creator Center</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </motion.div>
+        )}
+      </main>
+    </div>
+  );
+}

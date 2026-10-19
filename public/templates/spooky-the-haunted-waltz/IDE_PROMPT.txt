@@ -1,0 +1,49 @@
+Create a new Bonded cinematic couples template called "The Haunted Waltz" in E:\Desktop Projects\cpltools-app.
+
+Use these supplied original 2D animated illustrations in exact order:
+1. 01-the-manor-at-midnight.png
+2. 02-footsteps-with-no-owner.png
+3. 03-the-ghosts-in-the-ballroom.png
+4. 04-stay-close-to-me.png
+5. 05-the-haunted-waltz.png
+6. 06-until-the-last-candle.png
+
+Story:
+A living couple enters a haunted manor, follows supernatural footsteps, meets two spectral lovers, steadies each other, joins their final waltz, and rests outside at dawn while the spirits still dance in the window.
+
+Art direction:
+- Gothic 2D animation: ink outlines, painted shadows, slate moonlight, spectral teal, burgundy and warm candle gold.
+- Preserve the supplied living couple, their wardrobe, the Victorian ghost pair and the single candle lantern.
+- Keep every image file text-free. Render all names, message, captions and controls as accessible HTML.
+- Add this as a separate theme; preserve existing app themes.
+
+Presentation:
+- Exact 16:9 desktop/laptop viewport; source images are 1672x941, approximately 16:9. Use object-fit:cover, never stretch.
+- Keep faces and both dance pairs visible on mobile; letterbox where cropping would remove them.
+- Five seconds per scene, 500ms overlapping crossfades; composited length 27.5 seconds.
+- Use slow transitions and optional slight image movement. Let the atmosphere come from the artwork.
+- No sound autoplay, rapid flashes or forced camera shaking. Any optional ambient sound needs an explicit user control.
+- Open story, Pause, Replay, Skip and manual scene controls must remain available.
+- Support reduced motion with still images and manual navigation.
+- Load only the selected theme. Keep the still-image version usable without generating videos.
+
+Personalization:
+- Sender name, partner name and editable personal message.
+- Suggested opening: "Hold my hand. Let’s see what’s waiting."
+- Reveal the sender's message during scene 4 or 5, keeping it readable after the sequence.
+- Suggested default: "Whatever waits in the dark, I want you beside me."
+- Keep message and reply access available through Skip.
+- Use safe text rendering for all user input.
+
+Final interaction:
+"What should our next spooky night be?"
+Choices:
+- Horror movie night.
+- A haunted-house date.
+- Ghost stories together.
+Also allow another suggestion, deciding later or declining.
+Optional follow-up: "Which horror film should we watch?" as a free-text reply.
+Use real existing saved-response, pairing and plan flows. A selected activity is a proposal; agree on date/time before recording a confirmed event. Show saved/confirmed success only after persistence succeeds.
+
+Files: sequence.json for order/timing/copy; CHARACTERS.md for visual continuity; image-prompts.json for regeneration; video-prompts.json for optional five-second animations. Videos have not been generated.
+

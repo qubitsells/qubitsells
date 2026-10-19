@@ -1,0 +1,116 @@
+{
+  "id": "starlit-story",
+  "name": "Starlit Story",
+  "tagline": "Under one sky, every moment is brighter with you.",
+  "style": "Original contemporary 3D fairytale romance / animated feature film style",
+  "generation": "Built-in image generation with scene 1 as identity reference",
+  "palette": {
+    "background": "#FAF6F0",
+    "surface": "#FFFFFF",
+    "border": "#F0D5C9",
+    "accent": "#C26D7A",
+    "gold": "#D99443",
+    "text": "#3A231C"
+  },
+  "presentationAspectRatio": "16:9",
+  "sizingNote": "Native PNGs are 1672x941, approximately 16:9. Use an exact 16:9 viewport with object-fit:cover, without stretching.",
+  "noTextInArtwork": true,
+  "scenes": [
+    {
+      "order": 1,
+      "file": "01-the-meeting.png",
+      "title": "The Meeting",
+      "storyBeat": "Under glowing fairy lights and a warm sunset sky, our evening begins.",
+      "width": 1672,
+      "height": 941,
+      "durationMs": 5000,
+      "optionalHtmlCaption": "Under glowing fairy lights and a warm sunset sky, our evening begins.",
+      "transitionToNext": {
+        "type": "crossfade",
+        "durationMs": 500
+      }
+    },
+    {
+      "order": 2,
+      "file": "02-a-rose-for-you.png",
+      "title": "A Rose For You",
+      "storyBeat": "A single pink rose, exchanged with a quiet smile across the table.",
+      "width": 1672,
+      "height": 941,
+      "durationMs": 5000,
+      "optionalHtmlCaption": "A single pink rose, exchanged with a quiet smile across the table.",
+      "transitionToNext": {
+        "type": "crossfade",
+        "durationMs": 500
+      }
+    },
+    {
+      "order": 3,
+      "file": "03-a-letter-from-the-heart.png",
+      "title": "A Letter From The Heart",
+      "storyBeat": "A wax-sealed ivory envelope resting between two warm tea cups.",
+      "width": 1672,
+      "height": 941,
+      "durationMs": 5000,
+      "optionalHtmlCaption": "A wax-sealed ivory envelope resting between two warm tea cups.",
+      "transitionToNext": {
+        "type": "crossfade",
+        "durationMs": 500
+      }
+    },
+    {
+      "order": 4,
+      "file": "04-the-letter-opens.png",
+      "title": "The Letter Opens",
+      "storyBeat": "Every unspoken feeling, unfolded in written words just for you.",
+      "width": 1672,
+      "height": 941,
+      "durationMs": 5000,
+      "optionalHtmlCaption": "Every unspoken feeling, unfolded in written words just for you.",
+      "transitionToNext": {
+        "type": "crossfade",
+        "durationMs": 500
+      }
+    },
+    {
+      "order": 5,
+      "file": "05-beneath-one-sky.png",
+      "title": "Beneath One Sky",
+      "storyBeat": "Looking up as the twilight turns indigo and stars begin to glow.",
+      "width": 1672,
+      "height": 941,
+      "durationMs": 5000,
+      "optionalHtmlCaption": "Looking up as the twilight turns indigo and stars begin to glow.",
+      "transitionToNext": {
+        "type": "crossfade",
+        "durationMs": 500
+      }
+    },
+    {
+      "order": 6,
+      "file": "06-our-evening-together.png",
+      "title": "Our Evening Together",
+      "storyBeat": "Shoulder to shoulder beneath fairy lights, holding onto this quiet moment.",
+      "width": 1672,
+      "height": 941,
+      "durationMs": 5000,
+      "optionalHtmlCaption": "Shoulder to shoulder beneath fairy lights, holding onto this quiet moment.",
+      "transitionToNext": null
+    }
+  ],
+  "continuousPlayback": {
+    "durationSeconds": 27.5,
+    "clipStartsSeconds": [0, 4.5, 9, 13.5, 18, 22.5]
+  },
+  "htmlContent": {
+    "opening": "Under one sky, every moment is brighter with you.",
+    "message": "Under one sky, every moment is brighter with you. You will always be my brightest star.",
+    "finalQuestion": "Will you spend a starlit evening with me?",
+    "choices": [
+      "Rooftop dinner under fairy lights",
+      "Stargazing with warm tea & blankets",
+      "Scenic evening drive above the city"
+    ],
+    "alternative": "Your idea"
+  }
+}

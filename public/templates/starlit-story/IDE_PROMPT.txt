@@ -1,0 +1,49 @@
+Create a new romantic Bonded template called "Starlit Story" inside my existing Bonded app at E:\Desktop Projects\cpltools-app.
+
+Use the supplied numbered PNGs without modifying or regenerating the characters:
+1. 01-the-meeting.png
+2. 02-a-rose-for-you.png
+3. 03-a-letter-from-the-heart.png
+4. 04-the-letter-opens.png
+5. 05-beneath-one-sky.png
+6. 06-our-evening-together.png
+
+Story:
+The couple meets on a cozy fairy-lit rooftop terrace at sunset, exchanges a fresh pink rose, shares an ivory letter sealed with wax across the table, unseals the heartfelt letter, gazes up as twilight turns into an indigo starry sky, and leans together beneath glowing fairy lights.
+
+Style:
+Contemporary 3D fairytale romance, elegant warm ivory and dusty rose accents, gentle fairy light bokeh, sunset gold and twilight midnight indigo. Keep this theme separate from Halloween and pastel 2D themes.
+
+Suggested UI palette:
+Background #FAF6F0; surface #FFFFFF; warm border #F0D5C9; accent #C26D7A; warm gold #D99443; dark espresso text #3A231C.
+Use rounded glassmorphic cards, generous white space and the elegant Cinzel Decorative / sans-serif typography. Keep body text dark and legible.
+
+Presentation:
+- Exact 16:9 desktop/laptop frame; native images are 1672x941, approximately 16:9. Use object-fit:cover without stretching.
+- For mobile, preserve faces and props; letterbox where cropping would lose them.
+- Five seconds per scene with 500ms overlapping crossfades; continuous playback totals 27.5 seconds.
+- Optional subtle zoom up to 1.025, no aggressive spins, flashes or distortions.
+- Add Open story, Pause, Replay, and Skip controls. Keep controls outside important faces and props.
+- Respect reduced motion and support manual scene navigation.
+- Load only the selected theme's images. Use a poster while loading.
+- The still-image sequence should work without generating videos.
+
+Personalization:
+- Sender name, partner name and editable personal message.
+- Keep every word, question and button as separate accessible HTML. No writing baked into artwork.
+- Opening line: "Under one sky, every moment is brighter with you."
+- Reveal the sender's message during scene 4 as the letter unfolds.
+- Suggested default: "Under one sky, every moment is brighter with you. You will always be my brightest star."
+- Keep the message readable after the sequence and available through Skip.
+
+Final invitation:
+"Will you spend a starlit evening with me?"
+Choices:
+- Rooftop dinner under fairy lights.
+- Stargazing with warm tea & blankets.
+- Scenic evening drive above the city.
+Also allow another suggestion, deciding later or declining.
+
+Use the existing recipient-link, pairing and saved-response flows. Selecting an activity creates a proposal; collect and agree on a time before recording a confirmed calendar event. Show saved success only when persistence succeeds. Do not simulate messages, bookings or saved responses.
+
+Assets and instructions: sequence.json, image-prompts.json, video-prompts.json, and PROMPTS.md. Video prompts are optional; no videos have been generated.

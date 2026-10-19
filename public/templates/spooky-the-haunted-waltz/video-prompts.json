@@ -1,0 +1,38 @@
+[
+  {
+    "scene": 1,
+    "image": "01-the-manor-at-midnight.png",
+    "durationSeconds": 5,
+    "prompt": "Animate the supplied still as a five-second landscape 16:9 original hand-drawn 2D gothic animated film shot. Preserve the exact living and ghost character designs, adult faces, hair, coats, scarf, dress, jewelry, ghost translucency, lantern and architecture. Keep the ink outlines, cel shading and painted textures; do not convert to 3D or photorealism. Use subtle breathing and natural blinking, restrained mist, dust and candle movement, plus one slow camera move. No writing, captions, letters, numbers, logos, watermarks, runes, dialogue, lip-sync, added characters, gore, face morphs, flashing exposure or sudden shot transitions. Keep the living couple hand in hand at the manor gate. They exchange a small wary but affectionate glance. The woman's single lantern sways only slightly and its candle glows warmly. Ground mist and bare branches move gently. The distant two ghost silhouettes remain in their window. Slow camera push-in."
+  },
+  {
+    "scene": 2,
+    "image": "02-footsteps-with-no-owner.png",
+    "durationSeconds": 5,
+    "prompt": "Animate the supplied still as a five-second landscape 16:9 original hand-drawn 2D gothic animated film shot. Preserve the exact living and ghost character designs, adult faces, hair, coats, scarf, dress, jewelry, ghost translucency, lantern and architecture. Keep the ink outlines, cel shading and painted textures; do not convert to 3D or photorealism. Use subtle breathing and natural blinking, restrained mist, dust and candle movement, plus one slow camera move. No writing, captions, letters, numbers, logos, watermarks, runes, dialogue, lip-sync, added characters, gore, face morphs, flashing exposure or sudden shot transitions. The couple pauses in the hallway, holding hands and the lantern in the same positions. Let the existing footprint trail glow softly at a steady brightness, with faint mist drifting toward the open ballroom doorway. Their eyes shift subtly toward the trail without changing their faces. Slow lateral camera movement. No new ghost appears in this shot."
+  },
+  {
+    "scene": 3,
+    "image": "03-the-ghosts-in-the-ballroom.png",
+    "durationSeconds": 5,
+    "prompt": "Animate the supplied still as a five-second landscape 16:9 original hand-drawn 2D gothic animated film shot. Preserve the exact living and ghost character designs, adult faces, hair, coats, scarf, dress, jewelry, ghost translucency, lantern and architecture. Keep the ink outlines, cel shading and painted textures; do not convert to 3D or photorealism. Use subtle breathing and natural blinking, restrained mist, dust and candle movement, plus one slow camera move. No writing, captions, letters, numbers, logos, watermarks, runes, dialogue, lip-sync, added characters, gore, face morphs, flashing exposure or sudden shot transitions. Hold both living adults near the doorway, with exactly the same two spectral Victorian lovers visible across the ballroom. Ghost hair and gown hems drift slowly; translucency remains stable, faces do not change. The ghosts' existing extended hands move only slightly as an invitation. Candlelight and low mist remain subtle. Slow camera push-in, no approaching-camera lunge."
+  },
+  {
+    "scene": 4,
+    "image": "04-stay-close-to-me.png",
+    "durationSeconds": 5,
+    "prompt": "Animate the supplied still as a five-second landscape 16:9 original hand-drawn 2D gothic animated film shot. Preserve the exact living and ghost character designs, adult faces, hair, coats, scarf, dress, jewelry, ghost translucency, lantern and architecture. Keep the ink outlines, cel shading and painted textures; do not convert to 3D or photorealism. Use subtle breathing and natural blinking, restrained mist, dust and candle movement, plus one slow camera move. No writing, captions, letters, numbers, logos, watermarks, runes, dialogue, lip-sync, added characters, gore, face morphs, flashing exposure or sudden shot transitions. Keep the living couple's gentle dance hold and affectionate gaze. Natural subtle breathing and blinking. The two background spirits remain waiting in their existing positions, moving only slightly in the mist. Preserve hands, scarf, pendant, hair clip and lantern on the floor. Slow intimate camera drift; no kiss or sudden pose change."
+  },
+  {
+    "scene": 5,
+    "image": "05-the-haunted-waltz.png",
+    "durationSeconds": 5,
+    "prompt": "Animate the supplied still as a five-second landscape 16:9 original hand-drawn 2D gothic animated film shot. Preserve the exact living and ghost character designs, adult faces, hair, coats, scarf, dress, jewelry, ghost translucency, lantern and architecture. Keep the ink outlines, cel shading and painted textures; do not convert to 3D or photorealism. Use subtle breathing and natural blinking, restrained mist, dust and candle movement, plus one slow camera move. No writing, captions, letters, numbers, logos, watermarks, runes, dialogue, lip-sync, added characters, gore, face morphs, flashing exposure or sudden shot transitions. Exactly two distinct couples, four adult figures total: the living pair and the translucent Victorian ghost pair. Both pairs sway gently in their established dance holds. Avoid turns, spins, dips or complex hand choreography. Keep partners separate, human faces and ghost faces fixed. Ghost hair and gown hems float softly, mist drifts, candles glow, and the camera moves slowly sideways."
+  },
+  {
+    "scene": 6,
+    "image": "06-until-the-last-candle.png",
+    "durationSeconds": 5,
+    "prompt": "Animate the supplied still as a five-second landscape 16:9 original hand-drawn 2D gothic animated film shot. Preserve the exact living and ghost character designs, adult faces, hair, coats, scarf, dress, jewelry, ghost translucency, lantern and architecture. Keep the ink outlines, cel shading and painted textures; do not convert to 3D or photorealism. Use subtle breathing and natural blinking, restrained mist, dust and candle movement, plus one slow camera move. No writing, captions, letters, numbers, logos, watermarks, runes, dialogue, lip-sync, added characters, gore, face morphs, flashing exposure or sudden shot transitions. The living couple remains seated closely on the manor steps, her head gently inclined toward him and their hands resting naturally together. The lantern stays beside them with a small warm flame. Dawn clouds and ground mist drift gently. The same two distant ghost silhouettes sway slowly in the upstairs window. Slow camera pullback for a quiet, haunting ending."
+  }
+]

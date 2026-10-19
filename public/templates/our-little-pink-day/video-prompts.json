@@ -1,0 +1,38 @@
+[
+  {
+    "scene": 1,
+    "image": "01-my-favorite-meetup.png",
+    "durationSeconds": 5,
+    "prompt": "Animate the supplied approved still as a five-second landscape 16:9 hand-drawn 2D modern romantic animated-short shot. Preserve the exact two adult faces, hair, white bow, pink/white hoodie outfits, trouser colors, sneakers, body proportions and all existing props. Keep delicate outlines, soft cel shading and matte pastel environments. Gentle breathing, small natural blinks, subtle hair/clothing movement and ONE slow camera movement. Do not turn the artwork into 3D or photorealism. No text, letters, numbers, logos, subtitles, watermarks, dialogue, lip-sync, extra people, face morphs, extra limbs, changing outfits or automatic scene transitions. The couple keeps the same shy delighted eye contact outside the cafe. Their reaching hands move only a little closer without changing anatomy; hair and nearby leaves shift softly in a light breeze. Gentle slow push-in. Keep the pink awning, windows and clothing unmarked."
+  },
+  {
+    "scene": 2,
+    "image": "02-one-dessert-two-spoons.png",
+    "durationSeconds": 5,
+    "prompt": "Animate the supplied approved still as a five-second landscape 16:9 hand-drawn 2D modern romantic animated-short shot. Preserve the exact two adult faces, hair, white bow, pink/white hoodie outfits, trouser colors, sneakers, body proportions and all existing props. Keep delicate outlines, soft cel shading and matte pastel environments. Gentle breathing, small natural blinks, subtle hair/clothing movement and ONE slow camera movement. Do not turn the artwork into 3D or photorealism. No text, letters, numbers, logos, subtitles, watermarks, dialogue, lip-sync, extra people, face morphs, extra limbs, changing outfits or automatic scene transitions. Keep the couple seated at the cafe table, smiling warmly at each other. Both spoons remain steady near the same single strawberry dessert; do not animate eating, spoon-to-mouth movement or changing dessert amounts. Soft natural blinking, a little hair movement and a slow lateral camera slide."
+  },
+  {
+    "scene": 3,
+    "image": "03-i-won-this-for-you.png",
+    "durationSeconds": 5,
+    "prompt": "Animate the supplied approved still as a five-second landscape 16:9 hand-drawn 2D modern romantic animated-short shot. Preserve the exact two adult faces, hair, white bow, pink/white hoodie outfits, trouser colors, sneakers, body proportions and all existing props. Keep delicate outlines, soft cel shading and matte pastel environments. Gentle breathing, small natural blinks, subtle hair/clothing movement and ONE slow camera movement. Do not turn the artwork into 3D or photorealism. No text, letters, numbers, logos, subtitles, watermarks, dialogue, lip-sync, extra people, face morphs, extra limbs, changing outfits or automatic scene transitions. Hold the existing plush handover pose. Let the couple share a subtle delighted smile while their hands and the one white bunny remain steady. Do not change the bunny's face, floppy ears, size or markings. Soft ambient light and a slow camera push-in; arcade labels and screens stay blank."
+  },
+  {
+    "scene": 4,
+    "image": "04-a-little-photo-booth-moment.png",
+    "durationSeconds": 5,
+    "prompt": "Animate the supplied approved still as a five-second landscape 16:9 hand-drawn 2D modern romantic animated-short shot. Preserve the exact two adult faces, hair, white bow, pink/white hoodie outfits, trouser colors, sneakers, body proportions and all existing props. Keep delicate outlines, soft cel shading and matte pastel environments. Gentle breathing, small natural blinks, subtle hair/clothing movement and ONE slow camera movement. Do not turn the artwork into 3D or photorealism. No text, letters, numbers, logos, subtitles, watermarks, dialogue, lip-sync, extra people, face morphs, extra limbs, changing outfits or automatic scene transitions. Keep the exact seated photo-booth pose, cheeks close, white bunny in her lap and the same small finger-heart gesture. Gentle blinking and a tiny shared smile only; do not change finger positions or create new gestures. Pink curtain barely moves. Slow intimate camera drift, no camera flash, photo border or interface."
+  },
+  {
+    "scene": 5,
+    "image": "05-one-umbrella-for-two.png",
+    "durationSeconds": 5,
+    "prompt": "Animate the supplied approved still as a five-second landscape 16:9 hand-drawn 2D modern romantic animated-short shot. Preserve the exact two adult faces, hair, white bow, pink/white hoodie outfits, trouser colors, sneakers, body proportions and all existing props. Keep delicate outlines, soft cel shading and matte pastel environments. Gentle breathing, small natural blinks, subtle hair/clothing movement and ONE slow camera movement. Do not turn the artwork into 3D or photorealism. No text, letters, numbers, logos, subtitles, watermarks, dialogue, lip-sync, extra people, face morphs, extra limbs, changing outfits or automatic scene transitions. The couple stays close beneath the same white umbrella, bunny held securely. Use a small natural weight shift rather than a complicated walk cycle. Gentle rain falls outside the umbrella, small pavement reflections ripple, hair moves slightly. Slow side-tracking camera; keep the umbrella handle and hands stable."
+  },
+  {
+    "scene": 6,
+    "image": "06-you-are-my-cozy-place.png",
+    "durationSeconds": 5,
+    "prompt": "Animate the supplied approved still as a five-second landscape 16:9 hand-drawn 2D modern romantic animated-short shot. Preserve the exact two adult faces, hair, white bow, pink/white hoodie outfits, trouser colors, sneakers, body proportions and all existing props. Keep delicate outlines, soft cel shading and matte pastel environments. Gentle breathing, small natural blinks, subtle hair/clothing movement and ONE slow camera movement. Do not turn the artwork into 3D or photorealism. No text, letters, numbers, logos, subtitles, watermarks, dialogue, lip-sync, extra people, face morphs, extra limbs, changing outfits or automatic scene transitions. The couple rests together on the cream balcony loveseat, her head close to his shoulder and hands together. Preserve the bunny, blanket and two white mugs. Soft breathing, gentle blinking, a few leaf movements and steady warm lights. Very slow pullback. Keep the pink-white foreground airy and the evening light stable."
+  }
+]

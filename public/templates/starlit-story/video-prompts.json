@@ -1,0 +1,38 @@
+[
+  {
+    "scene": 1,
+    "file": "01-the-meeting.png",
+    "durationSeconds": 5,
+    "prompt": "Animate the supplied approved still as a five-second landscape 16:9 shot in its original Disney-inspired 3D romance animation style. Preserve the exact adult identities, faces, hair, costumes, ivory envelope, pink rose, hands, proportions, environment, pergola, string lights and warm evening light. Gentle natural breathing, subtle eye contact and lantern flicker, with one restrained camera movement. No text, lettering, numbers, logos, captions, watermarks, dialogue, face morphs, extra people, duplicate limbs, invented objects, flashes or transitions to the next scene. Keep the closed ivory envelope in the woman's hand and the rose with the man as they share a tender slightly shy smile. Very slow camera push-in."
+  },
+  {
+    "scene": 2,
+    "file": "02-a-rose-for-you.png",
+    "durationSeconds": 5,
+    "prompt": "Animate the supplied approved still as a five-second landscape 16:9 shot in its original Disney-inspired 3D romance animation style. Preserve the exact adult identities, faces, hair, costumes, hands, rose handover, pergola, string lights and warm evening light. The man gently offers the single pink rose to the woman; she accepts it with a gentle pleased smile. Both maintain affectionate eye contact. Soft string light flicker and delicate leaf flutter. Restrained lateral camera movement. Do not distort fingers or change outfits."
+  },
+  {
+    "scene": 3,
+    "file": "03-a-letter-from-the-heart.png",
+    "durationSeconds": 5,
+    "prompt": "Animate the supplied approved still as a five-second landscape 16:9 shot in its original Disney-inspired 3D romance animation style. Preserve the exact adult identities, faces, hair, costumes, table setting, rose, closed ivory envelope, hands, pergola and dusk lighting. The woman gently slides the closed envelope across the table toward the man; he looks down at it with a touched smile and reaches out to touch it. Gentle bokeh flicker from fairy lights. Slow camera push-in; keep table props and expressions natural."
+  },
+  {
+    "scene": 4,
+    "file": "04-the-letter-opens.png",
+    "durationSeconds": 5,
+    "prompt": "Animate the supplied approved still as a five-second landscape 16:9 shot in its original Disney-inspired 3D romance animation style. Preserve the exact adult identities, faces, hair, costumes, open envelope, blank card, hands, pergola and sunset-dusk lighting. The man looks up from the unfolded card toward the woman with a deeply moved, loving smile. She smiles softly in return. Subtle breathing and blinking. Gentle camera drift; keep the blank card unmarked without adding text."
+  },
+  {
+    "scene": 5,
+    "file": "05-beneath-one-sky.png",
+    "durationSeconds": 5,
+    "prompt": "Animate the supplied approved still as a five-second landscape 16:9 shot in its original Disney-inspired 3D romance animation style. Preserve the exact adult identities, faces, hair, costumes, joined hands on the bench, table props, pergola and twilight indigo sky. The couple sits close on the wooden bench, their fingers resting gently together. They look toward each other with quiet, contented smiles as the first stars twinkle faintly in the sky. Slow camera drift with soft fairy light warmth."
+  },
+  {
+    "scene": 6,
+    "file": "06-our-evening-together.png",
+    "durationSeconds": 5,
+    "prompt": "Animate the supplied approved still as a five-second landscape 16:9 shot in its original Disney-inspired 3D romance animation style. Preserve the exact adult identities, faces, hair, costumes, bench, side table props, pergola, string lights and starry night sky. The couple leans comfortably shoulder to shoulder looking up at the softly twinkling starry sky. Natural gentle breathing, subtle fairy light glow, peaceful evening atmosphere. Very slow camera pull-back; no text, no captions."
+  }
+]

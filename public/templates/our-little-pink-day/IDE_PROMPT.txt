@@ -1,0 +1,51 @@
+Create a new romantic Bonded template called "Our Little Pink Day" in E:\Desktop Projects\cpltools-app.
+
+Use these supplied original 2D images in exact order:
+1. 01-my-favorite-meetup.png
+2. 02-one-dessert-two-spoons.png
+3. 03-i-won-this-for-you.png
+4. 04-a-little-photo-booth-moment.png
+5. 05-one-umbrella-for-two.png
+6. 06-you-are-my-cozy-place.png
+
+Creative direction:
+- A contemporary young-adult girlfriend-and-boyfriend date, cute, loving, playful and cozy.
+- Soft pink, white and ivory; matte 2D animated/webtoon-like illustrations.
+- Everyday moments: cafe meetup, shared dessert, white bunny plush surprise, photo booth, shared umbrella, cozy balcony.
+- The same adult couple appears throughout in matching pink/white casual hoodies.
+- Preserve their supplied faces, hair, white bow, outfits and plush toy. Do not regenerate them or change their appearance.
+- Keep all image files text-free; names, personal messages, captions and controls must be separate accessible HTML.
+- Keep this separate from existing Halloween, horror and power-anime themes.
+
+Suggested UI palette:
+Background #FFF8FC; surface #FFFFFF; soft pink #FFE9F1; blush #F7BFD5; accent #A43F66; dark berry text #51253E.
+Use rounded cards, generous white space and a clean rounded/system sans font. Keep body text dark and readable. Avoid overwhelming the artwork with stickers or particles.
+
+Presentation:
+- Exact 16:9 desktop/laptop viewport. Sources are 1672x941, approximately 16:9; object-fit:cover, no stretching.
+- Mobile: preserve both faces and meaningful props, using a full wide frame/letterboxing when a portrait crop loses them.
+- Five seconds per scene with 500ms overlapping crossfades; continuous edited playback totals 27.5 seconds.
+- Optional gentle zoom no more than 1.025.
+- Open story, Pause, Replay, Skip and manual scene navigation.
+- Respect reduced motion with stills and manual navigation.
+- No sound autoplay; optional music only on an explicit user action.
+- Preload only the active theme as needed, with a fast-loading poster.
+- The still-image sequence should work without generating videos.
+
+Personalization:
+- Sender name, partner name and editable personal message.
+- Opening: "Little moments. Favorite person."
+- Suggested message: "My favorite part of any day is you."
+- Present the message beside or below the image, or in a small white card that never covers faces.
+- Scene 4 can introduce the personal message; keep it readable through the final scene and via Skip.
+- Render user input safely as text. Do not bake personalization into the PNGs.
+
+Final interaction:
+"Pick our next little date?"
+Options: Dessert date; Arcade and photo booth; A cozy night in.
+Allow Your idea, Maybe later or declining as well.
+Connect choices to the real existing saved-response flow; collect and agree on time before confirming a date.
+The recipient should be able to enjoy the story and respond simply. Do not simulate notifications, purchases, bookings or saved success.
+
+Use sequence.json for order, timing, copy and palette; CHARACTERS.md for continuity; image-prompts.json for regeneration; video-prompts.json for optional five-second animation. No videos have been generated.
+

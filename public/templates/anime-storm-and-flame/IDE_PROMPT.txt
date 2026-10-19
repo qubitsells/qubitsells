@@ -1,0 +1,50 @@
+Create a new Bonded cinematic template named "Storm & Flame" in E:\Desktop Projects\cpltools-app.
+
+Use the six supplied numbered PNG images:
+1. 01-before-the-storm.png
+2. 02-the-awakening.png
+3. 03-i-have-your-back.png
+4. 04-a-promise-in-the-storm.png
+5. 05-our-combined-strength.png
+6. 06-after-the-storm.png
+
+Theme and story:
+- Japanese theatrical 2D anime romance with dramatic battle-fantasy power.
+- Her power is cyan lightning; his is golden-amber fire.
+- They train, awaken their abilities, protect each other, make a personal promise, combine their strength, then rest together after the storm.
+- Both partners are capable and supportive. Their love and trust are visible through eye contact, joined hands and the quiet ending.
+- Keep the supplied original characters, hairstyles, outfits, red bracelets and power colors unchanged. Preserve the actual artwork.
+- Keep this template separate from previous Halloween and 3D themes.
+
+Presentation:
+- Exact 16:9 desktop/laptop frame; use object-fit:cover without stretching.
+- Native PNGs are 1672px wide and 940–941px high, approximately 16:9.
+- Preserve faces and important hands on mobile; use a letterboxed wide image where cropping would lose the story.
+- Five seconds per scene with soft 500ms overlapping crossfades; composited length 27.5 seconds.
+- Optional very subtle image zoom no larger than 1.025.
+- Let the artwork deliver the energy; do not add flashes, rapid shake, glitch transitions, extra lightning bolts or particles over faces.
+- No sound autoplay. If music is supported, let the user explicitly enable it.
+- Provide Open story, Pause, Replay and Skip.
+- Reduced motion: still images and manual navigation.
+- Load only the selected theme and use a poster while images load.
+- The template must work as a still-image slideshow; video generation is optional.
+
+Personalization:
+- Sender name, partner name, personal message and an optional shared promise.
+- Render all names, captions, message and buttons as accessible HTML, never in image files.
+- Optional opening: "Two powers. One promise."
+- Show the editable promise during scene 4; keep it readable independently of the animation.
+- Show the personal message after scene 5 or on the quiet final frame.
+- Suggested default: "With you beside me, I am ready for every new chapter."
+- Keep reading and reply actions available through Skip.
+
+Final interaction:
+"What will our next adventure be?"
+- Anime night together.
+- Plan our next date.
+- Write our promise.
+- Suggest something else, decide later, or decline.
+Use existing real saved-response and couple-profile flows. A date choice is a proposal until participants agree on a time. Show saved or confirmed success only after successful persistence; do not simulate notifications or bookings.
+
+Copy the supplied assets into a dedicated public template folder and reuse existing app components where sensible. Use sequence.json for asset order and optional copy, image-prompts.json for regeneration, video-prompts.json for optional animation. All text and actions should remain editable without regenerating artwork.
+

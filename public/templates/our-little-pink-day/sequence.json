@@ -1,0 +1,123 @@
+{
+  "id": "our-little-pink-day",
+  "name": "Our Little Pink Day",
+  "tagline": "Little moments. Favorite person.",
+  "style": "Original contemporary 2D pastel romance / animated-short and webtoon-inspired illustration",
+  "generation": "Built-in image generation",
+  "palette": {
+    "background": "#FFF8FC",
+    "surface": "#FFFFFF",
+    "softPink": "#FFE9F1",
+    "blush": "#F7BFD5",
+    "accent": "#A43F66",
+    "text": "#51253E"
+  },
+  "presentationAspectRatio": "16:9",
+  "sizingNote": "Native PNGs are 1672x941, approximately 16:9. Use an exact 16:9 viewport with object-fit:cover, without stretching.",
+  "noTextInArtwork": true,
+  "scenes": [
+    {
+      "order": 1,
+      "file": "01-my-favorite-meetup.png",
+      "title": "My favorite meetup",
+      "storyBeat": "An ordinary date begins with their favorite person.",
+      "width": 1672,
+      "height": 941,
+      "durationMs": 5000,
+      "optionalHtmlCaption": "My favorite plans start with you.",
+      "transitionToNext": {
+        "type": "crossfade",
+        "durationMs": 500
+      }
+    },
+    {
+      "order": 2,
+      "file": "02-one-dessert-two-spoons.png",
+      "title": "One dessert, two spoons",
+      "storyBeat": "A shared strawberry dessert becomes their little moment.",
+      "width": 1672,
+      "height": 941,
+      "durationMs": 5000,
+      "optionalHtmlCaption": "One dessert. Two spoons.",
+      "transitionToNext": {
+        "type": "crossfade",
+        "durationMs": 500
+      }
+    },
+    {
+      "order": 3,
+      "file": "03-i-won-this-for-you.png",
+      "title": "I won this for you",
+      "storyBeat": "He surprises her with a little white bunny plush.",
+      "width": 1672,
+      "height": 941,
+      "durationMs": 5000,
+      "optionalHtmlCaption": "A little surprise, just because.",
+      "transitionToNext": {
+        "type": "crossfade",
+        "durationMs": 500
+      }
+    },
+    {
+      "order": 4,
+      "file": "04-a-little-photo-booth-moment.png",
+      "title": "A little photo-booth moment",
+      "storyBeat": "They save a silly, happy moment together.",
+      "width": 1672,
+      "height": 941,
+      "durationMs": 5000,
+      "optionalHtmlCaption": "Our kind of photo booth.",
+      "transitionToNext": {
+        "type": "crossfade",
+        "durationMs": 500
+      }
+    },
+    {
+      "order": 5,
+      "file": "05-one-umbrella-for-two.png",
+      "title": "One umbrella for two",
+      "storyBeat": "A little rain brings them closer.",
+      "width": 1672,
+      "height": 941,
+      "durationMs": 5000,
+      "optionalHtmlCaption": "A little closer when it rains.",
+      "transitionToNext": {
+        "type": "crossfade",
+        "durationMs": 500
+      }
+    },
+    {
+      "order": 6,
+      "file": "06-you-are-my-cozy-place.png",
+      "title": "You are my cozy place",
+      "storyBeat": "Their day ends with the comfort of being together.",
+      "width": 1672,
+      "height": 941,
+      "durationMs": 5000,
+      "optionalHtmlCaption": "You are my cozy place.",
+      "transitionToNext": null
+    }
+  ],
+  "continuousPlayback": {
+    "durationSeconds": 27.5,
+    "clipStartsSeconds": [
+      0,
+      4.5,
+      9,
+      13.5,
+      18,
+      22.5
+    ]
+  },
+  "htmlContent": {
+    "opening": "Little moments. Favorite person.",
+    "message": "My favorite part of any day is you.",
+    "finalQuestion": "Pick our next little date?",
+    "choices": [
+      "Dessert date",
+      "Arcade and photo booth",
+      "A cozy night in"
+    ],
+    "alternative": "Your idea"
+  }
+}

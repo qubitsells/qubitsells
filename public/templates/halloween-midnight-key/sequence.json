@@ -1,0 +1,101 @@
+{
+  "id": "halloween-midnight-key",
+  "name": "The Midnight Key",
+  "style": "Original Disney-inspired 3D storybook",
+  "generation": "Built-in image generation",
+  "nativeDimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "presentationAspectRatio": "16:9",
+  "sizingNote": "Native PNGs are approximately 16:9. The preview uses an exact 16:9 viewport with object-fit:cover; only a subpixel vertical trim is required at native width.",
+  "noTextInImages": true,
+  "reference": "The couple in Pumpkin Moon Date scene 1 is the identity, costume and style reference for all six generated scenes.",
+  "scenes": [
+    {
+      "order": 1,
+      "file": "01-the-hidden-key.png",
+      "title": "The hidden key",
+      "storyBeat": "A tiny discovery starts their Halloween adventure.",
+      "durationMs": 5000,
+      "transitionToNext": {
+        "type": "crossfade",
+        "durationMs": 500
+      }
+    },
+    {
+      "order": 2,
+      "file": "02-follow-the-fireflies.png",
+      "title": "Follow the fireflies",
+      "storyBeat": "They follow a glowing trail across a little bridge.",
+      "durationMs": 5000,
+      "transitionToNext": {
+        "type": "crossfade",
+        "durationMs": 500
+      }
+    },
+    {
+      "order": 3,
+      "file": "03-the-secret-garden-gate.png",
+      "title": "The secret garden gate",
+      "storyBeat": "Their key opens a path into the garden.",
+      "durationMs": 5000,
+      "transitionToNext": {
+        "type": "crossfade",
+        "durationMs": 500
+      }
+    },
+    {
+      "order": 4,
+      "file": "04-a-treasure-around-the-corner.png",
+      "title": "A treasure around the corner",
+      "storyBeat": "A playful garden maze leads them to a hidden chest.",
+      "durationMs": 5000,
+      "transitionToNext": {
+        "type": "crossfade",
+        "durationMs": 500
+      }
+    },
+    {
+      "order": 5,
+      "file": "05-the-heart-of-the-adventure.png",
+      "title": "The heart of the adventure",
+      "storyBeat": "The treasure is a glowing heart they discover together.",
+      "durationMs": 5000,
+      "transitionToNext": {
+        "type": "crossfade",
+        "durationMs": 500
+      }
+    },
+    {
+      "order": 6,
+      "file": "06-dancing-under-a-halloween-moon.png",
+      "title": "Dancing under a Halloween moon",
+      "storyBeat": "Their adventure ends with a quiet dance beneath the moon.",
+      "durationMs": 5000,
+      "transitionToNext": null
+    }
+  ],
+  "continuousPlayback": {
+    "durationSeconds": 27.5,
+    "clipStartsSeconds": [
+      0,
+      4.5,
+      9,
+      13.5,
+      18,
+      22.5
+    ]
+  },
+  "htmlContent": {
+    "opening": "A little adventure, just for us.",
+    "reveal": "Every little adventure is better with you.",
+    "finalQuestion": "Will you join me for a Halloween adventure?",
+    "choices": [
+      "A moonlit walk",
+      "A cozy mystery movie",
+      "Plan our own treasure hunt"
+    ],
+    "alternative": "Suggest another plan"
+  }
+}

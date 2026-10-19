@@ -1,0 +1,129 @@
+{
+  "id": "anime-storm-and-flame",
+  "name": "Storm & Flame",
+  "tagline": "Two powers. One promise.",
+  "style": "Original Japanese theatrical 2D battle-fantasy anime romance",
+  "generation": "Built-in image generation",
+  "presentationAspectRatio": "16:9",
+  "sizingNote": "Native images are 1672 pixels wide and 940–941 pixels high, approximately 16:9. Use a 16:9 viewport and object-fit:cover for consistent desktop framing without stretching.",
+  "noTextInArtwork": true,
+  "characters": {
+    "A": {
+      "role": "adult woman",
+      "power": "cyan lightning",
+      "costume": "navy coat with silver trim, light-gray top, teal sash, dark trousers, black boots",
+      "hair": "long dark-brown high half-ponytail with red ribbon"
+    },
+    "B": {
+      "role": "adult man",
+      "power": "golden-amber fire",
+      "costume": "charcoal coat with copper trim, black top, burgundy sash, dark trousers, black boots",
+      "hair": "short tousled black hair"
+    }
+  },
+  "scenes": [
+    {
+      "order": 1,
+      "file": "01-before-the-storm.png",
+      "title": "Before the storm",
+      "storyBeat": "A playful training moment reveals affection beneath their strength.",
+      "width": 1672,
+      "height": 941,
+      "durationMs": 5000,
+      "optionalHtmlCaption": "I knew you were different.",
+      "transitionToNext": {
+        "type": "crossfade",
+        "durationMs": 500
+      }
+    },
+    {
+      "order": 2,
+      "file": "02-the-awakening.png",
+      "title": "The awakening",
+      "storyBeat": "As a storm gathers, they awaken their complementary powers.",
+      "width": 1672,
+      "height": 941,
+      "durationMs": 5000,
+      "optionalHtmlCaption": "You awakened something in me.",
+      "transitionToNext": {
+        "type": "crossfade",
+        "durationMs": 500
+      }
+    },
+    {
+      "order": 3,
+      "file": "03-i-have-your-back.png",
+      "title": "I have your back",
+      "storyBeat": "They protect each other when the storm strikes.",
+      "width": 1672,
+      "height": 941,
+      "durationMs": 5000,
+      "optionalHtmlCaption": "Whatever comes, we face it together.",
+      "transitionToNext": {
+        "type": "crossfade",
+        "durationMs": 500
+      }
+    },
+    {
+      "order": 4,
+      "file": "04-a-promise-in-the-storm.png",
+      "title": "A promise in the storm",
+      "storyBeat": "In a quiet moment, they choose to face everything together.",
+      "width": 1672,
+      "height": 941,
+      "durationMs": 5000,
+      "optionalHtmlCaption": "My promise is to stand beside you.",
+      "transitionToNext": {
+        "type": "crossfade",
+        "durationMs": 500
+      }
+    },
+    {
+      "order": 5,
+      "file": "05-our-combined-strength.png",
+      "title": "Our combined strength",
+      "storyBeat": "Their bond turns two powers into one overwhelming force.",
+      "width": 1672,
+      "height": 940,
+      "durationMs": 5000,
+      "optionalHtmlCaption": "Together, we rise.",
+      "transitionToNext": {
+        "type": "crossfade",
+        "durationMs": 500
+      }
+    },
+    {
+      "order": 6,
+      "file": "06-after-the-storm.png",
+      "title": "After the storm",
+      "storyBeat": "Their power settles, and their love remains.",
+      "width": 1672,
+      "height": 941,
+      "durationMs": 5000,
+      "optionalHtmlCaption": "My favorite place is beside you.",
+      "transitionToNext": null
+    }
+  ],
+  "continuousPlayback": {
+    "durationSeconds": 27.5,
+    "clipStartsSeconds": [
+      0,
+      4.5,
+      9,
+      13.5,
+      18,
+      22.5
+    ]
+  },
+  "htmlContent": {
+    "opening": "Two powers. One promise.",
+    "message": "With you beside me, I am ready for every new chapter.",
+    "finalQuestion": "What will our next adventure be?",
+    "choices": [
+      "Anime night together",
+      "Plan our next date",
+      "Write our promise"
+    ],
+    "alternative": "Suggest something else"
+  }
+}
