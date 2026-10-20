@@ -12,6 +12,10 @@ A Next.js application for private couple spaces, solo/shared time capsules, roma
 
 The default development URL is `http://localhost:3000`.
 
+For Google sign-in on `https://qubitsells.com`, follow the complete [Google Cloud, Supabase, and Vercel setup guide](docs/google-sign-in.md). The Google OAuth secret belongs in Supabase provider settings. Vercel needs the Supabase public URL/key at build time; local `.env.local` values are not automatically uploaded.
+
+For profile password reset and account deletion, follow [Account security setup](docs/account-security.md). Apply `20261020223922_account_deletion.sql` before enabling deletion in production, and configure Supabase recovery email delivery. The endpoint blocks deletion until the safety trigger is installed.
+
 ## Features
 
 - Profiles and verified pairing through random invitation codes. Both partners retain one shared couple space.

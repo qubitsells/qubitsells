@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, BriefcaseBusiness, CheckCircle2, Eye, EyeOff, HeartHandshake, Layers3, Loader2, LockKeyhole } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { safeRedirect } from "@/lib/security/validation";
+import { authCallbackUrl, authErrorMessage, googleSignInRequest, signInDestination } from "@/lib/auth/navigation";
 import { useAuth } from "@/context/AuthContext";
 import account from "@/components/account/account.module.css";
 import styles from "@/components/account/auth.module.css";
@@ -15,7 +15,7 @@ export default function AuthForm({ initialMode = "login" }: { initialMode?: "log
   const params = useSearchParams();
   const { user, loading: authLoading } = useAuth();
   const inviteCode = (params.get("code") || "").slice(0, 100);
-  const destination = inviteCode ? `/couple-space/profile?code=${encodeURIComponent(inviteCode)}` : safeRedirect(params.get("redirect"), "/profile");
+  const destination = signInDestination(new URLSearchParams(params.toString()));
   const [mode, setMode] = useState(initialMode);
   const [method, setMethod] = useState<"password" | "magic">("password");
   const [email, setEmail] = useState("");
@@ -25,7 +25,10 @@ export default function AuthForm({ initialMode = "login" }: { initialMode?: "log
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [socialBusy, setSocialBusy] = useState(false);
-  const [message, setMessage] = useState<{ error: boolean; text: string } | null>(() => params.get("error") ? { error: true, text: params.get("error")! } : null);
+  const [message, setMessage] = useState<{ error: boolean; text: string } | null>(() => {
+    const text = authErrorMessage(params.get("error"));
+    return text ? { error: true, text } : params.get("notice") === "account_deleted" ? { error: false, text: "Your QubitSells account has been deleted. Thank you for spending time with us." } : null;
+  });
   const client = createClient();
   useEffect(() => { if (!authLoading && user) router.replace(destination); }, [authLoading, user, router, destination]);
 
@@ -34,7 +37,7 @@ export default function AuthForm({ initialMode = "login" }: { initialMode?: "log
   };
   const submit = async (event: React.FormEvent) => {
     event.preventDefault(); setMessage(null); setBusy(true); savePersistence();
-    const callback = `${window.location.origin}/auth/callback?next=${encodeURIComponent(destination)}`;
+    const callback = authCallbackUrl(window.location.origin, destination);
     try {
       if (method === "magic") {
         const { error } = await client.auth.signInWithOtp({ email: email.trim(), options: {
@@ -61,8 +64,10 @@ export default function AuthForm({ initialMode = "login" }: { initialMode?: "log
   const google = async () => {
     setSocialBusy(true); setMessage(null); savePersistence();
     try {
-      const { error } = await client.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(destination)}` } });
+      const { data, error } = await client.auth.signInWithOAuth(googleSignInRequest(window.location.origin, destination));
       if (error) throw error;
+      if (!data.url) throw new Error("Missing sign-in URL");
+      window.location.assign(data.url);
     } catch { setSocialBusy(false); setMessage({ error: true, text: "Google sign-in couldn’t be started. Please try again." }); }
   };
 
@@ -77,7 +82,8 @@ export default function AuthForm({ initialMode = "login" }: { initialMode?: "log
       <h2 id="auth-title">{mode === "login" ? "Welcome back." : "A place to make it yours."}</h2><p className={styles.authDescription}>{mode === "login" ? "Sign in to your account and pick up where you left off." : "Create your individual account. Start with your own details."}</p>
       {inviteCode && <div className={styles.invitationNotice}><HeartHandshake size={18} aria-hidden="true" /><p>You have a Couple Space invitation. After signing in, you can review it and choose whether to connect.</p></div>}
       {message && <p className={message.error ? account.errorMessage : account.successMessage} role={message.error ? "alert" : "status"}>{!message.error && <CheckCircle2 size={16} aria-hidden="true" />}{message.text}</p>}
-      <button type="button" onClick={() => void google()} disabled={busy || socialBusy} className={styles.googleButton}>{socialBusy ? <Loader2 size={17} className={account.spinner} aria-hidden="true" /> : <GoogleIcon />}Continue with Google</button>
+      <button type="button" onClick={() => void google()} disabled={busy || socialBusy} aria-busy={socialBusy} className={styles.googleButton}>{socialBusy ? <Loader2 size={17} className={account.spinner} aria-hidden="true" /> : <GoogleIcon />}{socialBusy ? "Connecting to Google…" : "Continue with Google"}</button>
+      <p className={styles.googleTerms}>By continuing with Google, you agree to our <Link href="/terms" target="_blank" rel="noopener noreferrer">Terms</Link> and acknowledge our <Link href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</Link>.</p>
       <div className={styles.divider}><span>or use your email</span></div>
       <form onSubmit={submit} className={styles.authForm}><fieldset disabled={busy || socialBusy}>
         {mode === "signup" && <div className={account.field}><label htmlFor="auth-name">Your name</label><input id="auth-name" type="text" name="name" value={name} onChange={event => setName(event.target.value)} maxLength={100} autoComplete="name" placeholder="Your first and last name" required /></div>}
@@ -88,6 +94,7 @@ export default function AuthForm({ initialMode = "login" }: { initialMode?: "log
         <button type="submit" className={`${account.button} ${account.primary} ${styles.submitButton}`}>{busy ? <Loader2 size={17} className={account.spinner} aria-hidden="true" /> : <>{method === "magic" ? "Send sign-in link" : mode === "login" ? "Sign in" : "Create my account"}<ArrowRight size={17} aria-hidden="true" /></>}</button>
       </fieldset></form>
       <button type="button" className={styles.methodToggle} disabled={busy || socialBusy} onClick={() => { setMethod(method === "password" ? "magic" : "password"); setMessage(null); }}>{method === "password" ? "Prefer a sign-in link? Use email instead of a password." : "Use a password instead"}</button>
+      <p className={styles.authHelp}><Link href="/reset-password">Forgot your password?</Link></p>
       <p className={styles.authHelp}>Need a hand? <Link href="/contact">Contact &amp; help</Link></p>
     </section>
   </div>;

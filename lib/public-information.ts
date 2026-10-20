@@ -13,14 +13,14 @@ export const PUBLIC_INFORMATION = {
       ["Made for someone in particular", "Choose a design, personalize the names and message, add supported photos or tools, and choose when the link expires. You are creating a webpage, not purchasing a downloadable video."],
       ["Gifting comes first", "A couple connection is not required to create or receive a gift. The current illustrated collection is mostly romantic; preview the story before choosing it for a friend or family member."],
       ["And a private space for two", "Couple Space is a separate part of QubitSells for relationship profiles, date ideas, and time capsules. Private account features require sign-in, and shared capsules require partner consent."],
-      ["Our website", `${OPERATOR_NAME} is the website and operator name. Our intended public domain is qubitsells.com. Domain and support mailbox activation are pending.`],
+      ["Our website", `${OPERATOR_NAME} is the website and operator name. Our public website is qubitsells.com. Support mailbox activation is pending.`],
     ],
   },
   contact: {
     title: "A little help, when you need it.",
     intro: "Find guidance for creating a gift, opening a shared link, and managing your private content.",
     sections: [
-      ["Contact", `The planned ${OPERATOR_NAME} support email is support@qubitsells.com. The domain and mailbox are being set up; delivery is not yet confirmed. There is no separate support form or live chat in this version.`],
+      ["Contact", `The planned ${OPERATOR_NAME} support email is support@qubitsells.com. Mailbox delivery is not yet confirmed. There is no separate support form or live chat in this version.`],
       ["A link is not opening", "Ask the sender to check the link and its expiry. An expired or deleted template cannot be opened. A shared template link does not require recipient sign-in, but private Couple Space and capsules do."],
       ["Managing or deleting a gift", "Use the original browser or your private creator management link. Keep that management link private: it grants access to creator controls. Published gifts cannot currently be fully edited; create a replacement when necessary."],
       ["Payments and refunds", `${PLANNED_PRICING_DESCRIPTION} Stripe-hosted checkout is available when configured. The store starts in test mode, where test purchases do not collect real money. Confirmed orders appear in your personal profile; card details are entered on Stripe, not stored by QubitSells.`],
@@ -29,7 +29,7 @@ export const PUBLIC_INFORMATION = {
   },
   privacy: {
     title: "Privacy policy",
-    intro: `This page explains the data flows implemented in ${OPERATOR_NAME}. Last updated 20 October 2026. The intended website is qubitsells.com; the support mailbox is support@qubitsells.com and is pending activation.`,
+    intro: `This page explains the data flows implemented in ${OPERATOR_NAME}. Last updated 21 October 2026. Our website is qubitsells.com; the support mailbox is support@qubitsells.com and is pending activation.`,
     sections: [
       ["Account and sign-in information", "QubitSells uses Supabase for authentication and application data. If you choose Google sign-in, Supabase receives the profile information Google authorizes, such as your email and basic profile. QubitSells uses your account ID, email, and profile fields for sign-in and account features. The app does not request Gmail, Contacts, Calendar, or Drive access."],
       ["Gift and interaction content", "We process the names, messages, photos, audio, selected music, and optional tool settings you submit to create your gift. Recipient replies, votes, invitation responses, and other supported interactions are stored so the gift creator and authorized participants can use them. Microphone access is requested only when you choose to record audio."],

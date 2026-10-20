@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 import { ACCOUNT_PURPOSES, accountProfileFromMetadata, accountProfileSchema, type AccountProfile } from "@/lib/account-profile";
 import { saveAccountProfile } from "@/lib/supabase/accountProfile";
 import AccountShell from "./AccountShell";
+import AccountSecurity from "./AccountSecurity";
 import AccountCommerce, {AccountTabs, type AccountView} from "@/components/commerce/AccountCommerce";
 import styles from "./account.module.css";
 
@@ -64,5 +65,6 @@ function ProfileForm({ user }: { user: User }) {
     </form>
     <div className={styles.accountBottomGrid}><Link href="/creator-center" className={styles.creationShortcut}><FolderHeart size={21} aria-hidden="true" /><div><h3>Your ideas, made personal.</h3><p>Manage your templates, links, and replies.</p></div><ArrowUpRight size={19} aria-hidden="true" /></Link><div className={styles.memberSince}><Clock3 size={17} aria-hidden="true" /><span>Member since<strong>{new Intl.DateTimeFormat(undefined, { month: "long", year: "numeric" }).format(new Date(user.created_at))}</strong></span></div></div>
     <section id="account-access" className={styles.accessSection}><div><ShieldCheck size={20} aria-hidden="true" /><div><h3>Account &amp; access</h3><p>{user.email_confirmed_at ? "Your email address is verified." : "Check your inbox to confirm your email address."} <Link href="/privacy">Read our privacy policy</Link>.</p></div></div><button type="button" className={`${styles.button} ${styles.secondary}`} disabled={signingOut} onClick={() => void handleSignOut()}><LogOut size={15} aria-hidden="true" />{signingOut ? "Signing out…" : "Sign out"}</button></section>
+    <AccountSecurity user={user} />
   </>;
 }

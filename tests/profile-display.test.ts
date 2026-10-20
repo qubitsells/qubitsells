@@ -51,6 +51,8 @@ test("individual profile displays professional details without relationship fiel
   assert.ok(!html.includes('id="your-love-language"'));
   assert.ok(html.includes('href="/couple-space"'));
   assert.ok(html.includes("Optional"));
+  for (const value of ["Account security.", "Send password reset email", "Delete account", 'aria-controls="delete-account-confirmation"']) assert.ok(html.includes(value), `Missing security control: ${value}`);
+  assert.ok(!html.includes("Permanently delete account"), "destructive confirmation stays closed until requested");
 });
 
 test("an account without a couple sees an optional explicit setup and invitation review", () => {

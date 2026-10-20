@@ -1,10 +1,12 @@
 import { createBrowserClient, parseCookieHeader, serializeCookieHeader } from '@supabase/ssr'
 import { authCookieOptions } from '@/lib/security/sessionCookies'
+import { publicSupabaseConfig } from './config'
 
 export function createClient() {
+  const { url, key } = publicSupabaseConfig()
   return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    url,
+    key,
     { cookies: {
       getAll: () => typeof document === "undefined" ? [] : parseCookieHeader(document.cookie),
       setAll: values => {
