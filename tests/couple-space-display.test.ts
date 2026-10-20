@@ -9,7 +9,7 @@ function render(kind:string,overrides:Record<string,unknown>={},path="/couple-sp
 }
 test("Couple Space provides its own navigation and a clear switch to the personal account",()=>{
   const html=render("navigation",{},"/couple-space/calendar");
-  for(const text of ["Overview","Couple Profile","Shared Calendar","Shared Capsules","Date Ideas",'aria-label="Couple Space navigation"'])assert.ok(html.includes(text),text);
+  for(const text of ["Overview","Couple Profile","Shared Calendar","Shared Capsules","Vibe Generator",'aria-label="Couple Space navigation"'])assert.ok(html.includes(text),text);
   const links=html.match(/<a\b[^>]*>/g)||[];assert.equal(links.filter(link=>link.includes('aria-current="page"')).length,1);assert.ok(links.some(link=>link.includes('href="/couple-space/calendar"')&&link.includes('aria-current="page"')));
   const shell=render("shell");assert.equal((shell.match(/<main\b/g)||[]).length,1);assert.ok(shell.includes("Personal account"));assert.ok(shell.includes('href="/profile"'));
 });
@@ -26,5 +26,5 @@ test("connected overview shows real couple details and all shared tools without 
 test("shared capsule page requires a connected partner and date ideas lead into the shared calendar",()=>{
   const guest=render("capsules");assert.ok(guest.includes('href="/login?redirect=/couple-space/time-capsules"'));assert.ok(!guest.includes("Create a capsule"));
   const solo=render("capsules",{user:{id:"alex"}});assert.ok(solo.includes("Connect with your partner"));assert.ok(!solo.includes("Create a capsule"));
-  const idea=render("ideas");for(const text of ["A quiet evening","A little adventure","At home","Copy this idea","Choose a day together",'href="/couple-space/calendar"','aria-pressed="true"'])assert.ok(idea.includes(text),text);
+  const idea=render("ideas");assert.ok(idea.includes("Sign in to Couple Space"));assert.ok(!idea.includes("Generate our vibe"));
 });

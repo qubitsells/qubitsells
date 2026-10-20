@@ -11,6 +11,9 @@ export default function CapsuleDialog({children, label, onClose, className = ""}
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const dialog = root.current;
     if (!dialog) return;
+    const viewport=window.visualViewport;
+    const fitViewport=()=>{dialog.style.setProperty("--capsule-viewport-height",`${viewport?.height||window.innerHeight}px`);dialog.style.setProperty("--capsule-viewport-top",`${viewport?.offsetTop||0}px`);};
+    fitViewport();viewport?.addEventListener("resize",fitViewport);viewport?.addEventListener("scroll",fitViewport);window.addEventListener("resize",fitViewport);
     dialog.focus();
     const keyboard = (event: KeyboardEvent) => {
       const dialogs = document.querySelectorAll("[data-capsule-dialog]");
@@ -24,7 +27,7 @@ export default function CapsuleDialog({children, label, onClose, className = ""}
       else if (!event.shiftKey && (document.activeElement === last || document.activeElement === dialog)) { event.preventDefault(); first.focus(); }
     };
     document.addEventListener("keydown", keyboard);
-    return () => { document.removeEventListener("keydown", keyboard); if (previous?.isConnected) previous.focus(); };
+    return () => { document.removeEventListener("keydown", keyboard);viewport?.removeEventListener("resize",fitViewport);viewport?.removeEventListener("scroll",fitViewport);window.removeEventListener("resize",fitViewport); if (previous?.isConnected) previous.focus(); };
   }, []);
   return <div ref={root} role="dialog" aria-modal="true" aria-label={label} tabIndex={-1} data-capsule-dialog className={`fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto ${styles.dialogOverlay} ${className}`}>{children}</div>;
 }

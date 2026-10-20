@@ -1384,7 +1384,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
 
       {/* ─── Pending Couple Seal Requests Banner ─── */}
       {couple?.is_connected && pendingSealRequests.length > 0 && (
-        <div className="max-w-5xl mx-auto px-4 pt-4 space-y-3">
+        <div className={`${styles.requestList} max-w-5xl mx-auto px-4 pt-4 space-y-3`}>
           {pendingSealRequests.map((req) => (
             <motion.div
               key={req.id}
@@ -1410,7 +1410,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
+              <div className={`${styles.requestActions} flex items-center gap-2 shrink-0`}>
                 <motion.button
                   whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.96 }}
@@ -1437,7 +1437,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
 
       {/* ─── Pending Couple Unlock Requests Banner (Partner Notification) ─── */}
       {couple?.is_connected && pendingUnlockRequests.length > 0 && (
-        <div className="max-w-5xl mx-auto px-4 pt-4 space-y-3">
+        <div className={`${styles.requestList} max-w-5xl mx-auto px-4 pt-4 space-y-3`}>
           {pendingUnlockRequests.map((req) => (
             <motion.div
               key={req.id}
@@ -1463,7 +1463,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
+              <div className={`${styles.requestActions} flex items-center gap-2 shrink-0`}>
                 <motion.button
                   whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.96 }}
@@ -1525,10 +1525,10 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
               initial={{ opacity: 0, scale: 0.92, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.92, y: 20 }}
-              className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-sky-200 overflow-hidden my-auto max-h-[92vh] flex flex-col"
+              className={`${styles.dialogPanel} relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-sky-200 overflow-hidden my-auto max-h-[92vh] flex flex-col`}
             >
               {/* Modal Top Header */}
-              <div className="p-4 sm:p-5 bg-gradient-to-r from-sky-50 via-cyan-50 to-sky-50 border-b border-sky-200 flex items-center justify-between shrink-0">
+              <div className={`${styles.dialogHeader} p-4 sm:p-5 bg-gradient-to-r from-sky-50 via-cyan-50 to-sky-50 border-b border-sky-200 flex items-center justify-between shrink-0`}>
                 <div className="flex items-center gap-3">
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center text-lg border shadow-xs ${getSealStyles(
@@ -1541,7 +1541,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                     <h2 className="text-base sm:text-lg font-extrabold text-[#16232d] line-clamp-1">
                       {selectedCapsule.title}
                     </h2>
-                    <div className="text-[11px] text-[#5f7b8c] font-medium flex items-center gap-2">
+                    <div className={`${styles.dialogMeta} text-[11px] text-[#5f7b8c] font-medium flex items-center gap-2`}>
                       <span>Sealed: {selectedCapsule.sealed_date}</span>
                       <span>•</span>
                       <span className="font-bold text-sky-600">
@@ -1555,6 +1555,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                   <button
                     onClick={() => handleDeleteCapsule(selectedCapsule)}
                     title="Delete capsule"
+                    aria-label="Delete capsule"
                     className="w-8 h-8 rounded-full bg-white/80 hover:bg-red-50 text-red-600 flex items-center justify-center transition-colors cursor-pointer border border-red-200"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -1570,7 +1571,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
               </div>
 
               {/* Modal Body Content */}
-              <div className="p-5 sm:p-7 overflow-y-auto flex-1 space-y-6">
+              <div className={`${styles.dialogBody} p-5 sm:p-7 overflow-y-auto flex-1 space-y-6`}>
                 {operationError && <p role="alert" className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">{operationError}</p>}
                 {/* CASE A: CAPSULE IS LOCKED */}
                 {selectedCapsule.is_locked ? (
@@ -1632,7 +1633,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                             )}
 
                             {/* Vote status indicators */}
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-3">
                               <div className={`p-3 rounded-2xl border text-center space-y-1.5 ${
                                 coupleUnlockRequest.unlock_vote_requester
                                   ? "bg-emerald-50 border-emerald-300"
@@ -1755,12 +1756,13 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                             onTouchStart={() => { setUnlockProgress(0); setIsHoldingUnlock(true); }}
                             onTouchEnd={() => setIsHoldingUnlock(false)}
                             onTouchCancel={() => setIsHoldingUnlock(false)}
+                            onContextMenu={event => event.preventDefault()}
                             onKeyDown={event => { if (event.key === " " || event.key === "Enter") { event.preventDefault(); setIsHoldingUnlock(true); } }}
                             onKeyUp={() => setIsHoldingUnlock(false)}
                             onBlur={() => setIsHoldingUnlock(false)}
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            className={`w-24 h-24 rounded-full border-4 flex flex-col items-center justify-center cursor-pointer transition-all relative overflow-hidden select-none ${
+                            className={`${styles.holdToOpen} w-24 h-24 rounded-full border-4 flex flex-col items-center justify-center cursor-pointer transition-all relative overflow-hidden select-none ${
                               isHoldingUnlock
                                 ? "border-sky-500 bg-sky-500 text-white shadow-lg shadow-sky-500/40"
                                 : "border-sky-300 bg-white text-sky-600 hover:border-sky-400"
@@ -1793,7 +1795,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                   /* CASE B: CAPSULE IS UNLOCKED */
                   <div className="space-y-6">
                     {/* Navigation Tabs (Handwritten Letter Shows First) */}
-                    <div className="flex items-center justify-center gap-2 border-b border-sky-200 pb-3 flex-wrap">
+                    <div className={`${styles.memoryTabs} flex items-center justify-center gap-2 border-b border-sky-200 pb-3 flex-wrap`}>
                       <button
                         onClick={() => {
                           sfx.playChime();
@@ -1846,7 +1848,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="p-6 sm:p-8 rounded-3xl bg-[#fbf7ee] border border-[#e6d8be] shadow-inner text-[#3d2716] relative overflow-hidden"
+                        className={`${styles.memoryLetter} p-6 sm:p-8 rounded-3xl bg-[#fbf7ee] border border-[#e6d8be] shadow-inner text-[#3d2716] relative overflow-hidden`}
                       >
                         <div className="absolute top-4 right-4 opacity-15 text-5xl">💌</div>
                         <div className="font-script text-2xl sm:text-3xl text-[#881337] mb-4">
@@ -1873,7 +1875,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                         {openedFolderId ? (
                           <div className="space-y-6">
                             {/* Breadcrumb Header */}
-                            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-sky-50/80 border border-sky-200">
+                            <div className={`${styles.folderToolbar} flex items-center justify-between p-3.5 rounded-2xl bg-sky-50/80 border border-sky-200`}>
                               <button
                                 onClick={() => setOpenedFolderId(null)}
                                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white border border-sky-200 text-xs font-bold text-sky-800 hover:bg-sky-100 transition-colors cursor-pointer"
@@ -2514,7 +2516,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
               </div>
 
               {/* Modal Bottom Actions */}
-              <div className="p-4 bg-sky-50/50 border-t border-sky-100 flex items-center justify-between shrink-0">
+              <div className={`${styles.dialogFooter} p-4 bg-sky-50/50 border-t border-sky-100 flex items-center justify-between shrink-0`}>
                 <button
                   onClick={() => { setIsHoldingUnlock(false); setIsDetailModalOpen(false); }}
                   className="px-4 py-2 rounded-xl text-xs font-semibold text-sky-800 hover:bg-sky-100/70 transition-colors cursor-pointer"
@@ -2537,10 +2539,10 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="relative w-full max-w-xl flex flex-col items-center justify-center my-auto"
+              className={`${styles.lightboxPanel} relative w-full max-w-xl flex flex-col items-center justify-center my-auto`}
             >
               {/* Top Controls Bar */}
-              <div className="w-full flex items-center justify-between text-white mb-4">
+              <div className={`${styles.lightboxToolbar} w-full flex items-center justify-between text-white mb-4`}>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => {
@@ -2584,7 +2586,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                     className={`${isLightboxFlipped ? "hidden" : "block"} space-y-4`}
                     style={{ backfaceVisibility: "hidden" }}
                   >
-                    <div className="relative w-full h-[360px] sm:h-[440px] rounded-2xl overflow-hidden bg-stone-900 border border-stone-200">
+                    <div className={`${styles.lightboxPhoto} relative w-full h-[360px] sm:h-[440px] rounded-2xl overflow-hidden bg-stone-900 border border-stone-200`}>
                       <Image unoptimized
                         src={lightboxPolaroid.image}
                         alt={lightboxPolaroid.caption}
@@ -2607,7 +2609,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                             className="w-full px-3 py-2 rounded-xl border border-sky-300 font-script text-xl text-[#16232d]"
                           />
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-2">
                           <div>
                             <label className="text-[10px] font-bold text-stone-600 block mb-0.5">Location</label>
                             <input
@@ -2706,9 +2708,9 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
               initial={{ opacity: 0, scale: 0.94, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.94, y: 20 }}
-              className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-sky-200 overflow-hidden my-auto max-h-[92vh] flex flex-col"
+              className={`${styles.dialogPanel} relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-sky-200 overflow-hidden my-auto max-h-[92vh] flex flex-col`}
             >
-              <div className="p-5 bg-gradient-to-r from-sky-50 via-cyan-50 to-sky-50 border-b border-sky-200 flex items-center justify-between shrink-0">
+              <div className={`${styles.dialogHeader} p-5 bg-gradient-to-r from-sky-50 via-cyan-50 to-sky-50 border-b border-sky-200 flex items-center justify-between shrink-0`}>
                 <div>
                   <h2 className="text-lg font-extrabold text-[#16232d]">
                     Create a time capsule
@@ -2733,7 +2735,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
               </div>
 
               <nav className={styles.wizardProgress} aria-label="Capsule creation progress">{["Essentials", "Letter", "Memories", "Predictions", "Seal"].map((label, index) => <span key={label} aria-current={createStep === index + 1 ? "step" : undefined} data-complete={createStep > index + 1}><i>{createStep > index + 1 ? <Check size={11} aria-hidden="true" /> : index + 1}</i>{label}</span>)}</nav>
-              <div className="p-6 sm:p-8 overflow-y-auto flex-1 space-y-6">
+              <div className={`${styles.dialogBody} p-6 sm:p-8 overflow-y-auto flex-1 space-y-6`}>
                 {operationError && <p role="alert" className="p-3 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-900">{operationError}</p>}
                 {/* STEP 1: Capsule Type & Title */}
                 {createStep === 1 && (
@@ -2822,7 +2824,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                     animate={{ opacity: 1, x: 0 }}
                     className="space-y-4"
                   >
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-3">
                       <div>
                         <label htmlFor="capsule-author" className="text-xs font-bold text-[#16232d] block mb-1">Author Name</label>
                         <input id="capsule-author"
@@ -3607,12 +3609,13 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                           onTouchStart={() => { setSealProgress(0); setIsHoldingToSeal(true); }}
                           onTouchEnd={() => setIsHoldingToSeal(false)}
                           onTouchCancel={() => setIsHoldingToSeal(false)}
+                          onContextMenu={event => event.preventDefault()}
                           onKeyDown={event => { if (event.key === " " || event.key === "Enter") { event.preventDefault(); if (!event.repeat) { setSealProgress(0); setIsHoldingToSeal(true); } } }}
                           onKeyUp={event => { if (event.key === " " || event.key === "Enter") setIsHoldingToSeal(false); }}
                           onBlur={() => setIsHoldingToSeal(false)}
                           whileHover={{ scale: 1.03 }}
                           whileTap={{ scale: 0.97 }}
-                          className={`px-8 py-3.5 rounded-full font-bold text-sm text-white transition-all select-none cursor-pointer relative overflow-hidden shadow-lg ${
+                          className={`${styles.sealAction} px-8 py-3.5 rounded-full font-bold text-sm text-white transition-all select-none cursor-pointer relative overflow-hidden shadow-lg ${
                             isHoldingToSeal ? "bg-sky-700 shadow-sky-600/40" : "btn-love-primary"
                           }`}
                         >
@@ -3648,7 +3651,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                 )}
               </div>
 
-              <div className="p-4 bg-sky-50/60 border-t border-sky-100 flex items-center justify-between shrink-0">
+              <div className={`${styles.wizardFooter} p-4 bg-sky-50/60 border-t border-sky-100 flex items-center justify-between shrink-0`}>
                 {createStep > 1 && !sealRequestSent ? (
                   <button
                     onClick={() => setCreateStep((prev) => (prev - 1) as typeof createStep)}

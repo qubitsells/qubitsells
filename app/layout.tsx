@@ -40,6 +40,7 @@ const feelingLovely = localFont({
 });
 
 export const metadata: Metadata = {
+  applicationName: "QubitSells",
   metadataBase: new URL(getSiteUrl() || "https://qubitsells.com"),
   title: "QubitSells — Personalized digital gifts",
   description:

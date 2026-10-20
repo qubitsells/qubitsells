@@ -2,6 +2,8 @@ import {before,after,test} from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import {PGlite} from "@electric-sql/pglite";
+import {createClient} from "@supabase/supabase-js";
+import {requireVibePartner} from "../lib/server/vibe";
 import {calendarDays,calendarEventSchema,calendarMonthSchema,calendarTime,plansForDay,shiftMonth,type CalendarEvent} from "../lib/calendar";
 
 const db=new PGlite(),alice="11111111-1111-4111-8111-111111111111",bob="22222222-2222-4222-8222-222222222222",charlie="33333333-3333-4333-8333-333333333333";
@@ -87,6 +89,19 @@ test("edited details request fresh consent, switch the recipient when the other 
 test("removed requests delete their notifications",async()=>{
   const id="88888888-8888-4888-8888-888888888888";await operation(alice,"create",id);await operation(bob,"delete",id,1);
   await role("service_role");assert.equal((await db.query("select id from public.store_notifications where calendar_event_id=$1",[id])).rows.length,0);
+});
+
+test("vibe connection checks read current pair membership under authenticated RLS",async()=>{
+  let actor=alice;
+  const client=createClient("https://vibe-rls.invalid","fixture-key",{auth:{persistSession:false,autoRefreshToken:false},global:{fetch:async(input,init)=>{
+    const request=new Request(input,init),url=new URL(request.url);assert.equal(request.method,"GET");assert.equal(url.pathname,"/rest/v1/couples");assert.equal(url.searchParams.get("id"),`eq.${coupleId}`);
+    await role("authenticated",actor);const rows=(await db.query("select id,partner_1_id,partner_2_id from public.couples where id=$1",[coupleId])).rows;
+    return new Response(JSON.stringify(rows[0]||null),{headers:{"Content-Type":"application/json"}});
+  }}});
+  for(const member of [alice,bob]){actor=member;assert.equal((await requireVibePartner(client,coupleId,actor)).id,coupleId);}
+  actor=charlie;await assert.rejects(requireVibePartner(client,coupleId,actor),{status:403});
+  await role("service_role");await db.query("update public.couples set partner_2_id=null where id=$1",[coupleId]);actor=alice;await assert.rejects(requireVibePartner(client,coupleId,actor),{status:403});
+  await role("service_role");await db.query("update public.couples set partner_2_id=$1 where id=$2",[bob,coupleId]);
 });
 
 test("changing a partner never exposes old plans or notifications, and disconnecting deletes the former calendar",async()=>{

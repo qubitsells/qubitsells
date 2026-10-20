@@ -8,7 +8,7 @@ Couple Space is a dedicated area, separate from the personal profile and commerc
 | `/couple-space/profile` | Couple profile, invitation review, partner connection, relationship settings, and disconnect |
 | `/couple-space/calendar` | Shared plans and partner confirmation requests |
 | `/couple-space/time-capsules` | Shared capsules only; new capsules use couple mode |
-| `/couple-space/date-ideas` | Date inspiration, copyable ideas, and access to the shared calendar |
+| `/couple-space/date-ideas` | Vibe Generator for connected partners, with preferences, date plans, and calendar invitations |
 
 Every couple page has the same Couple Space navigation and a Personal account link. The personal profile retains account details, purchases, wishlist, and reviews. The existing `/time-capsule` collection remains available for personal capsules and the optional combined collection.
 

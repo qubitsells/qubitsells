@@ -108,9 +108,11 @@
 .signInState .button { margin-top: 8px; }
 .textLink { display: inline-flex; align-items: center; gap: 8px; min-height: 34px; font-size: 11px; color: #547a8b; }
 .textLink:hover { text-decoration: underline; text-underline-offset: 4px; }
-.coupleIdentity { background: #f5fbff; }
+.coupleProfileContent { --account-line: #e0e9ee; --account-muted: #58707e; display: grid; min-width: 0; gap: 24px; }
+.coupleIdentity { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; background: #f5fbff; }
 .coupleIdentity > div > p:last-child { margin-top: 9px; color: #62808f; font-size: 11px; line-height: 1.8; }
-.coupleIdentity h2 { font-size: 26px; }
+.coupleIdentity h2 { font-size: 26px; overflow-wrap: break-word; word-break: normal; }
+.coupleIdentity .accountBadge { margin-left: 0; justify-self: start; }
 .coupleAvatars { display: flex; flex-shrink: 0; padding-right: 3px; }
 .coupleAvatars > span { display: grid; place-items: center; width: 51px; height: 58px; border-radius: 14px; background: #d4f3ff; border: 2px solid #f5fbff; color: #00779e; font-family: var(--font-playfair), Georgia, serif; font-size: 24px; }
 .coupleAvatars > span + span { margin-left: -9px; transform: rotate(7deg); background: #e5f6ff; }
@@ -200,6 +202,8 @@
   .coupleTools { grid-template-columns: 1fr; }
 }
 @media (max-width: 850px) {
+  .coupleIdentity { grid-template-columns: auto minmax(0, 1fr); }
+  .coupleIdentity .accountBadge { grid-column: 2; }
   .accountLayout { grid-template-columns: 1fr; gap: 24px; }
   .accountSidebar { display: flex; align-items: center; gap: 20px; padding-top: 0; border-bottom: 1px solid #e5edf2; padding-bottom: 20px; }
   .accountNav { display: flex; flex: 1; flex-wrap: wrap; gap: 4px; }
@@ -279,8 +283,13 @@
   .inlineActions > .button { flex: 1; font-size: 10px; }
   .connectionGrid form .button { width: 100%; }
   .coupleAvatars > span { width: 39px; height: 51px; font-size: 21px; }
-  .coupleIdentity .eyebrow { font-size: 8px; }
-  .coupleIdentity .accountBadge { margin-left: 89px; }
+  .coupleProfileContent { gap: 20px; }
+  .coupleIdentity { grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; padding: 23px 21px; }
+  .coupleIdentity > div:nth-child(2) { width: 100%; }
+  .coupleIdentity h2 { font-size: clamp(26px, 6.5vw, 32px); line-height: 1.25; }
+  .coupleIdentity .eyebrow { font-size: 9px; }
+  .coupleIdentity > div > p:last-child { font-size: 12px; }
+  .coupleIdentity .accountBadge { grid-column: 1; margin-left: 0; font-size: 10px; }
   .songInput { flex-direction: column; align-items: stretch; }
   .songInput > .button { align-self: flex-start; }
   .songCard { padding: 16px 13px; }

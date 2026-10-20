@@ -7,7 +7,7 @@ import {useAuth} from "@/context/AuthContext";
 import {confirmationLabel,localDay,type CalendarEvent} from "@/lib/calendar";
 import styles from "./couple.module.css";
 
-const tools=[{tag:"Make time",title:"Plans worth looking forward to.",text:"Plan dates, outings, and little adventures. Review your partner’s requests and agree on the details together.",href:"/couple-space/calendar",action:"Open shared calendar"},{tag:"Keep a memory",title:"A little of now, for later.",text:"Letters, photos, and keepsakes in shared time capsules. Choose what to keep, then seal and open them together.",href:"/couple-space/time-capsules",action:"Open shared capsules"},{tag:"Find your next date",title:"Something lovely to do together.",text:"A quiet evening or a little adventure. Find an idea you both like and make it your own.",href:"/couple-space/date-ideas",action:"Explore date ideas"}];
+const tools=[{tag:"Make time",title:"Plans worth looking forward to.",text:"Plan dates, outings, and little adventures. Review your partner’s requests and agree on the details together.",href:"/couple-space/calendar",action:"Open shared calendar"},{tag:"Keep a memory",title:"A little of now, for later.",text:"Letters, photos, and keepsakes in shared time capsules. Choose what to keep, then seal and open them together.",href:"/couple-space/time-capsules",action:"Open shared capsules"},{tag:"Find your next date",title:"Something lovely to do together.",text:"Choose your mood, time, and budget. Generate a date idea and invite your partner to make a plan together.",href:"/couple-space/date-ideas",action:"Open Vibe Generator"}];
 
 export default function CoupleOverview(){
   const {user,loading,couple,coupleLoading,coupleError,isConnected,fullName,partnerName,refreshCouple}=useAuth();

@@ -8,14 +8,15 @@ function render(props:Record<string,unknown>,content=true){
 }
 test("mobile navigation includes My Templates and Couple Space without a Time Capsule link",()=>{
   const html=render({pathname:"/my-templates",signedIn:false});
-  for(const value of ["My Templates","Couple Space","Your purchased collection",'href="/my-templates"',"Find your next template",'href="/login"'])assert.ok(html.includes(value),value);
+  for(const value of ["My Templates","My Creations","Couple Space","Your purchased collection",'href="/my-templates"','href="/creator-center"',"Find your next template",'href="/login"'])assert.ok(html.includes(value),value);
   assert.ok(!html.includes("Time Capsule"));assert.ok(!html.includes('href="/time-capsule"'));
   const links=html.match(/<a\b[^>]*>/g)||[];assert.ok(links.some(link=>link.includes('href="/my-templates"')&&link.includes('aria-current="page"')));assert.equal(links.filter(link=>link.includes('aria-current="page"')).length,1);
   assert.ok(!html.includes("Occasions"));assert.ok(!html.includes("My templates"));
 });
 test("signed-in hamburger menu keeps account actions in the separate header dropdown",()=>{
-  const html=render({pathname:"/my-templates",signedIn:true});
-  for(const value of ["My orders","Wishlist","My reviews","My creations","Account shortcuts","Sign out"])assert.ok(!html.includes(value),value);
+  const html=render({pathname:"/creator-center",signedIn:true});
+  for(const value of ["My orders","Wishlist","My reviews","Account shortcuts","Sign out"])assert.ok(!html.includes(value),value);
+  assert.ok(html.includes("My Creations"));assert.ok((html.match(/<a\b[^>]*>/g)||[]).some(link=>link.includes('href="/creator-center"')&&link.includes('aria-current="page"')));
   assert.ok(html.includes("My Templates"));assert.ok(!html.includes("Time Capsule"));
   assert.ok(!html.includes('href="/login"'));
 });

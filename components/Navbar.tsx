@@ -67,7 +67,7 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { name: "Creator Center", href: "/creator-center" },
+    { name: "My Creations", href: "/creator-center" },
     { name: "Templates", href: "/templates" },
     { name: "Vibe Check", href: "/couple-space#vibe-check", onClick: openVibeCheck },
     { name: "Couple Space", href: "/couple-space" },
