@@ -19,12 +19,12 @@ export const metadata: Metadata = {
 };
 
 const questions = [
-  ["What am I purchasing?", `You’re creating a personalized web experience: an illustrated story with your names, words, photos, and any supported interactions you choose. ${PLANNED_PRICING_DESCRIPTION} Paid checkout is not available in this version; the existing editor and free sharing tools remain available. It is a shared webpage, rather than a downloadable video.`],
+  ["What am I purchasing?", `You’re creating a personalized web experience: an illustrated story with your names, words, photos, and any supported interactions you choose. ${PLANNED_PRICING_DESCRIPTION} Choose your duration on the product page. Publishing requires a confirmed purchase; checkout availability and test mode are shown before payment. It is a shared webpage, rather than a downloadable video.`],
   ["Can I send it to a friend or family member?", "You don’t need a partner connection to make or receive a template. You can personalize the names and message for someone close to you. Our current illustrated collection is mainly romantic, so preview the artwork and story to make sure they suit your recipient."],
   ["Does the recipient need an account or need to pay?", "No account or payment is required to open a template’s share link or use its supported recipient interactions. Anyone with the link can open it, so send it only to the intended recipient. Private Couple Space and capsule features have separate sign-in and consent requirements."],
   ["How long does the shared page remain available?", "Choose an expiry in the editor before generating the link. The featured editors offer 24 hours, 3 days, 7 days, or 30 days. After expiry, the link stops working and the template, replies, and associated media are scheduled for deletion. This is not permanent hosting or an archive."],
   ["Can I edit or delete it?", "You can edit the design before generating its share link. The existing editors do not offer full editing of a published gift: create a new version if you need to change it. Keep your original browser or private creator management link to delete the original. Copies or screenshots kept by a recipient cannot be removed remotely."],
-  ["Where can I get help or request a refund?", <>See our <Link href="/contact">help page</Link> for guidance and our <Link href="/refund-policy">refund policy</Link> for payment information. Paid checkout is not yet enabled. The planned support address is support@qubitsells.com.</>],
+  ["Where can I get help or request a refund?", <>See our <Link href="/contact">help page</Link> for guidance and our <Link href="/refund-policy">refund policy</Link> for payment information. Orders appear in your personal profile. Test purchases are labelled and do not collect a real payment. The planned support address is support@qubitsells.com.</>],
 ];
 
 export default function Home() {
@@ -39,7 +39,7 @@ export default function Home() {
         <ol className={styles.steps}>
           <li><span>01</span><h3>Pick a design.</h3><p>Find a little world that feels like your person, and preview the story.</p></li>
           <li><span>02</span><h3>Make it unmistakably yours.</h3><p>Add your words, photos, and optional interactions. The small details make it personal.</p></li>
-          <li><span>03</span><h3>Send a link. Make their day.</h3><p>Generate your personalized page and share its link. Currently free, with no checkout required.</p></li>
+          <li><span>03</span><h3>Send a link. Make their day.</h3><p>After checkout, personalize and publish your page. Share its link and find responses in My creations.</p></li>
         </ol>
         <p className={styles.deliveryNote}>Your gift is a personalized web experience, ready to open in their browser.</p>
         </div>

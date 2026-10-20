@@ -5,6 +5,9 @@ import { adminClient,apiError,currentUser,guestIdentity,HttpError,jsonBody,rateL
 import { mediaIds,templateInputSchema } from "@/lib/security/validation";
 import { runOpportunisticCleanup } from "@/lib/cloudinaryCleanup";
 import { getTrack,artistName } from "@/lib/freetouse";
+import { databaseResult } from "@/lib/server/commerce";
+import { stripeMode } from "@/lib/server/stripe";
+import { PRODUCTS } from "@/lib/storefront";
 
 export async function POST(request: Request) {
   try {
@@ -13,6 +16,11 @@ export async function POST(request: Request) {
     const parsed=templateInputSchema.safeParse(await jsonBody(request));
     if(!parsed.success)throw new HttpError(400,"Check your names, message, media and expiry fields.");
     const user=await currentUser(),guest=await guestIdentity(true),input=parsed.data;
+    if(!user || !input.order_id)throw new HttpError(402,"A confirmed purchase is required to publish. Open the product page to buy, then personalize from My orders.");
+    if(!PRODUCTS.some(product=>product.slug===input.theme))throw new HttpError(400,"Choose an available product to publish this template.");
+    const order=await databaseResult(adminClient().from("store_orders").select("id,duration_hours").eq("id",input.order_id).eq("buyer_id",user.id).eq("product_slug",input.theme).eq("payment_mode",stripeMode()).eq("status","paid").is("fulfilled_at",null).maybeSingle());
+    if(!order)throw new HttpError(403,"This account needs a paid, unused order for this template. Check My orders.");
+    input.expiry_hours=order.duration_hours;
     let music=input.music_track || null;
     if(music?.type==="youtube" && music.youtubeId) {
       music={...music,mp3Url:`https://www.youtube.com/watch?v=${music.youtubeId}`,youtubeUrl:`https://www.youtube.com/watch?v=${music.youtubeId}`,thumbnailUrl:`https://img.youtube.com/vi/${music.youtubeId}/hqdefault.jpg`};
@@ -23,15 +31,15 @@ export async function POST(request: Request) {
       music={id:track.id,title:track.title,artist:artistName(track),thumbnailUrl:track.thumbnails.md || track.thumbnails.sm || "",mp3Url:track.files.mp3,duration:track.duration,startAt:Math.min(music.startAt,track.duration),waveform:track.waveform,type:"freetouse"};
     }
     const token=randomBytes(32).toString("hex"),deletionHash=createHash("sha256").update(token).digest("hex");
-    const expiresAt=new Date(Date.now()+input.expiry_hours*3600000).toISOString();
+    let expiresAt=new Date(Date.now()+input.expiry_hours*3600000).toISOString();
     let code="";
     for(let attempt=0;attempt<3;attempt++) {
       code=randomBytes(12).toString("hex");
-      const {error}=await adminClient().rpc("bonded_create_template",{
-        actor_id:user?.id || null,guest_owner:guest,deletion_hash:deletionHash,asset_ids:mediaIds([input.media_items, input.tools]),
-        template_data:{...input,short_code:code,theme:input.theme || (input.sender_gender==="female"?"anime_female":"anime_male"),expires_at:expiresAt,music_track:music},
+      const {data,error}=await adminClient().rpc("qubit_publish_order",{
+        p_order_id:order.id,p_actor_id:user.id,p_guest_owner:guest,p_deletion_hash:deletionHash,p_asset_ids:mediaIds([input.media_items, input.tools]),
+        p_template_data:{...input,short_code:code,theme:input.theme,expires_at:expiresAt,music_track:music},
       });
-      if(!error)break;
+      if(!error){expiresAt=data.expires_at;break;}
       if(error.code!=="23505")throw new HttpError(error.code==="42501"?403:503,"The template could not be saved. Check that all media belongs to your upload session.");
       if(attempt===2)throw new HttpError(503,"Please try creating the link again.");
     }

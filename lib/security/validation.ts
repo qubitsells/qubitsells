@@ -352,6 +352,7 @@ export const mutateBucketListSchema = z.object({
 });
 
 export const templateInputSchema = z.object({
+  order_id: z.uuid().nullable().optional(),
   scene_index: z.number().int().min(0).max(10), partner_name: z.string().trim().min(1).max(50),
   partner_from: z.string().trim().min(1).max(50), message: z.string().trim().min(1).max(1000),
   sender_gender: z.enum(["male", "female"]).default("male"), music_track: musicSchema.nullable().optional(),

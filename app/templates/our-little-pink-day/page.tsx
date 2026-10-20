@@ -52,7 +52,9 @@ import {
 import type { MusicTrack, TemplateTool } from "@/lib/supabase/coupleTemplates";
 import type { FreeTouseTrack } from "@/lib/freetouse";
 import { CURATED_TRACKS } from "@/lib/curatedTracks";
-import Navbar from "@/components/Navbar";
+import StoreHeader from "@/components/storefront/StoreHeader";
+import PurchaseDetails from "@/components/commerce/PurchaseDetails";
+import {publishTemplate} from "@/lib/publish-template";
 
 const MUSIC_CATEGORIES = [
   { id: "trending", label: "🔥 Trending", query: "love" },
@@ -163,7 +165,7 @@ export default function OurLittlePinkDayStudio() {
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [youtubeLoading, setYoutubeLoading] = useState(false);
   const [youtubeError, setYoutubeError] = useState<string | null>(null);
-  const [expiryHours, setExpiryHours] = useState(168); // Default 7 days
+  const expiryHours = 72;
   const [trackStartAt, setTrackStartAt] = useState(0); // Starting timestamp in seconds
   const [isYtTesting, setIsYtTesting] = useState(false);
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -655,7 +657,7 @@ export default function OurLittlePinkDayStudio() {
         tools: toolsPayload,
       };
 
-      const res = await fetch("/api/templates/create", {
+      const res = await publishTemplate({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -690,9 +692,10 @@ export default function OurLittlePinkDayStudio() {
       className="min-h-screen text-[#51253E] selection:bg-[#A43F66] selection:text-white"
       style={{ backgroundColor: PINK_DAY_PALETTE.background }}
     >
-      <Navbar />
+      <StoreHeader />
+      <div className="max-w-4xl mx-auto px-4 pt-6"><PurchaseDetails productSlug="our-little-pink-day" /></div>
 
-      <main className="max-w-4xl mx-auto pt-24 pb-20 px-4 sm:px-6">
+      <main id="main-content" className="max-w-4xl mx-auto scroll-mt-28 pt-5 pb-20 px-4 sm:px-6">
         {/* ─────────────────────────────────────────────
             HEADER & STEP INDICATOR
         ───────────────────────────────────────────── */}
@@ -2407,40 +2410,7 @@ export default function OurLittlePinkDayStudio() {
               </div>
             )}
 
-            {/* Expiry Selector */}
-            <div className="pt-4 border-t border-rose-100 space-y-2">
-              <label className="text-xs font-bold text-[#51253E] block">
-                Link Expiry Duration:
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {[
-                  { hours: 24, label: "24 Hours" },
-                  { hours: 72, label: "3 Days" },
-                  { hours: 168, label: "7 Days (Recommended)" },
-                  { hours: 720, label: "30 Days" },
-                ].map((exp) => (
-                  <button
-                    key={exp.hours}
-                    type="button"
-                    onClick={() => setExpiryHours(exp.hours)}
-                    className={`p-2.5 rounded-xl border text-xs font-bold transition-all ${
-                      expiryHours === exp.hours
-                        ? "bg-[#FFE9F1] border-[#A43F66] text-[#A43F66] shadow-2xs"
-                        : "bg-[#FFF8FC] border-rose-100 text-[#79566C] hover:bg-white"
-                    }`}
-                  >
-                    {exp.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Creation Error notice */}
-            {creationError && (
-              <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium">
-                {creationError}
-              </div>
-            )}
+            <PurchaseDetails productSlug="our-little-pink-day" />
 
             {/* Stepper Navigation */}
             <div className="pt-4 flex items-center justify-between border-t border-rose-100">

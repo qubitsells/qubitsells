@@ -218,6 +218,18 @@ test("migration utilities encrypt in place without changing capsule ownership or
   await assert.rejects(db.query("select public.bonded_migration_snapshot('capsules')"));
   await assert.rejects(db.query("select * from public.shared_wishes"));
 });
+test("an individual account can save a profile without creating or joining a couple",async()=>{
+  const individual="98989898-9898-4989-8989-989898989898";
+  await db.exec("RESET ROLE");
+  await db.query("insert into auth.users(id) values($1)",[individual]);
+  await role("authenticated",individual);
+  await db.query("insert into public.profiles(id,full_name) values($1,'Taylor Morgan') on conflict(id) do update set full_name=excluded.full_name",[individual]);
+  const profile=await db.query<{full_name:string;couple_id:string|null}>("select full_name,couple_id from public.profiles where id=$1",[individual]);
+  assert.equal(profile.rows[0].full_name,"Taylor Morgan");
+  assert.equal(profile.rows[0].couple_id,null);
+  assert.equal((await db.query("select id from public.couples")).rows.length,0);
+  await assert.rejects(db.query("update public.profiles set couple_id=$1 where id=$2",[pair,individual]));
+});
 test("Next lint directory discovery works with the safe local glob interface",()=>{
   const require=createRequire(resolve("package.json"));
   const {getRootDirs}=require("@next/eslint-plugin-next/dist/utils/get-root-dirs");

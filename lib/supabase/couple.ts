@@ -7,6 +7,27 @@ export interface CoupleData {
   id:string;couple_code:string;partner_1_id:string;partner_2_id:string|null;
   anniversary_date:string|null;couple_motto:string|null;is_connected:boolean;
   partner_name?:string|null;couple_anthem?:CoupleAnthem|null;
+  updated_at?:string;
+}
+
+/** Read existing membership without creating a relationship space on sign-in. */
+export async function getExistingCouple(supabase:SupabaseClient,userId:string,metadata?:Record<string,unknown>):Promise<CoupleData|null> {
+  const [profileResult, coupleResult] = await Promise.all([
+    supabase.from("profiles").select("couple_id").eq("id", userId).maybeSingle(),
+    supabase.from("couples").select("id,couple_code,partner_1_id,partner_2_id,anniversary_date,couple_motto,couple_anthem,updated_at,created_at")
+      .or(`partner_1_id.eq.${userId},partner_2_id.eq.${userId}`).order("created_at", {ascending:false}),
+  ]);
+  if(profileResult.error || coupleResult.error)throw new Error("Your couple profile could not be loaded. Please try again.");
+  const rows = (coupleResult.data || []).filter(row => row.partner_1_id === userId || row.partner_2_id === userId);
+  const row = rows.find(item => item.id === profileResult.data?.couple_id) || rows.find(item => item.partner_2_id) || rows[0];
+  if(!row)return null;
+  const partnerId = row.partner_1_id === userId ? row.partner_2_id : row.partner_1_id;
+  let partnerName = typeof metadata?.partner_nickname === "string" && metadata.partner_nickname ? metadata.partner_nickname : "Your partner";
+  if(partnerId) {
+    const {data} = await supabase.from("profiles").select("full_name").eq("id", partnerId).maybeSingle();
+    if(typeof data?.full_name === "string" && data.full_name)partnerName = data.full_name;
+  }
+  return {...row,is_connected:!!row.partner_2_id,partner_name:partnerId ? partnerName : null};
 }
 export async function getOrCreateCouple(supabase:SupabaseClient,userId:string,metadata?:Record<string,unknown>):Promise<CoupleData> {
   const {data,error}=await supabase.rpc("ensure_couple");
@@ -20,7 +41,7 @@ export async function getOrCreateCouple(supabase:SupabaseClient,userId:string,me
   }
   return {...row,is_connected:!!row.partner_2_id,partner_name:partnerId?partnerName:null};
 }
-export async function pairWithLoveCode(supabase:SupabaseClient,_userId:string,codeInput:string,_metadata?:Record<string,unknown>):Promise<{success:boolean;message:string}> {
+export async function pairWithLoveCode(supabase:SupabaseClient,_userId:string,codeInput:string):Promise<{success:boolean;message:string}> {
   const code=codeInput.trim().toUpperCase();
   if(!/^LOVE-[A-Z0-9]{6,64}$/.test(code))return {success:false,message:"Invalid Love Code. Please check with your partner."};
   const {data,error}=await supabase.rpc("join_couple_by_code",{code_input:code});

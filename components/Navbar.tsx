@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Heart,
   Menu,
   X,
   ArrowRight,
@@ -11,20 +10,22 @@ import {
   LogOut,
   Sparkles,
   ChevronDown,
-  ShieldCheck,
   Flame,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Brand from "@/components/storefront/Brand";
 import { useAuth } from "@/context/AuthContext";
 
 export default function Navbar() {
+  const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [signOutError, setSignOutError] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const { user, loading, signOut, fullName, partnerNickname, isConnected } = useAuth();
+  const { user, loading, signOut, fullName } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -51,7 +52,7 @@ export default function Navbar() {
   const openVibeCheck = (e: React.MouseEvent) => {
     e.preventDefault();
     if (window.location.pathname !== "/couple-space") {
-      window.location.assign("/couple-space#vibe-check");
+      router.push("/couple-space#vibe-check");
       return;
     }
     setUserDropdownOpen(false);
@@ -60,20 +61,19 @@ export default function Navbar() {
   };
 
   const handleSignOut = async () => {
-    setUserDropdownOpen(false);
-    setMobileMenuOpen(false);
-    await signOut();
+    setSignOutError("");
+    try { await signOut(); setUserDropdownOpen(false); setMobileMenuOpen(false); }
+    catch { setSignOutError("You couldn’t be signed out. Please try again."); }
   };
 
   const navLinks = [
     { name: "Creator Center", href: "/creator-center" },
-    { name: "Time Capsule", href: "/time-capsule" },
     { name: "Templates", href: "/templates" },
     { name: "Vibe Check", href: "/couple-space#vibe-check", onClick: openVibeCheck },
     { name: "Couple Space", href: "/couple-space" },
   ];
 
-  const displayName = fullName || user?.email?.split("@")[0] || "Lover";
+  const displayName = fullName || user?.email?.split("@")[0] || "My account";
   const userInitial = displayName.charAt(0).toUpperCase();
 
   return (
@@ -117,27 +117,16 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                  className={`flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-full border transition-all duration-200 shadow-2xs hover:shadow-xs cursor-pointer group ${
-                    isConnected
-                      ? "bg-gradient-to-r from-rose-100/90 to-pink-100/80 border-rose-300 text-[#3a1022]"
-                      : "bg-gradient-to-r from-amber-50/90 to-rose-50/80 border-amber-200 text-[#451428]"
-                  }`}
+                  className="flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-full border border-rose-200 bg-white text-[#3a1022] transition-all duration-200 shadow-2xs hover:shadow-xs cursor-pointer group"
                 >
                   <div className="relative">
                     <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-rose-500 to-pink-500 text-white flex items-center justify-center text-xs font-bold shadow-2xs group-hover:scale-105 transition-transform">
                       {userInitial}
                     </div>
-                    <span
-                      className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-white ${
-                        isConnected ? "bg-emerald-500" : "bg-amber-400 animate-pulse"
-                      }`}
-                    />
                   </div>
                   <div className="flex flex-col text-left">
                     <span className="text-xs font-bold leading-tight truncate max-w-[100px]">
-                      {isConnected && partnerNickname
-                        ? `${displayName} & ${partnerNickname}`
-                        : `${displayName} • Pair`}
+                      {displayName}
                     </span>
                   </div>
                   <ChevronDown
@@ -147,7 +136,7 @@ export default function Navbar() {
                   />
                 </button>
 
-                {/* Romantic User Dropdown Menu */}
+                {/* Account navigation */}
                 <AnimatePresence>
                   {userDropdownOpen && (
                     <motion.div
@@ -157,45 +146,12 @@ export default function Navbar() {
                       transition={{ duration: 0.15 }}
                       className="absolute right-0 mt-2 w-64 p-3 rounded-2xl bg-white/95 backdrop-blur-2xl border border-rose-200 shadow-xl space-y-2 z-50 text-xs"
                     >
-                      {/* User & Couple Status */}
-                      <div className="p-2.5 rounded-xl bg-gradient-to-br from-rose-50 to-pink-50/60 border border-rose-100 space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-[#2d091a] truncate">
-                            {displayName}
-                          </span>
-                          {isConnected ? (
-                            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/80 shadow-2xs">
-                              <span className="relative flex h-1.5 w-1.5">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-                              </span>
-                              <span>Connected</span>
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 bg-amber-100/90 px-2 py-0.5 rounded-full">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
-                              Unpaired
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[11px] text-[#712743] truncate font-medium">
-                          {user.email}
-                        </p>
-                        {isConnected && partnerNickname ? (
-                          <div className="pt-1 border-t border-rose-200/50 flex items-center gap-1.5 text-[11px] font-semibold text-rose-800">
-                            <Heart className="w-3 h-3 fill-rose-500 text-rose-500" />
-                            <span>Partner: {partnerNickname}</span>
-                          </div>
-                        ) : (
-                          <div className="pt-1 border-t border-amber-200/50 flex items-center justify-between text-[11px] font-semibold text-amber-900">
-                            <span>Not paired with partner</span>
-                            <Link href="/profile" onClick={() => setUserDropdownOpen(false)} className="text-rose-600 font-bold underline">
-                              Pair now
-                            </Link>
-                          </div>
-                        )}
+                      <div className="p-2.5 rounded-xl bg-white border border-rose-100 space-y-1">
+                        <p className="font-semibold text-[#16232d] truncate">{displayName}</p>
+                        <p className="text-[11px] text-slate-500 truncate">{user.email}</p>
+                        <Link href="/couple-space/profile" onClick={() => setUserDropdownOpen(false)} className="flex items-center justify-between pt-2 text-[11px] text-slate-600"><span>Couple profile</span><span className="text-[10px] text-slate-400">Optional</span></Link>
                       </div>
-
+                      {signOutError && <p role="alert" className="text-xs text-red-700 p-2">{signOutError}</p>}
                       {/* Dropdown Actions */}
                       <div className="space-y-1 pt-1">
                         <Link
@@ -213,16 +169,7 @@ export default function Navbar() {
                           className="w-full px-3 py-2 rounded-xl text-left font-semibold text-[#3d1223] hover:bg-rose-50 hover:text-rose-600 flex items-center gap-2 transition-colors cursor-pointer"
                         >
                           <UserIcon className="w-3.5 h-3.5 text-rose-500" />
-                          <span>My Couple Space & Profile</span>
-                        </Link>
-
-                        <Link
-                          href="/time-capsule"
-                          onClick={() => setUserDropdownOpen(false)}
-                          className="w-full px-3 py-2 rounded-xl text-left font-semibold text-[#3d1223] hover:bg-rose-50 hover:text-rose-600 flex items-center gap-2 transition-colors cursor-pointer"
-                        >
-                          <Sparkles className="w-3.5 h-3.5 text-rose-500" />
-                          <span>Time Capsule Vault</span>
+                          <span>My profile</span>
                         </Link>
 
                         <Link
@@ -231,7 +178,7 @@ export default function Navbar() {
                           className="w-full px-3 py-2 rounded-xl text-left font-semibold text-[#3d1223] hover:bg-rose-50 hover:text-rose-600 flex items-center gap-2 transition-colors cursor-pointer"
                         >
                           <Sparkles className="w-3.5 h-3.5 text-rose-500" />
-                          <span>Couple Templates</span>
+                          <span>Browse templates</span>
                         </Link>
 
                         <button
@@ -249,7 +196,7 @@ export default function Navbar() {
                           className="w-full px-3 py-2 rounded-xl text-left font-semibold text-rose-700 hover:bg-rose-100/70 flex items-center gap-2 transition-colors cursor-pointer"
                         >
                           <LogOut className="w-3.5 h-3.5 text-rose-600" />
-                          <span>Sign Out of Sanctuary</span>
+                          <span>Sign out</span>
                         </button>
                       </div>
                     </motion.div>
@@ -341,7 +288,7 @@ export default function Navbar() {
                     className="w-full text-center py-2 rounded-xl bg-rose-50 text-rose-900 border border-rose-200 text-xs font-bold flex items-center justify-center gap-1.5"
                   >
                     <UserIcon className="w-3.5 h-3.5 text-rose-500" />
-                    <span>My Couple Space & Profile</span>
+                    <span>My profile</span>
                   </Link>
                   <button
                     type="button"

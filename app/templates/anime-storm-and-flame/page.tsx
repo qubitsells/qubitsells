@@ -48,7 +48,9 @@ import {
 import type { MusicTrack, TemplateTool } from "@/lib/supabase/coupleTemplates";
 import { type FreeTouseTrack, artistName } from "@/lib/freetouse";
 import { CURATED_TRACKS } from "@/lib/curatedTracks";
-import Navbar from "@/components/Navbar";
+import StoreHeader from "@/components/storefront/StoreHeader";
+import PurchaseDetails from "@/components/commerce/PurchaseDetails";
+import {publishTemplate} from "@/lib/publish-template";
 
 const STORM_MUSIC_CATEGORIES = [
   { id: "storm", label: "⚡ Storm & Lightning", query: "electronic" },
@@ -213,7 +215,7 @@ export default function AnimeStormAndFlameStudio() {
   const [isYtTesting, setIsYtTesting] = useState(false);
 
   // Expiry Hours (168 = 7 days default)
-  const [expiryHours, setExpiryHours] = useState(168);
+  const expiryHours = 72;
 
   // Step 4: Share Link & Creation State
   const [isCreating, setIsCreating] = useState(false);
@@ -802,7 +804,7 @@ export default function AnimeStormAndFlameStudio() {
         tools: toolsPayload,
       };
 
-      const res = await fetch("/api/templates/create", {
+      const res = await publishTemplate({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -849,9 +851,10 @@ export default function AnimeStormAndFlameStudio() {
       className="min-h-screen text-[#EFF7FF] selection:bg-[#00E5FF] selection:text-[#050B16]"
       style={{ backgroundColor: STORM_AND_FLAME_PALETTE.background }}
     >
-      <Navbar />
+      <StoreHeader />
+      <div className="max-w-4xl mx-auto px-4 pt-6"><PurchaseDetails productSlug="anime-storm-and-flame" /></div>
 
-      <main className="max-w-4xl mx-auto pt-24 pb-20 px-4 sm:px-6">
+      <main id="main-content" className="max-w-4xl mx-auto scroll-mt-28 pt-5 pb-20 px-4 sm:px-6">
         {/* ─────────────────────────────────────────────
             HEADER & STEP INDICATOR
         ───────────────────────────────────────────── */}
@@ -2588,43 +2591,7 @@ export default function AnimeStormAndFlameStudio() {
               </div>
             )}
 
-            {/* Expiry Selector */}
-            <div className="pt-4 border-t border-[#273B5E] space-y-2">
-              <label className="text-xs font-bold text-[#EFF7FF] block">
-                Link Expiry Duration:
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {[
-                  { hours: 24, label: "24 Hours" },
-                  { hours: 72, label: "3 Days" },
-                  { hours: 168, label: "7 Days (Recommended)" },
-                  { hours: 720, label: "30 Days" },
-                ].map((exp) => (
-                  <button
-                    key={exp.hours}
-                    type="button"
-                    onClick={() => setExpiryHours(exp.hours)}
-                    className={`p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-                      expiryHours === exp.hours
-                        ? "bg-[#00E5FF] border-[#00E5FF] text-[#050B16] shadow-xs"
-                        : "bg-[#070F1E] border-[#273B5E] text-[#B9CBDF] hover:border-[#00E5FF]"
-                    }`}
-                  >
-                    {exp.label}
-                  </button>
-                ))}
-              </div>
-              <p className="text-[11px] text-[#738CA8]">
-                Your webpage will automatically self-destruct once expired. Responses stay saved in your creator center.
-              </p>
-            </div>
-
-            {/* Creation Error notice */}
-            {creationError && (
-              <div className="p-3.5 rounded-xl bg-rose-950/40 border border-rose-800 text-xs text-rose-400 font-medium">
-                {creationError}
-              </div>
-            )}
+            <PurchaseDetails productSlug="anime-storm-and-flame" />
 
             {/* Stepper Navigation */}
             <div className="pt-4 flex items-center justify-between border-t border-[#273B5E]">

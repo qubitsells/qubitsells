@@ -16,5 +16,5 @@ export async function GET(request: Request) {
   }
 
   // Return the user to the login page with an error parameter
-  return NextResponse.redirect(`${origin}/login?error=Could%20not%20authenticate%20couple%20session`);
+  return NextResponse.redirect(`${origin}/login?error=Could%20not%20sign%20in.%20Please%20try%20again.`);
 }

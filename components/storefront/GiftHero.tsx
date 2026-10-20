@@ -93,12 +93,12 @@ export default function GiftHero() {
           <p className={styles.eyebrow}><span /> The featured collection / 0{active + 1}</p>
           <h2>{product.name}</h2>
           <p className={styles.heroDescription}>{product.description}</p>
-          <p className={styles.heroPrice}>{product.priceLabel}<span>Planned launch price · up to 3 days</span></p>
+          <p className={styles.heroPrice}>{product.priceLabel}<span>Starting price · up to 3 days</span></p>
           <div className={styles.heroActions} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
             <Link className={`${styles.button} ${styles.primary}`} href={productHref(product)}>Buy this template <ArrowRight size={17} aria-hidden="true" /></Link>
             <ProductPreview key={product.slug} product={product} onOpen={() => setPreviewing(true)} onClose={() => setPreviewing(false)} />
           </div>
-          <p className={styles.purchaseNote}>Explore & personalize now. Paid checkout is not live yet.</p>
+          <p className={styles.purchaseNote}>See the story, choose your link duration, and make it yours.</p>
         </motion.div>
         </div>
         <div className={styles.heroControls} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>

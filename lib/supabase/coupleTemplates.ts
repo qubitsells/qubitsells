@@ -425,7 +425,7 @@ export interface TemplateReply {
   author_name: string;
   message: string;
   reaction?: string | null;
-  media_items: MediaItem[];
+  media_items: Array<Omit<MediaItem, "type"> & { type: "image" | "video" | "audio"; duration?: number; format?: string }>;
   created_at: string;
 }
 
@@ -503,7 +503,7 @@ export interface CreatorTemplateItem {
   manage_token?: string | null;
   invitation?: {
     id: string;
-    status: "proposed" | "counterproposed" | "confirmed" | "declined" | "deferred";
+    status: InvitationStatus;
     activity_title: string;
     sender_message: string;
     duration_minutes: number;
@@ -511,8 +511,12 @@ export interface CreatorTemplateItem {
     location_detail?: string;
     response_deadline?: string;
     fixed_start_time?: string;
-    confirmed_slot?: unknown;
-    counter_proposal_slot?: unknown;
+    confirmed_slot?: InvitationSlot | null;
+    counter_proposal_slot?: InvitationSlot | null;
+    date_mode?: InvitationDateMode;
+    sender_timezone?: string | null;
+    recipient_timezone?: string | null;
+    responded_at?: string | null;
     partner_counter_note?: string;
     partner_counter_proposed_at?: string;
     partner_response_status?: string;
@@ -522,20 +526,20 @@ export interface CreatorTemplateItem {
     id: string;
     question: string;
     selection_mode: "partner_chooses" | "both_vote";
-    options: unknown[];
-    partner_votes: unknown[];
-    creator_votes: unknown[];
+    options: PollOption[];
+    partner_votes: string[];
+    creator_votes: string[];
     resolved_option_id?: string;
     status: "open" | "closed" | "resolved";
-    custom_suggestions?: unknown[];
+    custom_suggestions?: PollCustomSuggestion[];
     updated_at: string;
   } | null;
   questions?: {
     id: string;
     title: string;
-    questions: unknown[];
+    questions: QuestionItem[];
     partner_submission?: {
-      answers: Record<string, unknown>;
+      answers: Record<string, QuestionAnswerItem>;
       is_draft: boolean;
       submitted_at?: string;
     };
@@ -547,7 +551,8 @@ export interface CreatorTemplateItem {
     creator_locked_at?: string;
     partner_locked_at?: string;
     revealed_at?: string;
-    partner_answer?: unknown;
+    questions?: RevealQuestionItem[];
+    partner_answer?: Record<string, string> | null;
   } | null;
   coupon?: {
     id: string;
@@ -558,6 +563,9 @@ export interface CreatorTemplateItem {
     accepted_at?: string;
     fulfilled_at?: string;
     partner_request_note?: string;
+    preferred_date?: string | null;
+    cancelled_at?: string | null;
+    cancel_reason?: string | null;
   } | null;
   open_when?: {
     id: string;
@@ -575,6 +583,8 @@ export interface CreatorTemplateItem {
     partner_photo_url?: string | null;
     partner_caption?: string | null;
     partner_contributed_at?: string | null;
+    partner_author_name?: string | null;
+    partner_memory_date?: string | null;
   } | null;
   bucket_list?: {
     id: string;
@@ -585,6 +595,7 @@ export interface CreatorTemplateItem {
       note?: string | null;
       status: "wished" | "planning" | "completed";
       created_by: "creator" | "partner";
+      created_at?: string;
       creator_interested?: boolean;
       partner_interested?: boolean;
       planning_started_at?: string | null;

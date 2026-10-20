@@ -35,7 +35,9 @@ import {
 import type { MusicTrack, TemplateTool } from "@/lib/supabase/coupleTemplates";
 import { type FreeTouseTrack, artistName } from "@/lib/freetouse";
 import { CURATED_TRACKS } from "@/lib/curatedTracks";
-import Navbar from "@/components/Navbar";
+import StoreHeader from "@/components/storefront/StoreHeader";
+import PurchaseDetails from "@/components/commerce/PurchaseDetails";
+import {publishTemplate} from "@/lib/publish-template";
 
 const GOTHIC_MUSIC_CATEGORIES = [
   { id: "ambient", label: "🌙 Gothic Midnight", query: "ambient" },
@@ -146,7 +148,7 @@ export default function HauntedWaltzStudio() {
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [youtubeLoading, setYoutubeLoading] = useState(false);
   const [youtubeError, setYoutubeError] = useState<string | null>(null);
-  const [expiryHours, setExpiryHours] = useState(168); // 7 days default
+  const expiryHours = 72;
   const [trackStartAt, setTrackStartAt] = useState(0);
   const [isYtTesting, setIsYtTesting] = useState(false);
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -671,7 +673,7 @@ export default function HauntedWaltzStudio() {
         tools: toolsPayload,
       };
 
-      const res = await fetch("/api/templates/create", {
+      const res = await publishTemplate({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -717,9 +719,10 @@ export default function HauntedWaltzStudio() {
       className="min-h-screen text-[#EDF1ED] selection:bg-[#90C9C6] selection:text-[#0B1015]"
       style={{ backgroundColor: HAUNTED_WALTZ_PALETTE.background }}
     >
-      <Navbar />
+      <StoreHeader />
+      <div className="max-w-4xl mx-auto px-4 pt-6"><PurchaseDetails productSlug="spooky-the-haunted-waltz" /></div>
 
-      <main className="max-w-4xl mx-auto pt-24 pb-20 px-4 sm:px-6">
+      <main id="main-content" className="max-w-4xl mx-auto scroll-mt-28 pt-5 pb-20 px-4 sm:px-6">
         {/* Hidden preview audio element for testing soundtracks */}
         <audio
           ref={previewAudioRef}
@@ -2410,33 +2413,7 @@ export default function HauntedWaltzStudio() {
               </div>
             )}
 
-            {/* Story Expiry Duration */}
-            <div className="pt-2 border-t border-[#2E414A] space-y-2">
-              <label className="text-xs font-bold text-[#EDF1ED] block">
-                Story Expiry Duration:
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {[
-                  { hours: 24, label: "24 Hours" },
-                  { hours: 72, label: "3 Days" },
-                  { hours: 168, label: "7 Days (Recommended)" },
-                  { hours: 720, label: "30 Days" },
-                ].map((item) => (
-                  <button
-                    key={item.hours}
-                    type="button"
-                    onClick={() => setExpiryHours(item.hours)}
-                    className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                      expiryHours === item.hours
-                        ? "bg-[#90C9C6] text-[#0B1015] border-[#90C9C6] shadow-xs"
-                        : "bg-[#0B1015] border border-[#2E414A] text-[#B8C6CE] hover:bg-[#172B31]"
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <PurchaseDetails productSlug="spooky-the-haunted-waltz" />
 
             {/* Stepper Navigation */}
             <div className="pt-4 flex items-center justify-between border-t border-[#2E414A]">

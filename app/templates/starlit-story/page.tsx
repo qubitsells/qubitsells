@@ -55,7 +55,9 @@ import type { MusicTrack, TemplateTool } from "@/lib/supabase/coupleTemplates";
 import type { FreeTouseTrack } from "@/lib/freetouse";
 import { artistName } from "@/lib/freetouse";
 import { CURATED_TRACKS } from "@/lib/curatedTracks";
-import Navbar from "@/components/Navbar";
+import StoreHeader from "@/components/storefront/StoreHeader";
+import PurchaseDetails from "@/components/commerce/PurchaseDetails";
+import {publishTemplate} from "@/lib/publish-template";
 
 const STARLIT_MUSIC_CATEGORIES = [
   { id: "celestial", label: "✨ Starlit Night", query: "ambient" },
@@ -217,7 +219,7 @@ export default function StarlitStoryStudio() {
   const [isYtTesting, setIsYtTesting] = useState(false);
 
   // Expiry Hours (168 = 7 days default)
-  const [expiryHours, setExpiryHours] = useState(168);
+  const expiryHours = 72;
 
   // Step 4: Share Link & Creation State
   const [isCreating, setIsCreating] = useState(false);
@@ -786,7 +788,7 @@ export default function StarlitStoryStudio() {
         tools: toolsPayload,
       };
 
-      const res = await fetch("/api/templates/create", {
+      const res = await publishTemplate({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -834,9 +836,10 @@ export default function StarlitStoryStudio() {
       className="min-h-screen text-[#3A231C] selection:bg-[#C26D7A] selection:text-white"
       style={{ backgroundColor: STARLIT_STORY_PALETTE.background }}
     >
-      <Navbar />
+      <StoreHeader />
+      <div className="max-w-4xl mx-auto px-4 pt-6"><PurchaseDetails productSlug="starlit-story" /></div>
 
-      <main className="max-w-4xl mx-auto pt-24 pb-20 px-4 sm:px-6">
+      <main id="main-content" className="max-w-4xl mx-auto scroll-mt-28 pt-5 pb-20 px-4 sm:px-6">
         {/* ─────────────────────────────────────────────
             HEADER & STEP INDICATOR
         ───────────────────────────────────────────── */}
@@ -2547,43 +2550,7 @@ export default function StarlitStoryStudio() {
               </div>
             )}
 
-            {/* Expiry Selector */}
-            <div className="pt-4 border-t border-[#F0D5C9] space-y-2">
-              <label className="text-xs font-bold text-[#3A231C] block">
-                Link Expiry Duration:
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {[
-                  { hours: 24, label: "24 Hours" },
-                  { hours: 72, label: "3 Days" },
-                  { hours: 168, label: "7 Days (Recommended)" },
-                  { hours: 720, label: "30 Days" },
-                ].map((exp) => (
-                  <button
-                    key={exp.hours}
-                    type="button"
-                    onClick={() => setExpiryHours(exp.hours)}
-                    className={`p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-                      expiryHours === exp.hours
-                        ? "bg-[#FFF0EB] border-[#C26D7A] text-[#C26D7A] shadow-2xs"
-                        : "bg-[#FFF8F4] border-[#F0D5C9] text-[#75564C] hover:bg-white"
-                    }`}
-                  >
-                    {exp.label}
-                  </button>
-                ))}
-              </div>
-              <p className="text-[11px] text-[#75564C]">
-                Your webpage will automatically self-destruct once expired. Responses stay saved in your creator center.
-              </p>
-            </div>
-
-            {/* Creation Error notice */}
-            {creationError && (
-              <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium">
-                {creationError}
-              </div>
-            )}
+            <PurchaseDetails productSlug="starlit-story" />
 
             {/* Stepper Navigation */}
             <div className="pt-4 flex items-center justify-between border-t border-[#F0D5C9]">

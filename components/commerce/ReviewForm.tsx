@@ -1,0 +1,17 @@
+"use client";
+import {useId,useRef,useState} from "react";
+import {Check,Loader2,Star} from "lucide-react";
+import type {ProductReview} from "@/lib/commerce";
+import styles from "./commerce.module.css";
+
+export default function ReviewForm({slug,orderId,ownReview,onSaved}: {slug:string;orderId:string;ownReview:ProductReview|null;onSaved:()=>void}) {
+  const id=useId(),pending=useRef(false);
+  const [rating,setRating]=useState(ownReview?.rating||0),[hover,setHover]=useState(0),[title,setTitle]=useState(ownReview?.title||""),[body,setBody]=useState(ownReview?.body||""),[busy,setBusy]=useState(false),[error,setError]=useState(""),[confirmDelete,setConfirmDelete]=useState(false);
+  const submit=async(method:"POST"|"DELETE")=>{if(pending.current)return;pending.current=true;setBusy(true);setError("");try{const response=await fetch(`/api/products/${slug}/reviews`,{method,headers:{"Content-Type":"application/json"},...(method==="POST"?{body:JSON.stringify({order_id:orderId,rating,title,body})}:{})});const value=await response.json();if(!response.ok)throw Error(value.error||"Your review couldn’t be saved.");window.dispatchEvent(new Event("qubitsells-reviews-updated"));window.dispatchEvent(new Event("qubitsells-notifications-updated"));onSaved();}catch(error){setError(error instanceof Error?error.message:"Please try again.");}finally{pending.current=false;setBusy(false);}};
+  return <form onSubmit={event=>{event.preventDefault();void submit("POST");}} className={`${styles.reviewForm} ${styles.quickReviewForm}`} aria-busy={busy}>
+    <fieldset disabled={busy}><legend>How was your template?</legend><div className={styles.ratingInput} onMouseLeave={()=>setHover(0)}>{[1,2,3,4,5].map(star=><label key={star} onMouseEnter={()=>setHover(star)} data-selected={star<=(hover||rating)}><input type="radio" name={`${id}-rating`} value={star} checked={rating===star} onChange={()=>setRating(star)} required/><Star size={32} fill={star<=(hover||rating)?"currentColor":"none"} aria-hidden="true"/><span className={styles.srOnly}>{star} star{star===1?"":"s"}</span></label>)}</div><span className={styles.ratingHint} aria-live="polite">{rating?["","Disappointing","Could be better","It was okay","Really enjoyed it","Loved it"][rating]:"Choose 1 to 5 stars"}</span>
+    <label htmlFor={`${id}-title`}>Review title</label><input id={`${id}-title`} value={title} placeholder="Sum up your experience" onChange={event=>setTitle(event.target.value)} minLength={3} maxLength={120} required/>
+    <label htmlFor={`${id}-body`}>Your experience</label><textarea id={`${id}-body`} value={body} placeholder="What worked well? What could we improve?" onChange={event=>setBody(event.target.value)} minLength={15} maxLength={2000} rows={4} required/><p>Your display name and review will be public. Keep recipient details private.</p>
+    <div className={styles.reviewFormActions}><button type="submit" className={`${styles.button} ${styles.reviewCta}`}>{busy?<Loader2 size={16} className={styles.spinner} aria-hidden="true"/>:<Check size={16} aria-hidden="true"/>}{ownReview?"Save changes":"Publish your review"}</button>{ownReview&&<button type="button" className={styles.textButton} onClick={()=>setConfirmDelete(!confirmDelete)}>Remove review</button>}</div>{confirmDelete&&<div className={styles.notice}>Remove your review?<button type="button" onClick={()=>void submit("DELETE")}>Yes, remove</button><button type="button" onClick={()=>setConfirmDelete(false)}>Keep review</button></div>}</fieldset>{error&&<p className={styles.error} role="alert">{error}</p>}
+  </form>;
+}

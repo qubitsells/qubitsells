@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Heart, Sparkles, ShieldCheck, Check, ArrowRight } from "lucide-react";
+import { Heart, ShieldCheck, Check, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 import confetti from "canvas-confetti";
 import { useAuth } from "@/context/AuthContext";
 
 export default function CTASection() {
+  const router = useRouter();
   const { coupleCode } = useAuth();
   const [partnerEmail, setPartnerEmail] = useState("");
   const [invited, setInvited] = useState(false);
@@ -14,7 +16,7 @@ export default function CTASection() {
   const handlePairInvite = (e: React.FormEvent) => {
     e.preventDefault();
     if (!partnerEmail) return;
-    if (!coupleCode) { window.location.assign("/login?redirect=/profile"); return; }
+    if (!coupleCode) { router.push("/login?redirect=/couple-space/profile"); return; }
     const invitation = `${window.location.origin}/signup?code=${encodeURIComponent(coupleCode)}`;
     window.location.assign(`mailto:${encodeURIComponent(partnerEmail)}?subject=${encodeURIComponent("Join our QubitSells space")}&body=${encodeURIComponent(`Join our shared couple space: ${invitation}`)}`);
     setInvited(true);

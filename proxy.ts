@@ -14,11 +14,11 @@ export async function proxy(request:NextRequest) {
   const pathname=request.nextUrl.pathname;
   if(user && (pathname==="/login" || pathname==="/signup")) {
     const code=request.nextUrl.searchParams.get("code");
-    const target=code?`/profile?code=${encodeURIComponent(code)}`:safeRedirect(request.nextUrl.searchParams.get("redirect"));
+    const target=code?`/couple-space/profile?code=${encodeURIComponent(code.slice(0,100))}`:safeRedirect(request.nextUrl.searchParams.get("redirect"),"/profile");
     const redirect=NextResponse.redirect(new URL(target,request.url));
     response.cookies.getAll().forEach(cookie=>redirect.cookies.set(cookie));
     return redirect;
   }
   return response;
 }
-export const config={matcher:["/profile","/time-capsule","/login","/signup","/auth/callback"]};
+export const config={matcher:["/profile","/couple-space/profile","/time-capsule","/login","/signup","/auth/callback"]};

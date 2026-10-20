@@ -1,42 +1,28 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from "react";
-import { User, Session, RealtimeChannel } from "@supabase/supabase-js";
+import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from "react";
+import type { User, Session } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
-import { CoupleData, getOrCreateCouple, pairWithLoveCode, disconnectCouple } from "@/lib/supabase/couple";
-import confetti from "canvas-confetti";
+import { type CoupleData, getExistingCouple, getOrCreateCouple, pairWithLoveCode, disconnectCouple } from "@/lib/supabase/couple";
 import { clearCapsuleCache } from "@/lib/supabase/timeCapsules";
 
+type Result = { success: boolean; message: string };
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
-  loading: boolean;
-  couple: CoupleData | null;
-  isConnected: boolean;
-  coupleCode: string;
-  partnerName: string | null;
-  fullName: string | null;
-  partnerNickname: string | null;
+  user: User | null; session: Session | null; loading: boolean;
+  couple: CoupleData | null; coupleLoading: boolean; coupleError: string | null;
+  isConnected: boolean; coupleCode: string; partnerName: string | null; fullName: string | null; partnerNickname: string | null;
   signOut: () => Promise<void>;
   refreshCouple: () => Promise<void>;
-  pairWithCode: (code: string) => Promise<{ success: boolean; message: string }>;
-  disconnect: () => Promise<{ success: boolean; message: string }>;
+  createCoupleSpace: () => Promise<Result>;
+  pairWithCode: (code: string) => Promise<Result>;
+  disconnect: () => Promise<Result>;
 }
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  session: null,
-  loading: true,
-  couple: null,
-  isConnected: false,
-  coupleCode: "",
-  partnerName: null,
-  fullName: null,
-  partnerNickname: null,
-  signOut: async () => {},
-  refreshCouple: async () => {},
-  pairWithCode: async () => ({ success: false, message: "" }),
-  disconnect: async () => ({ success: false, message: "" }),
+export const AuthContext = createContext<AuthContextType>({
+  user: null, session: null, loading: true, couple: null, coupleLoading: true, coupleError: null,
+  isConnected: false, coupleCode: "", partnerName: null, fullName: null, partnerNickname: null,
+  signOut: async () => {}, refreshCouple: async () => {}, createCoupleSpace: async () => ({ success: false, message: "Please sign in." }),
+  pairWithCode: async () => ({ success: false, message: "Please sign in." }), disconnect: async () => ({ success: false, message: "Please sign in." }),
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -44,243 +30,106 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [couple, setCouple] = useState<CoupleData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [coupleLoading, setCoupleLoading] = useState(true);
+  const [coupleError, setCoupleError] = useState<string | null>(null);
+  const currentUserId = useRef<string | null>(null);
   const supabase = createClient();
-  const currentUserIdRef = useRef<string | null>(null);
 
-  // Load couple data for current user
-  const loadCoupleData = useCallback(
-    async (currentUser: User) => {
-      try {
-        const data = await getOrCreateCouple(
-          supabase,
-          currentUser.id,
-          currentUser.user_metadata
-        );
-        if (currentUserIdRef.current === currentUser.id) setCouple(data);
-      } catch (err) {
-        console.error("Shared space could not be loaded.");
-      }
-    },
-    [supabase]
-  );
+  const loadCoupleData = useCallback(async (account: User) => {
+    try {
+      const data = await getExistingCouple(supabase, account.id, account.user_metadata);
+      if (currentUserId.current === account.id) { setCouple(data); setCoupleError(null); }
+    } catch {
+      if (currentUserId.current === account.id) setCoupleError("Your couple profile couldn’t be loaded. Please try again.");
+    } finally {
+      if (currentUserId.current === account.id) setCoupleLoading(false);
+    }
+  }, [supabase]);
 
-  // 1. Initial auth session setup
   useEffect(() => {
     clearCapsuleCache();
     let authEventReceived = false;
-    const getInitialSession = async () => {
-      try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (authEventReceived) return;
-        currentUserIdRef.current = session?.user.id || null;
-        setSession(session);
-        const currentUser = session?.user ?? null;
-        setUser(currentUser);
-
-      } catch (err) {
-        console.error("Error retrieving Supabase session:", err);
-      } finally {
-        setLoading(false);
-      }
+    let cancelled = false;
+    const acceptSession = (next: Session | null) => {
+      if (cancelled) return;
+      const nextId = next?.user.id || null;
+      if (currentUserId.current !== nextId) { setCouple(null); setCoupleError(null); setCoupleLoading(Boolean(next)); clearCapsuleCache(); }
+      currentUserId.current = nextId;
+      setSession(next); setUser(next?.user || null); setLoading(false);
+      if (!next) setCoupleLoading(false);
     };
-
-    getInitialSession();
-
-    // 2. Real-time auth state changes listener
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    void supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!authEventReceived) acceptSession(session);
+    }).catch(() => { if (!authEventReceived) acceptSession(null); });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, next) => {
       authEventReceived = true;
-      currentUserIdRef.current = session?.user.id || null;
-      setSession(session);
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
-
-      if (!currentUser) {
-        setCouple(null);
-        clearCapsuleCache();
-      }
-      setLoading(false);
+      acceptSession(next);
     });
+    return () => { cancelled = true; subscription.unsubscribe(); };
+  }, [supabase]);
 
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [supabase, loadCoupleData]);
-
-  // Database work stays outside the auth event callback; ignore results after an account change.
+  // Signing in reads an existing relationship only. Creating one is an explicit
+  // action on the separate couple profile, never a prerequisite for an account.
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
-    getOrCreateCouple(supabase, user.id, user.user_metadata)
-      .then(data => { if (!cancelled) setCouple(data); })
-      .catch(() => { if (!cancelled) setCouple(null); });
+    void getExistingCouple(supabase, user.id, user.user_metadata).then(data => {
+      if (!cancelled && currentUserId.current === user.id) { setCouple(data); setCoupleError(null); }
+    }).catch(() => {
+      if (!cancelled && currentUserId.current === user.id) setCoupleError("Your couple profile couldn’t be loaded. Please try again.");
+    }).finally(() => { if (!cancelled && currentUserId.current === user.id) setCoupleLoading(false); });
     return () => { cancelled = true; };
   }, [supabase, user]);
 
-  // 3. Real-time PostgreSQL Changes & Couple Live Pairing Listener
   useEffect(() => {
     if (!user || !couple?.id) return;
-
-    let channel: RealtimeChannel;
-
-    try {
-      channel = supabase
-        .channel(`couple-live-${couple.id}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "couples",
-            filter: `id=eq.${couple.id}`,
-          },
-          (payload) => {
-            if (payload.eventType === "DELETE") {
-              clearCapsuleCache();
-              setCouple(null);
-              if (user) void loadCoupleData(user);
-              return;
-            }
-            const updated = payload.new as Partial<CoupleData>;
-            if (updated) {
-              const isNowConnected =
-                !!updated.partner_1_id && !!updated.partner_2_id;
-              if (!isNowConnected) {
-                clearCapsuleCache();
-              }
-              setCouple((prev) => ({
-                ...(prev || ({} as CoupleData)),
-                ...updated,
-                is_connected: isNowConnected,
-              }));
-              void loadCoupleData(user);
-
-              // If partner just joined live, celebrate with confetti!
-              if (isNowConnected && !couple.is_connected) {
-                try {
-                  confetti({
-                    particleCount: 100,
-                    spread: 90,
-                    origin: { y: 0.5 },
-                    colors: ["#f43f5e", "#fda4af", "#be123c", "#fff"],
-                  });
-                } catch {}
-              }
-            }
-          }
-        )
-        .subscribe();
-    } catch (e) {
-      console.warn("Realtime subscription not active:", e);
-    }
-
-    return () => {
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
-    };
-  }, [user, couple?.id, couple?.is_connected, supabase, loadCoupleData]);
+    const channel = supabase.channel(`couple-live-${couple.id}`).on("postgres_changes", {
+      event: "*", schema: "public", table: "couples", filter: `id=eq.${couple.id}`,
+    }, () => { clearCapsuleCache(); void loadCoupleData(user); }).subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [supabase, user, couple?.id, loadCoupleData]);
 
   const signOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw new Error("You couldn’t be signed out. Please try again.");
+    currentUserId.current = null;
+    clearCapsuleCache(); setUser(null); setSession(null); setCouple(null); setCoupleLoading(false); setCoupleError(null);
+  };
+  const refreshCouple = async () => { if (user) { setCoupleLoading(true); await loadCoupleData(user); } };
+  const createCoupleSpace = async (): Promise<Result> => {
+    if (!user) return { success: false, message: "Please sign in to create a Couple Space." };
+    const account = user;
+    setCoupleLoading(true);
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      clearCapsuleCache();
-      setUser(null);
-      setSession(null);
-      setCouple(null);
-    } catch (err) {
-      console.error("Error signing out:", err);
-    }
+      const data = await getOrCreateCouple(supabase, account.id, account.user_metadata);
+      if (currentUserId.current !== account.id) return { success: false, message: "Your account changed. Please try again." };
+      setCouple(data); setCoupleError(null);
+      return { success: true, message: "Your Couple Space is ready. Invite your partner whenever you like." };
+    } catch { return { success: false, message: "Your Couple Space couldn’t be created. Please try again." }; }
+    finally { if (currentUserId.current === account.id) setCoupleLoading(false); }
   };
-
-  const refreshCouple = async () => {
-    if (user) {
-      await loadCoupleData(user);
-    }
+  const pairWithCode = async (code: string): Promise<Result> => {
+    if (!user) return { success: false, message: "Please sign in to connect with your partner." };
+    const account = user;
+    try {
+      const result = await pairWithLoveCode(supabase, account.id, code);
+      if (result.success && currentUserId.current === account.id) await loadCoupleData(account);
+      return result;
+    } catch { return { success: false, message: "The invitation couldn’t be accepted. Please try again." }; }
   };
-
-  const pairWithCode = async (codeInput: string) => {
-    if (!user) {
-      return { success: false, message: "Please log in to pair." };
-    }
-
-    const result = await pairWithLoveCode(
-      supabase,
-      user.id,
-      codeInput,
-      user.user_metadata
-    );
-
-    if (result.success) {
-      try {
-        confetti({
-          particleCount: 80,
-          spread: 80,
-          origin: { y: 0.6 },
-          colors: ["#f43f5e", "#fda4af", "#be123c", "#fff"],
-        });
-      } catch {}
-
-      await loadCoupleData(user);
-    }
-
-    return result;
-  };
-
-  const disconnect = async () => {
-    if (!user) {
-      return { success: false, message: "Please log in to disconnect." };
-    }
-
+  const disconnect = async (): Promise<Result> => {
+    if (!user) return { success: false, message: "Please sign in to disconnect." };
+    const account = user;
     const result = await disconnectCouple(supabase);
-    if (result.success) {
-      clearCapsuleCache();
-      setCouple(null);
-      await loadCoupleData(user);
-    }
-
+    if (result.success && currentUserId.current === account.id) { clearCapsuleCache(); await loadCoupleData(account); }
     return result;
   };
-
-  const fullName =
-    user?.user_metadata?.full_name ||
-    user?.user_metadata?.name ||
-    user?.email?.split("@")[0] ||
-    null;
-
-  const partnerNickname =
-    couple?.partner_name ||
-    user?.user_metadata?.partner_nickname ||
-    null;
-
-  const isConnected = !!couple?.is_connected;
-  const coupleCode = couple?.couple_code || "";
-
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        session,
-        loading,
-        couple,
-        isConnected,
-        coupleCode,
-        partnerName: partnerNickname,
-        fullName,
-        partnerNickname,
-        signOut,
-        refreshCouple,
-        pairWithCode,
-        disconnect,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  const fullName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split("@")[0] || null;
+  const partnerNickname = couple?.partner_name || user?.user_metadata?.partner_nickname || null;
+  return <AuthContext.Provider value={{ user, session, loading, couple, coupleLoading, coupleError,
+    isConnected: Boolean(couple?.is_connected), coupleCode: couple?.couple_code || "", partnerName: partnerNickname,
+    fullName, partnerNickname, signOut, refreshCouple, createCoupleSpace, pairWithCode, disconnect,
+  }}>{children}</AuthContext.Provider>;
 }
 
 export const useAuth = () => useContext(AuthContext);

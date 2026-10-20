@@ -1,0 +1,18 @@
+import {test} from "node:test";
+import assert from "node:assert/strict";
+import {access} from "node:fs/promises";
+import {execFileSync} from "node:child_process";
+import {join} from "node:path";
+import {PRODUCTS,productHref,editorHref} from "../lib/storefront";
+import {getProductDetails} from "../lib/product-details";
+
+test("each product has detailed copy and a gallery mapped to its real editor and scene assets",async()=>{
+  for(const item of PRODUCTS){const details=getProductDetails(item.slug);assert.ok(details);assert.ok(details.description.length>120);assert.ok(details.scenes.length>=5);assert.ok(productHref(item).startsWith("/products/"));await access(join(process.cwd(),"app",editorHref(item),"page.tsx"));for(const scene of details.scenes)await access(join(process.cwd(),"public",scene.file));}
+  assert.equal(getProductDetails("unknown-product"),null);
+});
+test("actual product page renders its description, duration prices, included features, reviews and separate editor link",()=>{
+  const script=`require('tsx/cjs');require.extensions['.css']=module=>{module.exports=new Proxy({},{get:(_,key)=>key==='__esModule'?false:String(key)})};const React=require('react');const {renderToStaticMarkup}=require('react-dom/server');const {AppRouterContext}=require('next/dist/shared/lib/app-router-context.shared-runtime.js');const Product=require('./components/commerce/ProductPage.tsx').default;const details=require('./lib/product-details.ts').getProductDetails('halloween-pumpkin-moon');process.stdout.write(renderToStaticMarkup(React.createElement(AppRouterContext.Provider,{value:{push:()=>{},replace:()=>{},prefetch:()=>{}}},React.createElement(Product,{product:details,initialDuration:720}))));`;
+  const html=execFileSync(process.execPath,["-e",script],{cwd:process.cwd(),encoding:"utf8",maxBuffer:2*1024*1024});
+  for(const value of ["Pumpkin Moon Date","$3.49","Up to 3 days","7 days","30 days","What comes with your template.","Customer reviews.","How long should your link stay live?","Save for later",'href="/templates/halloween-pumpkin-moon"','id="description"','id="reviews"'])assert.ok(html.includes(value),value);
+  assert.ok(!html.includes("5.0 out of 5"));assert.ok(!html.includes("people are viewing"));
+});

@@ -14,8 +14,7 @@ export default function Footer() {
     <div className={`${styles.container} ${styles.footerGrid}`}>
       <div className={styles.footerBrand}>
         <Brand variant="footer" />
-        <p>Little worlds for the people<br />who mean the world to you.</p>
-        <span>Personalized digital gifts, made to be shared.</span>
+        <span>QubitSells helps you turn ideas into personalized digital experiences for life and work. Explore templates, add your own words and photos, and share something that feels like you.</span>
       </div>
       {groups.map(group => <nav key={group.title} aria-label={group.title}>
         <h2>{group.title}</h2>

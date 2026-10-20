@@ -1,11 +1,10 @@
-/** Owner-confirmed launch pricing. Checkout is not implemented: these are
- * explicitly labeled planned prices and must not be emitted as live offers. */
+/** Owner-confirmed prices. Checkout mode and availability are server-controlled. */
 export const LINK_DURATION_PRICES = [
   { label: "Up to 3 days", maxHours: 72, amountCents: 200, priceLabel: "$2 USD" },
   { label: "7 days", maxHours: 168, amountCents: 300, priceLabel: "$3 USD" },
   { label: "30 days", maxHours: 720, amountCents: 349, priceLabel: "$3.49 USD" },
 ] as const;
-export const PLANNED_PRICING_DESCRIPTION = "Planned launch pricing is $2 USD per template for up to 3 days, $3 USD for 7 days, or $3.49 USD for 30 days.";
+export const PLANNED_PRICING_DESCRIPTION = "Templates cost $2 USD for up to 3 days, $3 USD for 7 days, or $3.49 USD for 30 days.";
 
 export type Occasion = "All" | "Celebrations" | "Romance" | "Halloween";
 export type StoreProduct = {
@@ -75,7 +74,8 @@ export const PRODUCTS: StoreProduct[] = [
 // Keep this explicit: the hero must contain exactly these three products.
 export const HERO_PRODUCTS = PRODUCTS.slice(0, 3);
 export const OCCASIONS: Occasion[] = ["All", "Celebrations", "Romance", "Halloween"];
-export const productHref = (product: StoreProduct) => `/templates/${product.slug}`;
+export const productHref = (product: StoreProduct) => `/products/${product.slug}`;
+export const editorHref = (product: Pick<StoreProduct, "slug">) => `/templates/${product.slug}`;
 
 /** Omit production URLs until an actual public HTTPS origin is configured. */
 export function getSiteUrl(): string | undefined {

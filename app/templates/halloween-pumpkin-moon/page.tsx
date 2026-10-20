@@ -35,7 +35,9 @@ import {
 import type { MusicTrack, TemplateTool } from "@/lib/supabase/coupleTemplates";
 import { type FreeTouseTrack, artistName } from "@/lib/freetouse";
 import { CURATED_TRACKS } from "@/lib/curatedTracks";
-import Navbar from "@/components/Navbar";
+import StoreHeader from "@/components/storefront/StoreHeader";
+import PurchaseDetails from "@/components/commerce/PurchaseDetails";
+import {publishTemplate} from "@/lib/publish-template";
 
 const HALLOWEEN_MUSIC_CATEGORIES = [
   { id: "ambient", label: "🌙 Midnight Ambient", query: "ambient" },
@@ -146,7 +148,7 @@ export default function PumpkinMoonStudio() {
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [youtubeLoading, setYoutubeLoading] = useState(false);
   const [youtubeError, setYoutubeError] = useState<string | null>(null);
-  const [expiryHours, setExpiryHours] = useState(168); // 7 days default
+  const expiryHours = 72;
   const [trackStartAt, setTrackStartAt] = useState(0);
   const [isYtTesting, setIsYtTesting] = useState(false);
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -656,7 +658,7 @@ export default function PumpkinMoonStudio() {
         tools: toolsPayload,
       };
 
-      const res = await fetch("/api/templates/create", {
+      const res = await publishTemplate({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -702,9 +704,10 @@ export default function PumpkinMoonStudio() {
       className="min-h-screen text-[#FFF3E3] selection:bg-[#FF7518] selection:text-[#0F0A06]"
       style={{ backgroundColor: PUMPKIN_MOON_PALETTE.background }}
     >
-      <Navbar />
+      <StoreHeader />
+      <div className="max-w-4xl mx-auto px-4 pt-6"><PurchaseDetails productSlug="halloween-pumpkin-moon" /></div>
 
-      <main className="max-w-4xl mx-auto pt-24 pb-20 px-4 sm:px-6">
+      <main id="main-content" className="max-w-4xl mx-auto scroll-mt-28 pt-5 pb-20 px-4 sm:px-6">
         {/* Hidden preview audio element for testing soundtracks */}
         <audio
           ref={previewAudioRef}
@@ -2308,42 +2311,7 @@ export default function PumpkinMoonStudio() {
               )}
             </div>
 
-            {/* Expiry Selector Card */}
-            <div className="p-6 sm:p-8 rounded-3xl bg-[#1C1109] border border-[#542D14] shadow-lg space-y-4">
-              <div className="flex items-center justify-between border-b pb-3 border-[#2A180C]">
-                <div>
-                  <h3 className="text-sm font-bold text-[#FFF3E3] flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-[#FF7518]" />
-                    <span>Link Expiration</span>
-                  </h3>
-                  <p className="text-[11px] text-[#C49A76]">
-                    Set how long your partner can access this story
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {[
-                  { hours: 24, label: "24 Hours" },
-                  { hours: 72, label: "3 Days" },
-                  { hours: 168, label: "7 Days (Recommended)" },
-                  { hours: 720, label: "30 Days" },
-                ].map((item) => (
-                  <button
-                    key={item.hours}
-                    type="button"
-                    onClick={() => setExpiryHours(item.hours)}
-                    className={`p-3 rounded-2xl border text-center transition-all cursor-pointer ${
-                      expiryHours === item.hours
-                        ? "bg-[#2A180C] border-[#FF7518] text-[#FFD166] font-bold shadow-xs"
-                        : "bg-[#0F0A06] border-[#542D14] text-[#C49A76] hover:bg-[#1C1109]"
-                    }`}
-                  >
-                    <span className="text-xs block">{item.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+            <PurchaseDetails productSlug="halloween-pumpkin-moon" />
 
             {/* Stepper Navigation */}
             <div className="flex justify-between items-center pt-4">
