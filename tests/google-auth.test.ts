@@ -100,11 +100,39 @@ test("a Google code sent to Site URL is relayed before the homepage can consume 
   const cookie = `${AUTH_RETURN_COOKIE}=${encodeURIComponent("/products/halloween-pumpkin-moon?duration=168")}`;
   const response = await proxy(new NextRequest("https://qubitsells.com/?code=fixture-code", { headers: { cookie } }));
   assert.equal(response.status, 307);
-  assert.equal(response.headers.get("location"), "https://qubitsells.com/auth/callback?code=fixture-code");
+  const callback=new URL(response.headers.get("location")!);
+  assert.equal(callback.pathname,"/auth/callback");
+  assert.equal(callback.searchParams.get("code"),"fixture-code");
+  assert.equal(callback.searchParams.get("next"),"/products/halloween-pumpkin-moon?duration=168");
   assert.equal(response.headers.get("cache-control"), "private, no-store");
-  for (const [path, headers] of [["/", {}], ["/?code=fixture", {}], ["/", { cookie }], ["/?code=fixture", { cookie: `${AUTH_RETURN_COOKIE}=%2F%2Fevil.test` }]] as const) {
+  for (const [path, headers] of [["/", {}], ["/", { cookie }], ["/?utm_source=google", {}]] as const) {
     assert.equal((await proxy(new NextRequest(`https://qubitsells.com${path}`, { headers }))).headers.get("location"), null);
   }
+});
+
+test("homepage callback codes are exchanged and removed even without the navigation cookie",async()=>{
+  for(const cookie of ["",`${AUTH_RETURN_COOKIE}=%2F%2Fevil.test`]){
+    const response=await proxy(new NextRequest("https://www.qubitsells.com/?code=fixture-code&next=https://evil.test",{headers:{cookie}}));
+    assert.equal(response.status,307);
+    assert.equal(response.headers.get("cache-control"),"private, no-store");
+    assert.match(response.headers.get("x-robots-tag")||"",/noindex/);
+    const callback=new URL(response.headers.get("location")!);
+    assert.equal(callback.origin,"https://www.qubitsells.com");
+    assert.equal(callback.pathname,"/auth/callback");
+    assert.equal(callback.searchParams.get("next"),"/");
+    const result=await authCallbackDestination(callback.toString(),async code=>{assert.equal(code,"fixture-code");return {error:null};});
+    assert.equal(result.toString(),"https://www.qubitsells.com/");
+    assert.equal(result.search,"");
+    const failure=await authCallbackDestination(callback.toString(),async()=>({error:Error("PKCE verification failed")}));
+    assert.equal(failure.pathname,"/login");
+    assert.equal(failure.searchParams.get("redirect"),"/");
+    assert.equal(failure.searchParams.has("code"),false);
+  }
+  const cancelled=await proxy(new NextRequest("https://www.qubitsells.com/?error=access_denied&error_description=private-provider-detail"));
+  const failure=await authCallbackDestination(cancelled.headers.get("location")!,async()=>{throw Error("Provider errors must not be exchanged");});
+  assert.equal(failure.searchParams.get("error"),"auth_cancelled");
+  assert.equal(failure.searchParams.get("redirect"),"/");
+  assert.ok(!failure.href.includes("private-provider-detail"));
 });
 
 test("callback rejects external destinations and keeps local and preview sessions on their own origin", async () => {

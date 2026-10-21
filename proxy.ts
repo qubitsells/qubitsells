@@ -7,11 +7,15 @@ export async function proxy(request:NextRequest) {
   // Supabase can fall back to Site URL when its redirect allowlist is missing an
   // entry. Exchange that code on the server before the homepage client sees it.
   if(request.nextUrl.pathname==="/") {
-    if(request.nextUrl.searchParams.has("code") && authReturnDestination(request.cookies.get(AUTH_RETURN_COOKIE)?.value)) {
+    if(request.nextUrl.searchParams.has("code") || request.nextUrl.searchParams.has("error")) {
       const callback=new URL("/auth/callback",authRequestOrigin(request,process.env.VERCEL==="1"));
       callback.search=request.nextUrl.search;
+      // The navigation cookie is optional; the PKCE verifier still validates
+      // the code exchange. Without a saved destination, finish on the homepage.
+      callback.searchParams.set("next",authReturnDestination(request.cookies.get(AUTH_RETURN_COOKIE)?.value)||"/");
       const redirect=NextResponse.redirect(callback);
       redirect.headers.set("Cache-Control","private, no-store");
+      redirect.headers.set("X-Robots-Tag","noindex, nofollow, noarchive");
       return redirect;
     }
     return NextResponse.next();

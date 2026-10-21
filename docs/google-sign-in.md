@@ -8,13 +8,13 @@ The local configuration currently points to the Supabase project below. Confirm 
 
 | Setting | Value |
 | --- | --- |
-| Public website / Supabase Site URL | `https://qubitsells.com` |
-| Google authorized JavaScript origin | `https://qubitsells.com` |
+| Public website / Supabase Site URL | `https://www.qubitsells.com` |
+| Google authorized JavaScript origin | `https://www.qubitsells.com` |
 | Google authorized redirect URI (Supabase handles Google's response) | `https://dchlnbscflzaulsqyvdu.supabase.co/auth/v1/callback` |
-| App callback (Supabase returns to QubitSells) | `https://qubitsells.com/auth/callback` |
-| Homepage | `https://qubitsells.com` |
-| Privacy policy | `https://qubitsells.com/privacy` |
-| Terms | `https://qubitsells.com/terms` |
+| App callback (Supabase returns to QubitSells) | `https://www.qubitsells.com/auth/callback` |
+| Homepage | `https://www.qubitsells.com` |
+| Privacy policy | `https://www.qubitsells.com/privacy` |
+| Terms | `https://www.qubitsells.com/terms` |
 | Branding authorized domain | `qubitsells.com` |
 
 These two callbacks have different jobs. Google Cloud needs the **Supabase** URL, not the app callback. A custom Supabase auth domain would change Google's callback; copy the URL Supabase displays if you configure one.
@@ -42,7 +42,7 @@ These two callbacks have different jobs. Google Cloud needs the **Supabase** URL
 
 1. Open **Google Auth Platform → Clients → Create client**.
 2. Select **Web application**. Name it **QubitSells Website**.
-3. Under **Authorized JavaScript origins**, add `https://qubitsells.com`. Origins have no path.
+3. Under **Authorized JavaScript origins**, add `https://www.qubitsells.com`. Origins have no path.
 4. Under **Authorized redirect URIs**, paste:
 
    ```text
@@ -65,15 +65,17 @@ These two callbacks have different jobs. Google Cloud needs the **Supabase** URL
 
 In **Authentication → URL Configuration**:
 
-1. Set **Site URL** to `https://qubitsells.com`.
+1. Set **Site URL** to `https://www.qubitsells.com`.
 2. Add these **Redirect URLs**, one per entry:
 
    ```text
-   https://qubitsells.com/auth/callback
-   https://qubitsells.com/auth/callback?next=**
+   https://www.qubitsells.com/auth/callback
+   https://www.qubitsells.com/auth/callback?next=**
    ```
 
-3. Save. Google uses the fixed `/auth/callback` URL; the selected product and link duration are stored in a host-only, ten-minute return cookie and consumed by the callback. The second entry supports email confirmation/sign-in links with a return destination. Keep the hostname and callback path constrained; do not add unrestricted third-party domains. If Vercel redirects `www.qubitsells.com` to the apex domain, begin login at the apex domain too. If both hosts are served independently, add both callback entries for `www.qubitsells.com` as well. This keeps the browser's PKCE cookie on the same host throughout sign-in. [Supabase redirect rules](https://supabase.com/docs/guides/auth/redirect-urls).
+3. Save. Google uses the fixed `/auth/callback` URL; the selected product and link duration are stored in a host-only, ten-minute return cookie and consumed by the callback. The second entry supports email confirmation/sign-in links with a return destination. Keep the hostname and callback path constrained; do not add unrestricted third-party domains. Production redirects the apex domain to `www.qubitsells.com`, so begin sign-in on `www`. If both hosts are ever served independently, add `https://qubitsells.com/auth/callback` and `https://qubitsells.com/auth/callback?next=**` too. This keeps the browser's PKCE cookie on the same host throughout sign-in. [Supabase redirect rules](https://supabase.com/docs/guides/auth/redirect-urls).
+
+If sign-in leaves `?code=...` on the homepage, check that the exact `https://www.qubitsells.com/auth/callback` entry above is saved. Supabase can fall back to the Site URL when the requested callback is not allowed. The app also relays homepage auth codes to its server callback even when the navigation cookie is absent. PKCE verification still applies: an expired or invalid code returns to sign-in without putting the raw code into the retry URL. The navigation cookie chooses the destination; it does not authorize sign-in. No Supabase/Google secrets need to change to correct a redirect allowlist.
 
 For optional development, use separate development Google/Supabase projects. In that Supabase project allow `http://localhost:3000/auth/callback` and `http://localhost:3000/auth/callback?next=**`, and configure its displayed Supabase callback in the development Google client. Google's production OAuth client should contain production origins only. Preview deployments need their own matching Supabase redirect entries and preview environment variables. [Google production configuration policy](https://developers.google.com/identity/protocols/oauth2/production-readiness/policy-compliance).
 
@@ -84,7 +86,7 @@ Open **Vercel → your QubitSells project → Settings → Environment Variables
 ```dotenv
 NEXT_PUBLIC_SUPABASE_URL=https://dchlnbscflzaulsqyvdu.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YOUR_SUPABASE_PUBLISHABLE_KEY
-NEXT_PUBLIC_BASE_URL=https://qubitsells.com
+NEXT_PUBLIC_BASE_URL=https://www.qubitsells.com
 ```
 
 Find the URL and publishable key in your Supabase project's **Connect** dialog or **Project Settings → API Keys**. Existing deployments may keep `NEXT_PUBLIC_SUPABASE_ANON_KEY` instead of the publishable-key variable; either is supported. If both are set, the publishable key takes precedence. Ensure the key and URL belong to the same Supabase project. Public keys are intentionally browser-visible; service-role keys and Google client secrets must never use a `NEXT_PUBLIC_` name. [Supabase SSR client configuration](https://supabase.com/docs/guides/auth/server-side/creating-a-client).
@@ -101,7 +103,7 @@ In Google Auth Platform, complete **Branding / Verification Center** prompts and
 
 ## 8. Run the real sign-in test
 
-1. Open a private browser window and visit `https://qubitsells.com/login`.
+1. Open a private browser window and visit `https://www.qubitsells.com/login`.
 2. Click **Continue with Google**, choose your test account, and approve.
 3. Confirm you return to `/profile`, with your account menu signed in. Refresh and check you remain signed in.
 4. Sign out and repeat from `/signup` with an account that has not used QubitSells. Google can create its individual account without a separate QubitSells password.
@@ -118,7 +120,7 @@ In Google Auth Platform, complete **Branding / Verification Center** prompts and
 | Provider not enabled / unsupported provider | Enable Google in the same Supabase project referenced by Vercel's public URL. |
 | `invalid_client` | Recheck the matching Google client ID and secret saved in Supabase. |
 | Access blocked / only testers can enter | Check Audience, user type, Workspace restrictions, and any verification/testing notice in Google Console. |
-| Redirects to localhost | Supabase Site URL and Vercel production base URL must use `https://qubitsells.com`; redeploy after editing Vercel values. |
+| Redirects to localhost | Supabase Site URL and Vercel production base URL must use `https://www.qubitsells.com`; redeploy after editing Vercel values. |
 | Returns to the homepage instead of the selected product | Redeploy the fixed-callback implementation. Check the exact app callback is allowed in Supabase. The app also relays a Site URL fallback code to the callback when its valid return cookie is present. Start sign-in on the same hostname and complete it within ten minutes. |
 | Sign-in fails after returning | Start again in the same browser. Do not switch between `www`, apex, preview, or localhost mid-flow. The PKCE verifier cookie must survive. Old codes are single-use; do not refresh/reuse an old callback URL. |
 | Vercel build says Supabase URL/key missing | Add the public URL/key to Production variables, then rebuild. Check accidental whitespace, mismatched projects, and environment selection. |
