@@ -161,6 +161,26 @@ test("new accounts land in their personal profile and invitations require a sepa
   assert.ok(!authErrorMessage("arbitrary provider text")!.includes("arbitrary"));
 });
 
+test("homepage sign-in returns home for password, Google, and email-confirmation returns", async () => {
+  for (const home of ["/", "/?from=home", "/#templates", "/./"]) {
+    // AuthForm uses this destination for password sign-in and its signed-in effect.
+    const destination = signInDestination(new URLSearchParams({redirect:home}));
+    assert.equal(destination, home);
+    assert.equal(new URL(authCallbackUrl("https://qubitsells.com", home)).searchParams.get("next"), home);
+    assert.equal(authReturnDestination(encodeURIComponent(home)), home);
+    assert.ok(authReturnCookie(home, true).startsWith(`${AUTH_RETURN_COOKIE}=${encodeURIComponent(home)};`));
+    for (const suffix of ["", `&next=${encodeURIComponent(home)}`]) {
+      const result = await authCallbackDestination(`https://qubitsells.com/auth/callback?code=fixture${suffix}`, async () => ({error:null}), undefined, encodeURIComponent(home));
+      assert.equal(result.toString(), new URL(home, "https://qubitsells.com").toString());
+      const retry = await authCallbackDestination(`https://qubitsells.com/auth/callback?error=access_denied${suffix}`, async () => ({error:null}), undefined, encodeURIComponent(home));
+      assert.equal(signInDestination(retry.searchParams), home);
+    }
+  }
+  for (const destination of ["/products/halloween-pumpkin-moon?duration=720", "/my-templates", "/profile?view=orders", "/couple-space/profile?code=LOVE-INVITE", "/reset-password?recovery=1"]) {
+    assert.equal(signInDestination(new URLSearchParams({redirect:destination})), destination);
+  }
+});
+
 test("Supabase accepts current publishable keys and existing anon configuration, with actionable missing-env errors", () => {
   const names = ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "NEXT_PUBLIC_SUPABASE_ANON_KEY"] as const;
   const original = names.map(name => process.env[name]);

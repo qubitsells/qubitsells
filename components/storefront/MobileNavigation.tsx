@@ -24,7 +24,7 @@ export default function MobileNavigation({pathname,signedIn,onOpen}:Props){
 }
 export function MobileMenuContent({pathname,signedIn,onNavigate}:Props&{onNavigate:()=>void}){
   return <><nav aria-label="Mobile navigation" className={styles.links}>{STORE_LINKS.map(({label,href,description,Icon})=>{const current=!href.includes("#")&&(pathname===href||pathname.startsWith(`${href}/`));return <Link key={href} href={href} onClick={onNavigate} aria-current={current?"page":undefined}><span className={styles.linkIcon}><Icon size={20} aria-hidden="true"/></span><span><strong>{label}</strong><small>{description}</small></span><ChevronRight size={17} aria-hidden="true"/></Link>;})}</nav>
-    {!signedIn&&<div className={styles.guest}><UserRound size={20} aria-hidden="true"/><p>Your ideas deserve a home.<span>Sign in to keep your purchases and creations together.</span></p><Link href="/login" onClick={onNavigate}>Sign in <ArrowUpRight size={15} aria-hidden="true"/></Link></div>}
+    {!signedIn&&<div className={styles.guest}><UserRound size={20} aria-hidden="true"/><p>Your ideas deserve a home.<span>Sign in to keep your purchases and creations together.</span></p><Link href={pathname === "/" ? "/login?redirect=%2F" : "/login"} onClick={onNavigate}>Sign in <ArrowUpRight size={15} aria-hidden="true"/></Link></div>}
     <div className={styles.bottom}><Link href="/templates" className={styles.browse} onClick={onNavigate}>Find your next template <ArrowRight size={18} aria-hidden="true"/></Link><Link className={styles.help} href="/contact" onClick={onNavigate}>A little help? Get in touch <ArrowUpRight size={12} aria-hidden="true"/></Link></div>
   </>;
 }

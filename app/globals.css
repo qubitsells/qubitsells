@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
-/* Stop vertical bounce when the page reaches either scroll boundary. */
+/* Allow the browser's native pull-to-refresh gesture at the top of the page. */
 html,
 body {
-  overscroll-behavior-y: none;
+  overscroll-behavior-y: auto;
 }
 
 @media (prefers-reduced-motion: reduce) {

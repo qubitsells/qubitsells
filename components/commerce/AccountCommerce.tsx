@@ -2,7 +2,7 @@
 import {useEffect,useState} from "react";
 import Link from "next/link";
 import Image from "next/image";
-import {ArrowUpRight,Bell,CalendarDays,Check,Heart,Inbox,Package,Star,UserRound} from "lucide-react";
+import {ArrowUpRight,Bell,CalendarDays,Check,ChevronRight,Heart,Inbox,Package,Star,UserRound} from "lucide-react";
 import {PRODUCTS,editorHref,productHref} from "@/lib/storefront";
 import {durationLabel,money,type StoreNotification,type StoreOrder} from "@/lib/commerce";
 import styles from "./commerce.module.css";
@@ -11,7 +11,21 @@ import QuickReview from "./QuickReview";
 import AccountReviews from "./AccountReviews";
 
 export type AccountView="profile"|"orders"|"wishlist"|"notifications"|"reviews";
-export function AccountTabs({view}: {view:AccountView}) {return <nav className={styles.accountTabs} aria-label="Personal account sections">{([["profile","My details",UserRound],["orders","My orders",Package],["wishlist","Wishlist",Heart],["reviews","My reviews",Star],["notifications","Notifications",Bell]] as const).map(([value,label,Icon])=><Link key={value} href={value==="profile"?"/profile":`/profile?view=${value}`} aria-current={view===value?"page":undefined}><Icon size={14} aria-hidden="true"/>{label}</Link>)}</nav>;}
+export function AccountTabs({view}: {view:AccountView}) {
+  return <nav className={styles.accountTabs} aria-label="Personal account sections">
+    {([
+      ["profile","My details","Profile & security",UserRound],
+      ["orders","My orders","Purchases & payments",Package],
+      ["wishlist","Wishlist","Your saved templates",Heart],
+      ["reviews","My reviews","Written & pending",Star],
+      ["notifications","Notifications","Updates & responses",Bell],
+    ] as const).map(([value,label,description,Icon]) => <Link key={value} href={value==="profile"?"/profile":`/profile?view=${value}`} aria-current={view===value?"page":undefined}>
+      <span className={styles.accountTabIcon}><Icon size={18} aria-hidden="true"/></span>
+      <span className={styles.accountTabCopy}><strong>{label}</strong><small>{description}</small></span>
+      <ChevronRight size={15} aria-hidden="true"/>
+    </Link>)}
+  </nav>;
+}
 type Data={orders?:StoreOrder[];count?:number;items?:({product_slug:string;created_at:string}|StoreNotification)[];unread?:number};
 type ShoppingView=Exclude<AccountView,"profile"|"reviews">;
 export default function AccountCommerce({view,reviewSlug,reviewMode}: {view?:Exclude<AccountView,"profile">|null;reviewSlug?:string;reviewMode?:string}) {

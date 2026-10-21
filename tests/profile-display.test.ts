@@ -55,6 +55,31 @@ test("individual profile displays professional details without relationship fiel
   assert.ok(!html.includes("Permanently delete account"), "destructive confirmation stays closed until requested");
 });
 
+test("personal account puts identity and all account sections before settings and optional navigation", () => {
+  const html = render("personal");
+  assert.ok(html.indexOf('aria-label="Your account"') < html.indexOf('aria-label="Personal account sections"'));
+  assert.ok(html.indexOf('aria-label="Personal account sections"') < html.indexOf('id="personal-details"'));
+  assert.ok(html.indexOf('id="account-security"') < html.indexOf('aria-label="Account navigation"'));
+  for (const value of ["Profile &amp; security", "Purchases &amp; payments", "Your saved templates", "Written &amp; pending", "Updates &amp; responses"]) assert.ok(html.includes(value), value);
+  for (const id of ["personal-details", "work-details", "account-security"]) {
+    assert.ok(html.includes(`href="#${id}"`), `missing settings shortcut: ${id}`);
+    assert.ok(html.includes(`id="${id}"`), `missing shortcut target: ${id}`);
+  }
+});
+
+test("long account names and emails remain intact on every account view", () => {
+  const longName = "Alexandria Montgomery-Wellington";
+  const longEmail = "alexandria.montgomery.wellington@very-long-business-domain.example";
+  const overrides = {user:{...account,email:longEmail,user_metadata:{...account.user_metadata,full_name:longName}}};
+  for (const view of ["profile", "orders", "wishlist", "reviews", "notifications"]) {
+    const html = render("personal", overrides, "", view);
+    assert.ok(html.includes(longName));
+    assert.ok(html.includes(longEmail));
+    assert.equal((html.match(/aria-label="Your account"/g)||[]).length, 1);
+    assert.equal((html.match(/aria-current="page"/g)||[]).filter(Boolean).length > 0, true);
+  }
+});
+
 test("an account without a couple sees an optional explicit setup and invitation review", () => {
   const html = render("couple", {}, "LOVE-ABC123");
   assert.ok(html.includes("Create Couple Space"));

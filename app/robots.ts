@@ -1,7 +1,14 @@
 import type { MetadataRoute } from "next";
-import { getSiteUrl } from "@/lib/storefront";
+import { getSiteUrl, PUBLIC_SITE_ORIGIN } from "@/lib/storefront";
+import { PRIVATE_CRAWL_PATHS, PUBLIC_CRAWLERS } from "@/lib/crawling";
 
 export default function robots(): MetadataRoute.Robots {
-  const url = getSiteUrl();
-  return { rules: { userAgent: "*", allow: "/", disallow: ["/api/", "/t/", "/love/", "/profile", "/my-templates", "/couple-space", "/couple-space/profile", "/couple-space/calendar", "/creator-center", "/time-capsule", "/login", "/signup", "/reset-password", "/auth/", "/checkout/"] }, ...(url ? { sitemap: `${url}/sitemap.xml` } : {}) };
+  const url = getSiteUrl() || PUBLIC_SITE_ORIGIN;
+  return {
+    rules: [
+      { userAgent: "*", allow: "/", disallow: PRIVATE_CRAWL_PATHS },
+      { userAgent: PUBLIC_CRAWLERS, allow: "/", disallow: PRIVATE_CRAWL_PATHS },
+    ],
+    sitemap: `${url}/sitemap.xml`,
+  };
 }

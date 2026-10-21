@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { getSiteUrl } from "@/lib/storefront";
+import { getSiteUrl, PUBLIC_SITE_ORIGIN } from "@/lib/storefront";
 import SiteAnalytics from "@/components/SiteAnalytics";
 import SiteSpeedInsights from "@/components/SiteSpeedInsights";
 
@@ -46,7 +46,7 @@ const feelingLovely = localFont({
 
 export const metadata: Metadata = {
   applicationName: "QubitSells",
-  metadataBase: new URL(getSiteUrl() || "https://qubitsells.com"),
+  metadataBase: new URL(getSiteUrl() || PUBLIC_SITE_ORIGIN),
   title: "QubitSells — Personalized digital gifts",
   description:
     "Personalized digital gifts, made to be shared. Explore illustrated web experiences with your words, photos, and optional interactions, plus a private Couple Space.",

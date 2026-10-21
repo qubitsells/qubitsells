@@ -9,6 +9,7 @@ import ExperienceDemo from "@/components/storefront/ExperienceDemo";
 import Footer from "@/components/Footer";
 import { getSiteUrl, PLANNED_PRICING_DESCRIPTION } from "@/lib/storefront";
 import styles from "@/components/storefront/storefront.module.css";
+import { websiteStructuredData } from "@/lib/seo";
 
 const siteUrl = getSiteUrl();
 export const metadata: Metadata = {
@@ -56,6 +57,6 @@ export default function Home() {
       <section className={styles.closing}><div className={`${styles.container} ${styles.closingInner}`}><div><h2>Have someone in mind?</h2><p>Find a design and make it theirs.</p></div><Link href="/templates" className={`${styles.button} ${styles.primary}`}>Browse templates <ArrowRight size={18} /></Link></div></section>
     </main>
     <Footer />
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "WebSite", name: "QubitSells", description: "Personalized digital gifts, made to be shared.", ...(siteUrl ? { url: siteUrl } : {}) }).replace(/</g, "\\u003c") }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteStructuredData()).replace(/</g, "\\u003c") }} />
   </div>;
 }

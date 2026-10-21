@@ -62,6 +62,8 @@ test("sitemap includes the public catalog and policies while excluding recipient
   for (const path of ["/t/", "/love/", "/couple-space", "/profile", "/couple-space/profile", "/creator-center", "/time-capsule", "/api/", "/auth/"]) {
     assert.ok(entries.every(entry => !entry.startsWith(path)), path);
     const rules = robots().rules;
-    assert.ok(!Array.isArray(rules) && Array.isArray(rules.disallow) && rules.disallow.includes(path));
+    for (const rule of Array.isArray(rules) ? rules : [rules]) {
+      assert.ok(Array.isArray(rule.disallow) && rule.disallow.some(prefix => path.startsWith(prefix)), path);
+    }
   }
 });

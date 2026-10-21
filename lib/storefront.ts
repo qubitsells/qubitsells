@@ -89,13 +89,16 @@ export const OCCASIONS: Occasion[] = ["All", "Celebrations", "Romance", "Hallowe
 export const productHref = (product: StoreProduct) => `/products/${product.slug}`;
 export const editorHref = (product: Pick<StoreProduct, "slug">) => `/templates/${product.slug}`;
 
-/** Omit production URLs until an actual public HTTPS origin is configured. */
+export const PUBLIC_SITE_ORIGIN = "https://www.qubitsells.com";
+
+/** Match the production domain's redirect target in public discovery metadata. */
 export function getSiteUrl(): string | undefined {
-  const value = process.env.NEXT_PUBLIC_BASE_URL || "https://qubitsells.com";
+  const value = process.env.NEXT_PUBLIC_BASE_URL?.trim() || PUBLIC_SITE_ORIGIN;
   if (!value) return;
   try {
     const url = new URL(value);
     if (url.protocol !== "https:" || /^(localhost|127\.|\[::1\])/.test(url.hostname)) return;
+    if (url.hostname === "qubitsells.com" || url.hostname === "www.qubitsells.com") return PUBLIC_SITE_ORIGIN;
     return url.origin;
   } catch { return; }
 }

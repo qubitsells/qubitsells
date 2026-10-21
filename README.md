@@ -51,4 +51,6 @@ Vercel Speed Insights is also included across all routes using `@vercel/speed-in
 
 Read [SECURITY.md](SECURITY.md) before deployment. It explains credential rotation, private database content, legacy media migration, encryption-key backups, cron authorization, trusted proxy IP configuration, and the limits of server-managed encryption.
 
+For Google sitemap submission, canonical URLs, search/AI crawler access, and Vercel firewall checks, see [search discovery](docs/search-discovery.md). Submit `https://www.qubitsells.com/sitemap.xml` to Search Console, not the homepage URL.
+
 Keep failed cleanup records for retries. Do not remove the encryption key or delete media ownership records to resolve a cleanup error. Recover the database and key together from a secure backup when necessary.
