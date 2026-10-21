@@ -14,6 +14,9 @@ export type StoreProduct = {
   image: string;
   occasions: Occasion[];
   video?: string;
+  heroVideo?: string;
+  heroVideoMobile?: string;
+  heroPoster?: string;
   priceLabel: "$2 USD";
 };
 
@@ -25,6 +28,9 @@ export const PRODUCTS: StoreProduct[] = [
     image: "/templates/halloween-pumpkin-moon/06-our-pumpkin-moon-date.png",
     occasions: ["Halloween", "Romance"],
     video: "/hero-trending-products/Couple_celebrating_Halloween_wit…_1080p_20261019041657.mp4",
+    heroVideo: "/media/storefront/halloween-pumpkin-moon-720p.mp4",
+    heroVideoMobile: "/media/storefront/halloween-pumpkin-moon-mobile.mp4",
+    heroPoster: "/media/storefront/halloween-pumpkin-moon.webp",
     priceLabel: "$2 USD",
   },
   {
@@ -34,6 +40,9 @@ export const PRODUCTS: StoreProduct[] = [
     image: "/templates/our-little-pink-day/01-my-favorite-meetup.png",
     occasions: ["Romance", "Celebrations"],
     video: "/hero-trending-products/Couple_on_romantic_animated_date_20261019040603.mp4",
+    heroVideo: "/media/storefront/our-little-pink-day-720p.mp4",
+    heroVideoMobile: "/media/storefront/our-little-pink-day-mobile.mp4",
+    heroPoster: "/media/storefront/our-little-pink-day.webp",
     priceLabel: "$2 USD",
   },
   {
@@ -43,6 +52,9 @@ export const PRODUCTS: StoreProduct[] = [
     image: "/templates/halloween-midnight-key/01-the-hidden-key.png",
     occasions: ["Halloween", "Romance"],
     video: "/hero-trending-products/Couple_exploring_with_key_and_20261019040235.mp4",
+    heroVideo: "/media/storefront/halloween-midnight-key-720p.mp4",
+    heroVideoMobile: "/media/storefront/halloween-midnight-key-mobile.mp4",
+    heroPoster: "/media/storefront/halloween-midnight-key.webp",
     priceLabel: "$2 USD",
   },
   {

@@ -4,8 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, FileText, Hourglass, LockKeyhole, Users } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import TimeCapsuleStudio from "./TimeCapsuleStudio";
+import dynamic from "next/dynamic";
 import styles from "./capsules/capsules.module.css";
+
+const TimeCapsuleStudio = dynamic(() => import("./TimeCapsuleStudio"), {
+  loading: () => <div className={styles.loading} role="status"><p>Opening your private collection…</p></div>,
+});
 
 export default function CapsuleWorkspace() {
   const {user, loading} = useAuth();

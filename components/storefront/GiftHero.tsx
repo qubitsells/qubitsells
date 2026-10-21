@@ -46,12 +46,17 @@ function HeroBackground({ product, paused, reducedMotion, playAttempt }: {
   }, [canPlay, playAttempt]);
 
   return <motion.div className={styles.heroMedia} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reducedMotion ? 0 : .9, ease: "easeInOut" }} aria-hidden={!isPresent ? true : undefined}>
-    <Image src={product.image} alt={`${product.name}: a personalized illustrated adventure`} fill loading="eager" fetchPriority="high" sizes="(max-width: 700px) 100vw, 1300px" className={styles.heroPoster} />
-    {!reducedMotion && blockedAttempt !== playAttempt && <video key={playAttempt} ref={video} className={`${styles.heroVideo} ${hasFrame ? styles.heroVideoReady : ""}`} src={product.video} poster={product.image} autoPlay={canPlay} muted playsInline loop preload="auto" aria-hidden="true" onPlaying={() => setHasFrame(true)} onError={() => setBlockedAttempt(playAttempt)} />}
+    <Image src={product.heroPoster || product.image} alt={`${product.name}: a personalized illustrated adventure`} fill loading="eager" fetchPriority="high" sizes="(max-width: 700px) 100vw, 1300px" className={styles.heroPoster} />
+    {!reducedMotion && blockedAttempt !== playAttempt && <video key={playAttempt} ref={video} className={`${styles.heroVideo} ${hasFrame ? styles.heroVideoReady : ""}`} autoPlay={canPlay} muted playsInline loop preload="metadata" aria-hidden="true" onPlaying={() => setHasFrame(true)} onError={() => setBlockedAttempt(playAttempt)}>
+      {product.heroVideoMobile && <source src={product.heroVideoMobile} media="(max-width: 700px)" type="video/mp4"/>}
+      <source src={product.heroVideo || product.video} type="video/mp4"/>
+    </video>}
   </motion.div>;
 }
 
 export default function GiftHero() {
+  const section = useRef<HTMLElement>(null);
+  const [onScreen, setOnScreen] = useState(true);
   const [active, setActive] = useState(0);
   const [playing, setPlaying] = useState(true);
   const [hovered, setHovered] = useState(false);
@@ -64,9 +69,16 @@ export default function GiftHero() {
   const visible = useSyncExternalStore(subscribeVisibility, pageIsVisible, serverVisibility);
   const product = HERO_PRODUCTS[active];
   // Controls hold rotation; merely resting the pointer over the video does not.
-  const videoPaused = !playing || previewing || !visible;
+  const videoPaused = !playing || previewing || !visible || !onScreen;
   const paused = videoPaused || hovered || focused || reducedMotion;
   const change = (index: number) => setActive((index + HERO_PRODUCTS.length) % HERO_PRODUCTS.length);
+
+  useEffect(() => {
+    if (!section.current || !window.IntersectionObserver) return;
+    const observer = new IntersectionObserver(([entry]) => setOnScreen(entry.isIntersecting));
+    observer.observe(section.current);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (paused) return;
@@ -74,7 +86,7 @@ export default function GiftHero() {
     return () => window.clearInterval(timer);
   }, [paused, active]);
 
-  return <section className={`${styles.container} ${styles.heroSection}`} aria-label="Featured gift templates" aria-roledescription="carousel">
+  return <section ref={section} className={`${styles.container} ${styles.heroSection}`} aria-label="Featured gift templates" aria-roledescription="carousel">
     <h1 className={styles.srOnly}>Personalized digital gifts, made to be shared.</h1>
     <div className={styles.hero} onFocusCapture={() => setFocused(true)} onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }} onKeyDown={event => {
       if (event.target instanceof HTMLElement && event.target.closest("dialog")) return;

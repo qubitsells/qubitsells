@@ -42,7 +42,7 @@ const nextConfig: NextConfig = {
       { key:"X-Frame-Options",value:"DENY" },
       { key:"Permissions-Policy",value:"camera=(), microphone=(self), geolocation=()" },
       { key:"Content-Security-Policy",value:"base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'" },
-    ] }, ...["t", "love", "profile", "my-templates", "couple-space", "creator-center", "time-capsule", "checkout", "login", "signup", "reset-password", "auth", "api"].map(path => ({ source: `/${path}/:path*`, headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }] }))];
+    ] }, { source: "/media/storefront/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }] }, ...["t", "love", "profile", "my-templates", "couple-space", "creator-center", "time-capsule", "checkout", "login", "signup", "reset-password", "auth", "api"].map(path => ({ source: `/${path}/:path*`, headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }] }))];
   },
   images: {
     remotePatterns: [

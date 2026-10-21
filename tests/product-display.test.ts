@@ -5,6 +5,12 @@ import {execFileSync} from "node:child_process";
 import {join} from "node:path";
 import {PRODUCTS,productHref,editorHref} from "../lib/storefront";
 import {getProductDetails} from "../lib/product-details";
+import {productOptions} from "../lib/product-navigation";
+
+test("cached product pages keep purchased duration, review links, and cancelled-checkout state in the browser",()=>{
+  for(const duration of [72,168,720])assert.deepEqual(productOptions(new URLSearchParams({duration:String(duration),review:"1",checkout:"cancelled"})),{duration,review:true,cancelled:true});
+  for(const duration of ["","-1","999999","not-a-number"])assert.deepEqual(productOptions(new URLSearchParams({duration,review:"0",checkout:"complete"})),{duration:72,review:false,cancelled:false});
+});
 
 test("each product has detailed copy and a gallery mapped to its real editor and scene assets",async()=>{
   for(const item of PRODUCTS){const details=getProductDetails(item.slug);assert.ok(details);assert.ok(details.description.length>120);assert.ok(details.scenes.length>=5);assert.ok(productHref(item).startsWith("/products/"));await access(join(process.cwd(),"app",editorHref(item),"page.tsx"));for(const scene of details.scenes)await access(join(process.cwd(),"public",scene.file));}

@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { getSiteUrl } from "@/lib/storefront";
 import SiteAnalytics from "@/components/SiteAnalytics";
+import SiteSpeedInsights from "@/components/SiteSpeedInsights";
 
 const geistSans = localFont({
   src: "./fonts/Geist-latin.woff2",
@@ -16,6 +17,7 @@ const geistMono = localFont({
   variable: "--font-geist-mono",
   weight: "100 900",
   display: "swap",
+  preload: false,
 });
 
 const playfair = localFont({
@@ -32,12 +34,14 @@ const cinzelDecorative = localFont({
   ],
   variable: "--font-starlit",
   display: "swap",
+  preload: false,
 });
 
 const feelingLovely = localFont({
   src: "./fonts/Feeling Lovely.ttf",
   variable: "--font-feeling-lovely",
   display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -73,6 +77,7 @@ export default function RootLayout({
           {children}
         </AuthProvider>
         <SiteAnalytics />
+        <SiteSpeedInsights />
       </body>
     </html>
   );

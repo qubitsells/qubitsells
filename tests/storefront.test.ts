@@ -1,10 +1,30 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { access, readdir } from "node:fs/promises";
+import { access, readdir, readFile, stat } from "node:fs/promises";
 import { join } from "node:path";
 import { HERO_PRODUCTS, OCCASIONS, PRODUCTS, productHref,editorHref } from "../lib/storefront";
 import sitemap from "../app/sitemap";
 import robots from "../app/robots";
+
+test("hero media fits mobile and desktop budgets and MP4 headers support streaming before download completes",async()=>{
+  for(const product of HERO_PRODUCTS){
+    assert.ok(product.heroVideo&&product.heroVideoMobile&&product.heroPoster);
+    const original=(await stat(join(process.cwd(),"public",product.video!))).size;
+    const desktop=await readFile(join(process.cwd(),"public",product.heroVideo));
+    const mobile=await readFile(join(process.cwd(),"public",product.heroVideoMobile));
+    assert.ok(desktop.length<2_000_000&&desktop.length<original*.3,product.slug+" desktop budget");
+    assert.ok(mobile.length<800_000&&mobile.length<original*.12,product.slug+" mobile budget");
+    assert.ok((await stat(join(process.cwd(),"public",product.heroPoster))).size<250_000,product.slug+" poster budget");
+    for(const video of [desktop,mobile]){
+      const atoms=new Map<string,number>();
+      for(let offset=0;offset+8<=video.length;){
+        const size=video.readUInt32BE(offset);if(size<8)break;
+        atoms.set(video.toString("ascii",offset+4,offset+8),offset);offset+=size;
+      }
+      assert.ok(atoms.has("moov")&&atoms.has("mdat")&&atoms.get("moov")!<atoms.get("mdat")!,"fast-start metadata must precede media bytes");
+    }
+  }
+});
 
 test("hero has exactly the requested three products, mapped to their real video files and editors", async () => {
   assert.deepEqual(HERO_PRODUCTS.map(product => [product.name, productHref(product)]), [

@@ -2,8 +2,10 @@
 import Link from "next/link";
 import {ArrowUpRight} from "lucide-react";
 import {useAuth} from "@/context/AuthContext";
-import TimeCapsuleStudio from "@/components/TimeCapsuleStudio";
+import dynamic from "next/dynamic";
 import styles from "./couple.module.css";
+
+const TimeCapsuleStudio=dynamic(()=>import("@/components/TimeCapsuleStudio"),{loading:()=><p className={styles.loading} role="status">Opening your shared memories…</p>});
 
 export default function SharedCapsules(){const {user,loading,coupleLoading,coupleError,isConnected,couple,refreshCouple}=useAuth();
   if(loading||coupleLoading)return <p className={styles.loading} role="status">Opening your shared memories…</p>;
