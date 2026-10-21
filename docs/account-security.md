@@ -17,6 +17,10 @@ The personal profile now has an **Account security** section with password reset
 4. Keep `NEXT_PUBLIC_BASE_URL=https://qubitsells.com` and your matching Supabase URL/public key in Vercel Production. Deletion also needs the existing server-only `SUPABASE_SERVICE_ROLE_KEY`; rate limiting and recovery depend on your existing server configuration. Preserve the encryption key and other existing server variables.
 5. Deploy the updated code. No live account is deleted by installing the code or migration. Real email and deletion testing must use a disposable test account.
 
+## Request origin troubleshooting
+
+If a deployment reports **Request origin is not allowed**, confirm Vercel Production has `NEXT_PUBLIC_BASE_URL=https://qubitsells.com` and redeploy the current code. API origin checks accept the actual domain and port serving the request, including `www` and preview deployments, rather than allowing the canonical base URL to override them. Cross-site requests and missing/invalid Origin headers are still rejected. An origin error no longer incorrectly asks the user to sign in again.
+
 ## Password reset behavior
 
 - Profile: **Send password reset email** sends a recovery link to the signed-in account's address.

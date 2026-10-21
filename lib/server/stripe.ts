@@ -3,9 +3,14 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { HttpError } from "./security";
 
 export const stripeMode = (): "test" | "live" => process.env.STRIPE_MODE === "live" ? "live" : "test";
-export function stripeReady() { return new RegExp(`^sk_${stripeMode()}_[A-Za-z0-9]{20,}$`).test(process.env.STRIPE_SECRET_KEY||"") && /^whsec_[A-Za-z0-9]{20,}$/.test(process.env.STRIPE_WEBHOOK_SECRET||""); }
+export function stripeReady() {
+  // Restricted keys use the same API authentication as secret keys. Both must
+  // match the configured store mode; publishable and organization keys cannot.
+  return new RegExp(`^(?:sk|rk)_${stripeMode()}_[A-Za-z0-9]{20,}$`).test(process.env.STRIPE_SECRET_KEY||"")
+    && /^whsec_[A-Za-z0-9]{20,}$/.test(process.env.STRIPE_WEBHOOK_SECRET||"");
+}
 export async function stripeRequest<T>(path: string, method: "GET" | "POST" = "GET", body?: URLSearchParams, idempotencyKey?: string): Promise<T> {
-  if (!stripeReady()) throw new HttpError(503, "Checkout is being prepared. Please try again later.");
+  if (!stripeReady()) throw new HttpError(503, "Checkout is temporarily unavailable. Please try again later.");
   const response = await fetch(`https://api.stripe.com/v1/${path}`, {method, cache: "no-store", signal: AbortSignal.timeout(20000), headers: {
     Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`, "Stripe-Version": "2025-02-24.acacia",
     ...(body ? {"Content-Type": "application/x-www-form-urlencoded"} : {}), ...(idempotencyKey ? {"Idempotency-Key": idempotencyKey} : {}),

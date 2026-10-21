@@ -179,6 +179,9 @@
 .notificationItem a.reviewCta { display:inline-flex; margin-top:13px; width:fit-content; color:#073247; font-size:12px; text-decoration:none; }
 .reviewDialog { width:min(560px,calc(100% - 32px)); max-height:calc(100dvh - 40px); margin:auto; padding:30px; color:#16232d; background:#fff; border:1px solid #cce8f2; border-radius:17px; box-shadow:0 30px 100px rgb(5 35 50 / 25%); overflow:auto; overscroll-behavior:contain; }
 .reviewDialog::backdrop { background:rgb(9 30 43 / 48%); backdrop-filter:blur(5px); }
+.checkoutDialog h2 { font-family:var(--font-playfair),Georgia,serif; font-size:32px; line-height:1.2; margin-top:12px; }
+.checkoutDialog > p:not(.eyebrow) { color:#486779; font-size:14px; line-height:1.8; margin-top:18px; }
+.checkoutDialog > div { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:12px; margin-top:25px; }
 .reviewDialogHeading { display:flex; align-items:flex-start; gap:20px; justify-content:space-between; }
 .reviewDialogHeading h2 { font-family:var(--font-playfair),Georgia,serif; font-size:34px; font-weight:500; line-height:1.2; letter-spacing:-.8px; margin-top:10px; }
 .reviewDialogHeading > button { display:grid; place-items:center; width:38px; height:38px; flex-shrink:0; border:1px solid #d8e7ef; border-radius:50%; cursor:pointer; background:#f6fbfe; }

@@ -6,7 +6,7 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 
 export class HttpError extends Error {
-  constructor(public status: number, message: string) { super(message); }
+  constructor(public status: number, message: string, public code?: string) { super(message); }
 }
 export function requiredEnv(name: string) {
   const value = process.env[name]?.trim();
@@ -28,8 +28,31 @@ export async function requireUser() {
 }
 export function requireSameOrigin(request: Request) {
   const origin = request.headers.get("origin");
-  const expected = process.env.NEXT_PUBLIC_BASE_URL || new URL(request.url).origin;
-  if (!origin || origin !== new URL(expected).origin || request.headers.get("sec-fetch-site") === "cross-site") throw new HttpError(403, "Request origin is not allowed.");
+  const deny = () => { throw new HttpError(403, "Request origin is not allowed.", "origin_not_allowed"); };
+  if (!origin || request.headers.get("sec-fetch-site") === "cross-site") return deny();
+  let parsed: URL;
+  try { parsed = new URL(origin); } catch { return deny(); }
+  if (!['http:', 'https:'].includes(parsed.protocol) || parsed.origin !== origin) return deny();
+
+  const target = new URL(request.url);
+  // The browser's Host identifies the domain actually visited (including www,
+  // previews and local ports). Next can normalize the request URL to localhost.
+  // Only Vercel's proxy may supply the public protocol; ignore forwarded hosts.
+  const host = request.headers.get("host") || target.host;
+  const forwardedProtocol = process.env.VERCEL === "1" ? request.headers.get("x-forwarded-proto") : null;
+  const protocol = process.env.VERCEL === "1"
+    ? forwardedProtocol === "http" ? "http:" : "https:"
+    : target.protocol;
+  if (!/[\\/\s,@?#]/.test(host)) {
+    try { if (origin === new URL(`${protocol}//${host}`).origin) return; } catch { /* Invalid Host is not trusted. */ }
+  }
+  // Keep the explicitly configured public origin usable behind other proxies.
+  // It supplements the actual request origin instead of replacing it.
+  const configured = process.env.NEXT_PUBLIC_BASE_URL?.trim();
+  if (configured) {
+    try { if (origin === new URL(configured).origin) return; } catch { /* Bad canonical config must not bypass validation. */ }
+  }
+  return deny();
 }
 export function secretMatches(provided: string | null, expected: string) {
   if (!provided) return false;
@@ -56,7 +79,7 @@ export async function rateLimit(request: Request, operation: string, limit: numb
   if (!data) throw new HttpError(429, "Too many requests. Please try again later.");
 }
 export function apiError(error: unknown) {
-  if (error instanceof HttpError) return NextResponse.json({ success: false, error: error.message }, { status: error.status });
+  if (error instanceof HttpError) return NextResponse.json({ success: false, error: error.message, ...(error.code ? { code: error.code } : {}) }, { status: error.status });
   // Do not log credentials, private payloads, provider responses, or exception messages.
   console.error("Server operation failed", { type: error instanceof Error ? error.name : "Unknown" });
   return NextResponse.json({ success: false, error: "The operation could not be completed. Please try again." }, { status: 500 });

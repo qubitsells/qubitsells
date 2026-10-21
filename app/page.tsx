@@ -19,12 +19,12 @@ export const metadata: Metadata = {
 };
 
 const questions = [
-  ["What am I purchasing?", `You’re creating a personalized web experience: an illustrated story with your names, words, photos, and any supported interactions you choose. ${PLANNED_PRICING_DESCRIPTION} Choose your duration on the product page. Publishing requires a confirmed purchase; checkout availability and test mode are shown before payment. It is a shared webpage, rather than a downloadable video.`],
+  ["What am I purchasing?", `You’re creating a personalized web experience: an illustrated story with your names, words, photos, and any supported interactions you choose. ${PLANNED_PRICING_DESCRIPTION} Choose your duration on the product page and review your total before checkout. Publishing requires a confirmed purchase. It is a shared webpage, rather than a downloadable video.`],
   ["Can I send it to a friend or family member?", "You don’t need a partner connection to make or receive a template. You can personalize the names and message for someone close to you. Our current illustrated collection is mainly romantic, so preview the artwork and story to make sure they suit your recipient."],
   ["Does the recipient need an account or need to pay?", "No account or payment is required to open a template’s share link or use its supported recipient interactions. Anyone with the link can open it, so send it only to the intended recipient. Private Couple Space and capsule features have separate sign-in and consent requirements."],
   ["How long does the shared page remain available?", "Choose an expiry in the editor before generating the link. The featured editors offer 24 hours, 3 days, 7 days, or 30 days. After expiry, the link stops working and the template, replies, and associated media are scheduled for deletion. This is not permanent hosting or an archive."],
   ["Can I edit or delete it?", "You can edit the design before generating its share link. The existing editors do not offer full editing of a published gift: create a new version if you need to change it. Keep your original browser or private creator management link to delete the original. Copies or screenshots kept by a recipient cannot be removed remotely."],
-  ["Where can I get help or request a refund?", <>See our <Link href="/contact">help page</Link> for guidance and our <Link href="/refund-policy">refund policy</Link> for payment information. Orders appear in your personal profile. Test purchases are labelled and do not collect a real payment. The planned support address is support@qubitsells.com.</>],
+  ["Where can I get help or request a refund?", <>See our <Link href="/contact">help page</Link> for guidance and our <Link href="/refund-policy">refund policy</Link> for payment information. Orders appear in your personal profile. Email <a href="mailto:support@qubitsells.com">support@qubitsells.com</a> with your order reference if you need help.</>],
 ];
 
 export default function Home() {

@@ -39,7 +39,7 @@ export default function AccountSecurity({ user }: { user: User }) {
     try {
       const response = await fetch("/api/account/security", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: email.trim(), confirmation }) });
       const result = await response.json();
-      if (!response.ok) { if (response.status === 401 || response.status === 403) setNeedsSignIn(true); throw new Error(result.error || "Your account couldn’t be deleted. Please try again."); }
+      if (!response.ok) { setNeedsSignIn(response.status === 401 || result.code === "reauthentication_required"); throw new Error(result.error || "Your account couldn’t be deleted. Please try again."); }
       try { await createClient().auth.signOut({ scope: "local" }); } catch { /* The account has already been deleted. */ }
       clearCapsuleCache();
       window.location.replace("/login?notice=account_deleted");

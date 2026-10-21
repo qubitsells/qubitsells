@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, BriefcaseBusiness, CheckCircle2, Eye, EyeOff, HeartHandshake, Layers3, Loader2, LockKeyhole } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { authCallbackUrl, authErrorMessage, googleSignInRequest, signInDestination } from "@/lib/auth/navigation";
+import { authCallbackUrl, authErrorMessage, authReturnCookie, googleSignInRequest, signInDestination } from "@/lib/auth/navigation";
 import { useAuth } from "@/context/AuthContext";
 import account from "@/components/account/account.module.css";
 import styles from "@/components/account/auth.module.css";
@@ -17,7 +17,6 @@ export default function AuthForm({ initialMode = "login" }: { initialMode?: "log
   const inviteCode = (params.get("code") || "").slice(0, 100);
   const destination = signInDestination(new URLSearchParams(params.toString()));
   const [mode, setMode] = useState(initialMode);
-  const [method, setMethod] = useState<"password" | "magic">("password");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -39,14 +38,7 @@ export default function AuthForm({ initialMode = "login" }: { initialMode?: "log
     event.preventDefault(); setMessage(null); setBusy(true); savePersistence();
     const callback = authCallbackUrl(window.location.origin, destination);
     try {
-      if (method === "magic") {
-        const { error } = await client.auth.signInWithOtp({ email: email.trim(), options: {
-          shouldCreateUser: mode === "signup", emailRedirectTo: callback,
-          ...(mode === "signup" ? { data: { full_name: name.trim() } } : {}),
-        } });
-        if (error) throw error;
-        setMessage({ error: false, text: `Check ${email.trim()} for your sign-in link. You can close this page once you’ve opened it.` });
-      } else if (mode === "login") {
+      if (mode === "login") {
         const { error } = await client.auth.signInWithPassword({ email: email.trim(), password });
         if (error) throw error;
         router.replace(destination); router.refresh();
@@ -63,12 +55,13 @@ export default function AuthForm({ initialMode = "login" }: { initialMode?: "log
   };
   const google = async () => {
     setSocialBusy(true); setMessage(null); savePersistence();
+    document.cookie = authReturnCookie(destination, window.location.protocol === "https:");
     try {
-      const { data, error } = await client.auth.signInWithOAuth(googleSignInRequest(window.location.origin, destination));
+      const { data, error } = await client.auth.signInWithOAuth(googleSignInRequest(window.location.origin));
       if (error) throw error;
       if (!data.url) throw new Error("Missing sign-in URL");
       window.location.assign(data.url);
-    } catch { setSocialBusy(false); setMessage({ error: true, text: "Google sign-in couldn’t be started. Please try again." }); }
+    } catch { document.cookie = authReturnCookie(destination, window.location.protocol === "https:", true); setSocialBusy(false); setMessage({ error: true, text: "Google sign-in couldn’t be started. Please try again." }); }
   };
 
   return <div className={styles.authGrid}>
@@ -88,12 +81,11 @@ export default function AuthForm({ initialMode = "login" }: { initialMode?: "log
       <form onSubmit={submit} className={styles.authForm}><fieldset disabled={busy || socialBusy}>
         {mode === "signup" && <div className={account.field}><label htmlFor="auth-name">Your name</label><input id="auth-name" type="text" name="name" value={name} onChange={event => setName(event.target.value)} maxLength={100} autoComplete="name" placeholder="Your first and last name" required /></div>}
         <div className={account.field}><label htmlFor="auth-email">Email address</label><input id="auth-email" type="email" name="email" value={email} onChange={event => setEmail(event.target.value)} autoComplete="email" placeholder="you@example.com" required /></div>
-        {method === "password" && <div className={account.field}><label htmlFor="auth-password">Password{mode === "signup" && <span>At least 8 characters</span>}</label><div className={styles.passwordInput}><input id="auth-password" type={showPassword ? "text" : "password"} name="password" value={password} onChange={event => setPassword(event.target.value)} minLength={mode === "signup" ? 8 : undefined} autoComplete={mode === "signup" ? "new-password" : "current-password"} placeholder={mode === "signup" ? "Create a password" : "Enter your password"} required /><button type="button" aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff size={17} /> : <Eye size={17} />}</button></div></div>}
+        <div className={account.field}><label htmlFor="auth-password">Password{mode === "signup" && <span>At least 8 characters</span>}</label><div className={styles.passwordInput}><input id="auth-password" type={showPassword ? "text" : "password"} name="password" value={password} onChange={event => setPassword(event.target.value)} minLength={mode === "signup" ? 8 : undefined} autoComplete={mode === "signup" ? "new-password" : "current-password"} placeholder={mode === "signup" ? "Create a password" : "Enter your password"} required /><button type="button" aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff size={17} /> : <Eye size={17} />}</button></div></div>
         <label className={styles.remember}><input type="checkbox" checked={remember} onChange={event => setRemember(event.target.checked)} />Keep me signed in on this device</label>
         {mode === "signup" && <label className={styles.agreement}><input type="checkbox" required /><span>I agree to the <Link href="/terms" target="_blank" rel="noopener noreferrer">Terms</Link> and have read the <Link href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</Link>.</span></label>}
-        <button type="submit" className={`${account.button} ${account.primary} ${styles.submitButton}`}>{busy ? <Loader2 size={17} className={account.spinner} aria-hidden="true" /> : <>{method === "magic" ? "Send sign-in link" : mode === "login" ? "Sign in" : "Create my account"}<ArrowRight size={17} aria-hidden="true" /></>}</button>
+        <button type="submit" className={`${account.button} ${account.primary} ${styles.submitButton}`}>{busy ? <Loader2 size={17} className={account.spinner} aria-hidden="true" /> : <>{mode === "login" ? "Sign in" : "Create my account"}<ArrowRight size={17} aria-hidden="true" /></>}</button>
       </fieldset></form>
-      <button type="button" className={styles.methodToggle} disabled={busy || socialBusy} onClick={() => { setMethod(method === "password" ? "magic" : "password"); setMessage(null); }}>{method === "password" ? "Prefer a sign-in link? Use email instead of a password." : "Use a password instead"}</button>
       <p className={styles.authHelp}><Link href="/reset-password">Forgot your password?</Link></p>
       <p className={styles.authHelp}>Need a hand? <Link href="/contact">Contact &amp; help</Link></p>
     </section>

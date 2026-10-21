@@ -15,7 +15,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     requireSameOrigin(request); const user = await requireUser(); await rateLimit(request, "checkout", 20);
-    if (!stripeReady()) throw new HttpError(503, "Checkout is being prepared. Please try again later.");
+    if (!stripeReady()) throw new HttpError(503, "Checkout is temporarily unavailable. Please try again later.");
     const input = checkoutRequestSchema.safeParse(await jsonBody(request, 4096));
     if (!input.success) throw new HttpError(400, "Choose a template and a valid link duration.");
     const origin = new URL(process.env.NEXT_PUBLIC_BASE_URL || request.url).origin;

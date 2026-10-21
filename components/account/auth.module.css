@@ -26,7 +26,7 @@
 .googleButton:focus-visible { outline: 3px solid #0084b6; outline-offset: 3px; }
 .googleTerms { font-size: 11px; line-height: 1.8; color: #64818f; text-align: center; margin-top: 11px; }
 .googleTerms a { color: #27667f; text-decoration: underline; text-underline-offset: 3px; }
-.googleButton:disabled, .modeSwitch > button:disabled, .methodToggle:disabled { opacity: .5; cursor: default; }
+.googleButton:disabled, .modeSwitch > button:disabled { opacity: .5; cursor: default; }
 .divider { display: flex; align-items: center; gap: 12px; color: #8196a2; font-size: 10px; margin-block: 23px; }
 .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: #e4edf2; }
 .authForm fieldset { border: 0; padding: 0; margin: 0; min-width: 0; display: grid; gap: 18px; }
@@ -37,8 +37,6 @@
 .remember input, .agreement input { width: 14px; height: 14px; flex-shrink: 0; margin-top: 3px; accent-color: #00aef0; }
 .agreement a { text-decoration: underline; text-underline-offset: 3px; color: #40778e; }
 .submitButton { display: flex; width: 100%; justify-content: space-between; min-height: 47px; padding-inline: 17px; font-size: 13px; }
-.methodToggle { display: block; width: 100%; margin-top: 20px; min-height: 34px; font-size: 10px; color: #4f7b91; line-height: 1.85; text-align: center; cursor: pointer; }
-.methodToggle:hover { text-decoration: underline; text-underline-offset: 3px; }
 .authHelp { border-top: 1px solid #e5edf2; padding-top: 18px; margin-top: 18px; color: #8399a5; text-align: center; font-size: 10px; line-height: 1.8; }
 .authHelp a { color: #517c91; text-decoration: underline; text-underline-offset: 3px; }
 .authLoading { display: grid; place-items: center; min-height: 400px; font-size: 13px; color: #6b8898; }
@@ -64,7 +62,7 @@
   .authCard { padding: 25px 21px; border-radius: 9px; }
   .authCard > h2 { font-size: 29px; }
   .authDescription { font-size: 12px; }
-  .remember, .agreement, .methodToggle, .authHelp { font-size: 11px; }
+  .remember, .agreement, .authHelp { font-size: 11px; }
   .authForm input { font-size: 16px; }
   .modeSwitch { margin-bottom: 23px; }
 }

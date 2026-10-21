@@ -1,12 +1,12 @@
 # QubitSells commerce setup
 
-The storefront uses **Stripe test mode by default**. No real payment should be collected during this setup. Test credentials are available in the current runtime and a read-only Stripe authentication check succeeded. Checkout stays unavailable until the database migration is applied; no end-to-end payment was attempted while the schema was missing.
+QubitSells supports live Stripe-hosted payments in production and a separate test configuration for development. Set production credentials using the Production section below. Checkout requires valid configuration and access to the commerce tables. Customer-facing pages use normal purchase wording and the active support address, support@qubitsells.com. Test-payment notices appear only when checkout is actually configured for test payments; historical test orders and reviews retain their labels.
 
 ## Database
 
 Apply `supabase/migrations/20261019215057_storefront_commerce.sql` to the same Supabase project configured in `.env.local`, after the existing migrations. The migration adds individual-account orders, wishlists, verified reviews, notifications, service-only publishing/review functions, and activity triggers. It does not delete existing templates or change their expiry.
 
-The local CLI management account currently lacks privileges for the configured project. An authorized project owner can run the migration in the Supabase SQL Editor, or connect a CLI account with the required project access and apply it through the normal migration workflow. The migration is tested against all existing schema migrations with PGlite.
+An authorized project owner can apply missing migrations through the normal migration workflow or Supabase SQL Editor. An existing store with the commerce migration already applied does not need to rerun it to enable live Stripe payments. The migration is tested against the existing schema migrations with PGlite.
 
 ## Stripe test configuration
 
@@ -54,3 +54,16 @@ Regression coverage in `tests/checkout-resume.test.ts` uses isolated Supabase/St
 ## Production
 
 Keep test mode during development. Live checkout requires explicit `STRIPE_MODE=live`, matching live credentials and webhook, the real HTTPS `NEXT_PUBLIC_BASE_URL`, and a completed live-store setup. Test orders and reviews remain separate. Full refunds revoke unused publishing access and exclude the linked review from public results. Partial refunds are recorded on the order.
+
+In Vercel, set these variables for **Production** and redeploy the latest code:
+
+```dotenv
+STRIPE_MODE=live
+STRIPE_SECRET_KEY=rk_live_your_actual_restricted_key
+STRIPE_WEBHOOK_SECRET=whsec_your_actual_live_endpoint_signing_secret
+NEXT_PUBLIC_BASE_URL=https://qubitsells.com
+```
+
+`STRIPE_SECRET_KEY` accepts either a restricted key (`rk_live_` / `rk_test_`) or a secret key (`sk_live_` / `sk_test_`) matching `STRIPE_MODE`. Keep this variable server-only regardless of key type. Restricted keys authenticate the same way, but Stripe enforces the permissions assigned to them. The app creates and reads Checkout Sessions with inline product/price data, and reads PaymentIntents with their latest charge. A key configured with **Full access—except sensitive operations** covers the current integration; custom permissions must cover those operations and their referenced resources. The app does not request payouts or transfers. [Stripe restricted-key documentation](https://docs.stripe.com/keys/restricted-api-keys).
+
+Create the production webhook in Stripe's live account with **Snapshot** payloads, the event list above, and endpoint `https://qubitsells.com/api/stripe/webhook`. Use that endpoint's signing secret rather than a sandbox or CLI signing secret. A different key type alone does not require a database migration. `/api/checkout` reports the configured mode and whether credentials have an accepted format and commerce storage is accessible; this availability check does not verify the key's actual Stripe permissions.

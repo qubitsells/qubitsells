@@ -21,5 +21,5 @@ export default async function InformationPage({ params }: { params: Promise<{ in
   const { info } = await params;
   if (!isInfoKey(info)) notFound();
   const page = PUBLIC_INFORMATION[info];
-  return <div className={styles.storefront}><StoreHeader /><main id="main-content" className={`${styles.container} ${styles.infoPage}`}><p className={styles.eyebrow}>QubitSells / {info.replaceAll("-", " ")}</p><h1>{page.title}</h1><p>{page.intro}</p>{page.sections.map(([heading, body]) => <section key={heading}><h2>{heading}</h2><p>{body}</p></section>)}{info === "contact" && <section><h2>Planned support mailbox</h2><p><a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> · activation pending</p></section>}</main><Footer /></div>;
+  return <div className={styles.storefront}><StoreHeader /><main id="main-content" className={`${styles.container} ${styles.infoPage}`}><p className={styles.eyebrow}>QubitSells / {info.replaceAll("-", " ")}</p><h1>{page.title}</h1><p>{page.intro}</p>{page.sections.map(([heading, body]) => <section key={heading}><h2>{heading}</h2><p>{body}</p></section>)}{info === "contact" && <section><h2>Email our team</h2><p><a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a></p></section>}</main><Footer /></div>;
 }

@@ -21,6 +21,8 @@ On Windows PowerShell, use `npm.cmd` when forwarding flags, for example `npm.cmd
 
 ## Configuration and privacy
 
+API writes require a valid browser Origin matching the actual request's Host and public protocol, or the explicitly configured canonical origin. On Vercel, its proxy supplies the public protocol. Forwarded-host headers do not add trusted origins. Cross-site fetch metadata always causes rejection. This supports the production domain, its served `www` hostname, deployment previews, and local ports without trusting arbitrary subdomains or every `vercel.app` deployment.
+
 - `SUPABASE_SERVICE_ROLE_KEY`, Cloudinary credentials, encryption key, hashing salt, and cron secret stay server-side and are protected by `server-only` imports. Never prefix them with `NEXT_PUBLIC_`.
 - The Supabase URL and anon/publishable key are intentionally browser-visible for authentication. They are not administrator credentials. Database grants, RLS, and restricted RPC execution protect private data even when someone copies that key.
 - New capsule note payloads and stored wishes use AES-256-GCM with the record ID authenticated as additional data. This is server-managed encryption at rest, not end-to-end encryption. Existing content must go through the migration utility to receive the same encryption.

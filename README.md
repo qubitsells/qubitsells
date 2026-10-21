@@ -45,6 +45,8 @@ The app uses Next.js 16's `proxy.ts` convention. Read the installed Next guides 
 
 ## Deployment and recovery
 
+Vercel Web Analytics is included in the root layout with the Next.js integration. In the Vercel dashboard, open the project's **Analytics** area and enable **Web Analytics**, then deploy these changes. Visit `qubitsells.com` and check the dashboard for traffic. No analytics API key is needed. Query strings/fragments are removed from analytics URLs, shared gift codes are masked, and auth callback/API URLs are excluded. See [Vercel's setup guide](https://vercel.com/docs/analytics/quickstart).
+
 Read [SECURITY.md](SECURITY.md) before deployment. It explains credential rotation, private database content, legacy media migration, encryption-key backups, cron authorization, trusted proxy IP configuration, and the limits of server-managed encryption.
 
 Keep failed cleanup records for retries. Do not remove the encryption key or delete media ownership records to resolve a cleanup error. Recover the database and key together from a secure backup when necessary.

@@ -2,8 +2,20 @@ import { NextResponse,type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { authCookieOptions } from "@/lib/security/sessionCookies";
 import { publicSupabaseConfig } from "@/lib/supabase/config";
-import { signInDestination } from "@/lib/auth/navigation";
+import { AUTH_RETURN_COOKIE, authRequestOrigin, authReturnDestination, signInDestination } from "@/lib/auth/navigation";
 export async function proxy(request:NextRequest) {
+  // Supabase can fall back to Site URL when its redirect allowlist is missing an
+  // entry. Exchange that code on the server before the homepage client sees it.
+  if(request.nextUrl.pathname==="/") {
+    if(request.nextUrl.searchParams.has("code") && authReturnDestination(request.cookies.get(AUTH_RETURN_COOKIE)?.value)) {
+      const callback=new URL("/auth/callback",authRequestOrigin(request,process.env.VERCEL==="1"));
+      callback.search=request.nextUrl.search;
+      const redirect=NextResponse.redirect(callback);
+      redirect.headers.set("Cache-Control","private, no-store");
+      return redirect;
+    }
+    return NextResponse.next();
+  }
   let response=NextResponse.next({request});
   const {url,key}=publicSupabaseConfig();
   const client=createServerClient(url,key,{
@@ -22,4 +34,4 @@ export async function proxy(request:NextRequest) {
   }
   return response;
 }
-export const config={matcher:["/profile","/couple-space/profile","/time-capsule","/login","/signup","/auth/callback"]};
+export const config={matcher:["/","/profile","/couple-space/profile","/time-capsule","/login","/signup","/auth/callback"]};

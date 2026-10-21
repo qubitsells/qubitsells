@@ -2,7 +2,9 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { createBrowserClient, createServerClient } from "@supabase/ssr";
-import { authCallbackDestination, authCallbackUrl, authErrorMessage, googleSignInRequest, signInDestination } from "../lib/auth/navigation";
+import { AUTH_RETURN_COOKIE, authCallbackDestination, authCallbackUrl, authErrorMessage, authRequestOrigin, authReturnCookie, authReturnDestination, googleSignInRequest, signInDestination } from "../lib/auth/navigation";
+import { NextRequest } from "next/server";
+import { proxy } from "../proxy";
 import { publicSupabaseConfig } from "../lib/supabase/config";
 import { authCookieOptions } from "../lib/security/sessionCookies";
 
@@ -15,8 +17,10 @@ test("Google uses an S256 challenge and exchanges the browser's PKCE cookie for 
   const browser = createBrowserClient("https://auth-test.supabase.co", "sb_publishable_test_fixture", {
     cookies, isSingleton: false, auth: { autoRefreshToken: false, detectSessionInUrl: false },
   });
-  const destination = "/checkout/success?order_id=example&source=google";
-  const { data, error } = await browser.auth.signInWithOAuth(googleSignInRequest("https://qubitsells.com", destination));
+  const destination = "/products/halloween-pumpkin-moon?duration=720";
+  const returnCookie = authReturnCookie(destination, true).split(";")[0].split("=");
+  jar.set(returnCookie[0], returnCookie[1]);
+  const { data, error } = await browser.auth.signInWithOAuth(googleSignInRequest("https://qubitsells.com"));
   assert.equal(error, null);
   const authorize = new URL(data.url!);
   assert.equal(authorize.origin, "https://auth-test.supabase.co");
@@ -27,7 +31,7 @@ test("Google uses an S256 challenge and exchanges the browser's PKCE cookie for 
   assert.equal(authorize.searchParams.get("scopes"), null, "use the provider's basic sign-in scopes only");
   const callback = new URL(authorize.searchParams.get("redirect_to")!);
   assert.equal(callback.origin, "https://qubitsells.com");
-  assert.equal(callback.searchParams.get("next"), destination);
+  assert.equal(callback.toString(), "https://qubitsells.com/auth/callback", "fixed callback matches an exact Supabase allowlist entry");
   assert.ok([...jar.keys()].some(name => name.includes("code-verifier")));
 
   let exchanges = 0;
@@ -47,13 +51,60 @@ test("Google uses an S256 challenge and exchanges the browser's PKCE cookie for 
     } },
   });
   callback.searchParams.set("code", "single-use-google-code");
-  const result = await authCallbackDestination(callback.toString(), code => server.auth.exchangeCodeForSession(code));
+  const result = await authCallbackDestination(callback.toString(), code => server.auth.exchangeCodeForSession(code), undefined, jar.get(AUTH_RETURN_COOKIE));
   assert.equal(result.toString(), `https://qubitsells.com${destination}`);
   assert.equal(exchanges, 1);
   assert.ok(jar.has("sb-auth-test-auth-token"), "server writes the signed-in session cookie");
   const replay = await server.auth.exchangeCodeForSession("single-use-google-code");
   assert.ok(replay.error, "a consumed verifier cannot be reused");
   assert.equal(exchanges, 1);
+});
+
+test("Google returns to the selected product and duration without a dynamic callback query", async () => {
+  for (const duration of [72, 168, 720]) {
+    const destination = `/products/halloween-pumpkin-moon?duration=${duration}`;
+    const login = new URL(`https://qubitsells.com/login?redirect=${encodeURIComponent(destination)}`);
+    const chosen = signInDestination(login.searchParams);
+    const callback = new URL(googleSignInRequest(login.origin).options.redirectTo);
+    callback.searchParams.set("code", "fixture-code");
+    const result = await authCallbackDestination(callback.toString(), async () => ({ error: null }), undefined, encodeURIComponent(chosen));
+    assert.equal(result.toString(), `${login.origin}${destination}`);
+    const failed = await authCallbackDestination(callback.toString(), async () => ({ error: Error("expired") }), undefined, encodeURIComponent(chosen));
+    assert.equal(signInDestination(failed.searchParams), chosen, "retry keeps the product and duration");
+  }
+});
+
+test("return cookies are short-lived, host-only, and cannot redirect outside the site", async () => {
+  const destination = "/products/love-letter?duration=168&review=1#reviews";
+  assert.equal(authReturnDestination(encodeURIComponent(destination)), destination);
+  assert.equal(authReturnDestination(destination), destination, "Next cookies may already decode the value");
+  assert.match(authReturnCookie(destination, true), /Path=\/; Max-Age=600; SameSite=Lax; Secure$/);
+  assert.ok(!authReturnCookie(destination, true).includes("Domain="));
+  assert.match(authReturnCookie(destination, false, true), /Max-Age=0; SameSite=Lax$/);
+  for (const invalid of [undefined, "https://evil.test", "%2F%2Fevil.test", "/\\evil.test", "%ZZ", "%2F%0Aheader", "/".repeat(4097)]) {
+    assert.equal(authReturnDestination(invalid), null);
+    const result = await authCallbackDestination("https://qubitsells.com/auth/callback?code=fixture", async () => ({ error: null }), undefined, invalid);
+    assert.equal(result.toString(), "https://qubitsells.com/profile");
+  }
+});
+
+test("callbacks keep the browser host and its session cookies behind Vercel", () => {
+  for (const host of ["qubitsells.com", "www.qubitsells.com", "qubitsells-preview.vercel.app"]) {
+    const request = new Request("http://localhost:3000/auth/callback", { headers: { host, "x-forwarded-proto": "https", "x-forwarded-host": "evil.test" } });
+    assert.equal(authRequestOrigin(request, true), `https://${host}`);
+  }
+  assert.equal(authRequestOrigin(new Request("http://localhost:3000/auth/callback", { headers: { host: "localhost:3000", "x-forwarded-proto": "https" } })), "http://localhost:3000");
+});
+
+test("a Google code sent to Site URL is relayed before the homepage can consume it", async () => {
+  const cookie = `${AUTH_RETURN_COOKIE}=${encodeURIComponent("/products/halloween-pumpkin-moon?duration=168")}`;
+  const response = await proxy(new NextRequest("https://qubitsells.com/?code=fixture-code", { headers: { cookie } }));
+  assert.equal(response.status, 307);
+  assert.equal(response.headers.get("location"), "https://qubitsells.com/auth/callback?code=fixture-code");
+  assert.equal(response.headers.get("cache-control"), "private, no-store");
+  for (const [path, headers] of [["/", {}], ["/?code=fixture", {}], ["/", { cookie }], ["/?code=fixture", { cookie: `${AUTH_RETURN_COOKIE}=%2F%2Fevil.test` }]] as const) {
+    assert.equal((await proxy(new NextRequest(`https://qubitsells.com${path}`, { headers }))).headers.get("location"), null);
+  }
 });
 
 test("callback rejects external destinations and keeps local and preview sessions on their own origin", async () => {

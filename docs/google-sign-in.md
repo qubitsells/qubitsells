@@ -24,10 +24,10 @@ These two callbacks have different jobs. Google Cloud needs the **Supabase** URL
 1. Sign in at [Google Cloud Console](https://console.cloud.google.com/) with an account you will retain access to.
 2. Open the project selector at the top, choose **New project**, name it **QubitSells Production**, and create/select it.
 3. Search for **Google Auth Platform**. Older console links may say **APIs & Services → OAuth consent screen**.
-4. Click **Get started** if prompted. Enter **QubitSells** as the app name. Choose a monitored support email and enter your developer contact email. Use `support@qubitsells.com` only once that mailbox works and the console lets you select it.
+4. Click **Get started** if prompted. Enter **QubitSells** as the app name. Use the active support address `support@qubitsells.com` where the console allows you to select it, and enter your developer contact email.
 5. Choose **External** so customers outside your own Google Workspace can sign in. Complete Google's required acknowledgments and save.
 6. In **Audience**, add your Google account under **Test users** for initial testing. Keep any testing audience restrictions in mind; publish for public access after verification/testing.
-7. Open **Branding** and enter the homepage, privacy policy, terms, and authorized domain from the table above. Use a legible QubitSells logo if you want branded consent. Verify all three pages open without signing in, and activate your support mailbox before submitting branding for review.
+7. Open **Branding** and enter the homepage, privacy policy, terms, and authorized domain from the table above. Use a legible QubitSells logo if you want branded consent. Verify all three pages open without signing in and that the support contact is `support@qubitsells.com` before submitting branding for review.
 8. Open **Data Access → Add or remove scopes**. Select only:
 
    ```text
@@ -73,7 +73,7 @@ In **Authentication → URL Configuration**:
    https://qubitsells.com/auth/callback?next=**
    ```
 
-3. Save. The second entry accommodates the app's URL-encoded return destination. Keep the hostname and callback path constrained; do not add unrestricted third-party domains. If Vercel redirects `www.qubitsells.com` to the apex domain, begin login at the apex domain too. This keeps the browser's PKCE cookie on the same host throughout sign-in. [Supabase redirect rules](https://supabase.com/docs/guides/auth/redirect-urls).
+3. Save. Google uses the fixed `/auth/callback` URL; the selected product and link duration are stored in a host-only, ten-minute return cookie and consumed by the callback. The second entry supports email confirmation/sign-in links with a return destination. Keep the hostname and callback path constrained; do not add unrestricted third-party domains. If Vercel redirects `www.qubitsells.com` to the apex domain, begin login at the apex domain too. If both hosts are served independently, add both callback entries for `www.qubitsells.com` as well. This keeps the browser's PKCE cookie on the same host throughout sign-in. [Supabase redirect rules](https://supabase.com/docs/guides/auth/redirect-urls).
 
 For optional development, use separate development Google/Supabase projects. In that Supabase project allow `http://localhost:3000/auth/callback` and `http://localhost:3000/auth/callback?next=**`, and configure its displayed Supabase callback in the development Google client. Google's production OAuth client should contain production origins only. Preview deployments need their own matching Supabase redirect entries and preview environment variables. [Google production configuration policy](https://developers.google.com/identity/protocols/oauth2/production-readiness/policy-compliance).
 
@@ -105,7 +105,7 @@ In Google Auth Platform, complete **Branding / Verification Center** prompts and
 2. Click **Continue with Google**, choose your test account, and approve.
 3. Confirm you return to `/profile`, with your account menu signed in. Refresh and check you remain signed in.
 4. Sign out and repeat from `/signup` with an account that has not used QubitSells. Google can create its individual account without a separate QubitSells password.
-5. Open a product/checkout link that requires sign-in and confirm it returns there. A couple invitation should open its review page and must not automatically connect partners.
+5. Sign out, open a product page, select the 7-day or 30-day option, and click **Buy & personalize**. Complete Google sign-in and confirm it returns to that exact product with the same duration selected. Continue checkout from there. With Stripe test credentials, the product uses normal purchase wording and shows a test-payment confirmation only when you proceed; real charging still requires live Stripe configuration. A couple invitation should open its review page and must not automatically connect partners.
 6. Cancel Google sign-in once; retry from the message shown in QubitSells.
 7. In **Supabase → Authentication → Users**, confirm the test user's identity includes Google.
 8. After publishing, repeat with an unrelated Google account on mobile. Existing accounts should use the same verified email when testing access to existing purchases; do not create an unrelated account and expect another account's orders to appear.
@@ -119,6 +119,7 @@ In Google Auth Platform, complete **Branding / Verification Center** prompts and
 | `invalid_client` | Recheck the matching Google client ID and secret saved in Supabase. |
 | Access blocked / only testers can enter | Check Audience, user type, Workspace restrictions, and any verification/testing notice in Google Console. |
 | Redirects to localhost | Supabase Site URL and Vercel production base URL must use `https://qubitsells.com`; redeploy after editing Vercel values. |
+| Returns to the homepage instead of the selected product | Redeploy the fixed-callback implementation. Check the exact app callback is allowed in Supabase. The app also relays a Site URL fallback code to the callback when its valid return cookie is present. Start sign-in on the same hostname and complete it within ten minutes. |
 | Sign-in fails after returning | Start again in the same browser. Do not switch between `www`, apex, preview, or localhost mid-flow. The PKCE verifier cookie must survive. Old codes are single-use; do not refresh/reuse an old callback URL. |
 | Vercel build says Supabase URL/key missing | Add the public URL/key to Production variables, then rebuild. Check accidental whitespace, mismatched projects, and environment selection. |
 

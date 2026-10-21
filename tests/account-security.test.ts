@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { createClient } from "@supabase/supabase-js";
 import { deletePersonalAccount } from "../lib/server/account-security";
 import { saveNewPassword, sendPasswordReset } from "../lib/auth/password";
+import { HttpError } from "../lib/server/security";
 
 const id = "11111111-1111-4111-8111-111111111111";
 const now = Date.now();
@@ -64,6 +65,13 @@ test("missing migration or session-revocation failure blocks destructive deletio
     await assert.rejects(deletePersonalAccount(value.admin, value.client, { email: "alex@example.test", confirmation: "DELETE" }, now));
     assert.ok(!value.calls.some(call => call.method === "DELETE"));
   }
+});
+
+test("an expired sign-in has a specific reauthentication code, distinct from an origin failure", async () => {
+  const value = fixture({ stale: true });
+  await assert.rejects(deletePersonalAccount(value.admin, value.client, { email: "alex@example.test", confirmation: "DELETE" }, now),
+    (error: unknown) => error instanceof HttpError && error.status === 403 && error.code === "reauthentication_required");
+  assert.ok(!value.calls.some(call => call.method === "DELETE"));
 });
 
 test("password recovery uses the app callback and validates new passwords before updating the verified user", async () => {

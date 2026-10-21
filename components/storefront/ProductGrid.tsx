@@ -21,7 +21,7 @@ export default function ProductGrid({ catalog = false }: { catalog?: boolean }) 
       <div className={styles.productPurchase}><strong>{product.priceLabel}</strong><div><ProductPreview product={product} /><Link href={productHref(product)} className={`${styles.button} ${styles.primary}`}>Buy this template <ArrowUpRight size={15} aria-hidden="true" /></Link></div></div>
       <p className={styles.purchaseNote}>From $2 USD · choose your link duration on the product page.</p>
     </article>)}</div>
-    <p className={styles.catalogNote}>{PLANNED_PRICING_DESCRIPTION} Checkout availability and test mode are shown before payment.</p>
+    <p className={styles.catalogNote}>{PLANNED_PRICING_DESCRIPTION} Your link duration starts when you publish.</p>
     {!catalog && <div className={styles.viewAll}><Link className={`${styles.button} ${styles.outline}`} href="/templates">View all templates <ArrowRight size={17} aria-hidden="true" /></Link></div>}
     <p className={styles.catalogNote}>Looking for a birthday or thank-you gift? More occasions will appear as suitable designs become available.</p>
   </section>;

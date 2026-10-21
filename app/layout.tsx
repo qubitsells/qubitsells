@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { getSiteUrl } from "@/lib/storefront";
+import SiteAnalytics from "@/components/SiteAnalytics";
 
 const geistSans = localFont({
   src: "./fonts/Geist-latin.woff2",
@@ -71,6 +72,7 @@ export default function RootLayout({
         <AuthProvider>
           {children}
         </AuthProvider>
+        <SiteAnalytics />
       </body>
     </html>
   );

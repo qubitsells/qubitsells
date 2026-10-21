@@ -13,11 +13,35 @@ export function authCallbackUrl(origin: string, destination: string) {
   return callback.toString();
 }
 
-export function googleSignInRequest(origin: string, destination: string) {
+// Keep Google's callback stable for Supabase's exact redirect allowlist. The
+// short-lived cookie carries the selected product/query through the round trip.
+export const AUTH_RETURN_COOKIE = "qubitsells_auth_return";
+export function authReturnDestination(value: string | undefined) {
+  if (!value || value.length > 4096) return null;
+  try {
+    return safeRedirect(value.startsWith("/") ? value : decodeURIComponent(value), "") || null;
+  } catch { return null; }
+}
+
+export function authReturnCookie(destination: string, secure: boolean, clear = false) {
+  return `${AUTH_RETURN_COOKIE}=${clear ? "" : encodeURIComponent(safeRedirect(destination, "/profile"))}; Path=/; Max-Age=${clear ? 0 : 600}; SameSite=Lax${secure ? "; Secure" : ""}`;
+}
+
+export function authRequestOrigin(request: Request, vercel = false) {
+  const target = new URL(request.url);
+  const host = request.headers.get("host") || target.host;
+  const protocol = vercel ? request.headers.get("x-forwarded-proto") === "http" ? "http:" : "https:" : target.protocol;
+  if (!/[\\/\s,@?#]/.test(host)) {
+    try { return new URL(`${protocol}//${host}`).origin; } catch { /* Fall back to the request origin. */ }
+  }
+  return target.origin;
+}
+
+export function googleSignInRequest(origin: string) {
   return {
     provider: "google" as const,
     options: {
-      redirectTo: authCallbackUrl(origin, destination),
+      redirectTo: new URL("/auth/callback", origin).toString(),
       queryParams: { prompt: "select_account" },
       skipBrowserRedirect: true,
     },
@@ -30,16 +54,16 @@ export function authErrorMessage(code: string | null) {
   return "We couldn’t complete your sign-in. Please start again using the same browser and try once more.";
 }
 
-// Use the configured public origin behind Vercel's production proxy. Local and
-// preview sessions stay on their request origin. Provider errors are untrusted.
+// Provider errors and both sources of return destinations are untrusted.
 export async function authCallbackDestination(
   requestUrl: string,
   exchangeCode: (code: string) => Promise<{ error: unknown }>,
   productionOrigin?: string,
+  storedDestination?: string,
 ) {
   const { searchParams } = new URL(requestUrl);
   const { origin } = new URL(productionOrigin || requestUrl);
-  const next = safeRedirect(searchParams.get("next"), "/profile");
+  const next = safeRedirect(searchParams.get("next"), authReturnDestination(storedDestination) || "/profile");
   const providerError = searchParams.get("error");
   const code = searchParams.get("code");
   if (!providerError && code) {

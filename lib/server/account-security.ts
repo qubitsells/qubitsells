@@ -24,10 +24,10 @@ export async function deletePersonalAccount(admin: SupabaseClient, client: Supab
     if (claims.sub === user.id) signedIn = Math.max(0, ...claims.amr.filter(value => signInMethods.has(value.method)).map(value => value.timestamp * 1000));
   } catch { /* Missing or malformed auth-method claims require a fresh sign-in. */ }
   if (!Number.isFinite(signedIn) || now - signedIn > 10 * 60 * 1000 || signedIn > now + 60_000) {
-    throw new HttpError(403, "Please sign in again before deleting your account.");
+    throw new HttpError(403, "Please sign in again before deleting your account.", "reauthentication_required");
   }
   const { data: ready, error: migrationError } = await admin.rpc("qubit_account_deletion_ready");
-  if (migrationError || ready !== true) throw new HttpError(503, "Account deletion is being prepared. Please try again later.");
+  if (migrationError || ready !== true) throw new HttpError(503, "Account deletion is temporarily unavailable. Please try again later.");
   const { error: revokeError } = await admin.auth.admin.signOut(session.access_token, "global");
   if (revokeError) throw new HttpError(503, "Your sessions could not be closed. Please try again.");
   const { error: deleteError } = await admin.auth.admin.deleteUser(user.id, false);
