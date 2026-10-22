@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { checkoutRequestSchema } from "@/lib/commerce";
 import { adminClient, apiError, HttpError, jsonBody, rateLimit, requireSameOrigin, requireUser } from "@/lib/server/security";
 import { privateHeaders } from "@/lib/server/commerce";
-import { createOrResumeCheckout } from "@/lib/server/checkout";
+import { checkoutReturnOrigin, createOrResumeCheckout } from "@/lib/server/checkout";
 import { stripeMode, stripeReady } from "@/lib/server/stripe";
 
 export async function GET() {
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     if (!stripeReady()) throw new HttpError(503, "Checkout is temporarily unavailable. Please try again later.");
     const input = checkoutRequestSchema.safeParse(await jsonBody(request, 4096));
     if (!input.success) throw new HttpError(400, "Choose a template and a valid link duration.");
-    const origin = new URL(process.env.NEXT_PUBLIC_BASE_URL || request.url).origin;
+    const origin = checkoutReturnOrigin(request);
     const result = await createOrResumeCheckout(input.data, user, origin);
     return NextResponse.json(result, {headers: privateHeaders});
   } catch (error) { return apiError(error); }

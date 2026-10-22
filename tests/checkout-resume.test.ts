@@ -1,7 +1,8 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {createClient} from "@supabase/supabase-js";
-import {createOrResumeCheckout} from "../lib/server/checkout";
+import {checkoutReturnOrigin,createOrResumeCheckout} from "../lib/server/checkout";
+import {PRODUCTS} from "../lib/storefront";
 import {checkoutRequestSchema} from "../lib/commerce";
 import type {StoreOrder} from "../lib/commerce";
 import type {StripeSession} from "../lib/server/stripe";
@@ -10,6 +11,41 @@ const buyer = {id:"11111111-1111-4111-8111-111111111111",email:"buyer@example.te
 const id = "22222222-2222-4222-8222-222222222222";
 const attempt = "33333333-3333-4333-8333-333333333333";
 const origin = "https://store.example.test";
+
+test("local checkout returns stay on the visited local port despite a copied live base URL",()=>{
+  const originalBase=process.env.NEXT_PUBLIC_BASE_URL,originalVercel=process.env.VERCEL;
+  try{
+    delete process.env.VERCEL;
+    process.env.NEXT_PUBLIC_BASE_URL="https://www.qubitsells.com";
+    for(const local of ["http://localhost:3000","http://localhost:3218","http://127.0.0.1:3000","http://[::1]:3000"]){
+      assert.equal(checkoutReturnOrigin(new Request(`${local}/api/checkout`)),local);
+    }
+    process.env.VERCEL="1";
+    assert.equal(checkoutReturnOrigin(new Request("http://localhost:3000/api/checkout",{headers:{host:"www.qubitsells.com","x-forwarded-proto":"https"}})),"https://www.qubitsells.com");
+    delete process.env.NEXT_PUBLIC_BASE_URL;
+    assert.equal(checkoutReturnOrigin(new Request("http://localhost:3000/api/checkout",{headers:{host:"qubitsells-preview.vercel.app","x-forwarded-proto":"https"}})),"https://qubitsells-preview.vercel.app");
+  }finally{
+    if(originalBase===undefined)delete process.env.NEXT_PUBLIC_BASE_URL;else process.env.NEXT_PUBLIC_BASE_URL=originalBase;
+    if(originalVercel===undefined)delete process.env.VERCEL;else process.env.VERCEL=originalVercel;
+  }
+});
+
+test("all templates can create distinct local test checkouts with localhost success and cancel URLs",async()=>{
+  for(const product of PRODUCTS){
+    await fixture(async f=>{
+      const local="http://localhost:3000";
+      await createOrResumeCheckout({product_slug:product.slug,duration_hours:72,checkout_key:attempt},buyer,local,f.db);
+      assert.equal(f.rows.length,1);
+      assert.equal(f.rows[0].product_slug,product.slug);
+      assert.equal(f.rows[0].payment_mode,"test");
+      const call=f.calls.find(call=>call.url.hostname==="api.stripe.com"&&call.method==="POST");
+      assert.ok(call);
+      const body=new URLSearchParams(call.body);
+      assert.equal(body.get("success_url"),`${local}/checkout/success?session_id={CHECKOUT_SESSION_ID}`);
+      assert.equal(new URL(body.get("cancel_url")!).origin,local);
+    },[],[]);
+  }
+});
 type Order = StoreOrder & {buyer_id:string;checkout_key:string;stripe_session_id:string|null};
 function order(overrides:Partial<Order> = {}): Order {
   return {id,buyer_id:buyer.id,checkout_key:attempt,product_slug:"halloween-pumpkin-moon",product_name:"Pumpkin Moon Date",duration_hours:72,amount_cents:200,currency:"usd",payment_mode:"test",status:"pending",created_at:"2026-10-20T00:00:00Z",paid_at:null,fulfilled_at:null,refunded_amount_cents:0,template_id:null,stripe_session_id:"cs_test_original",...overrides};

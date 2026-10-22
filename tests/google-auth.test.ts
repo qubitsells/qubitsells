@@ -74,6 +74,28 @@ test("Google returns to the selected product and duration without a dynamic call
   }
 });
 
+test("local Google sign-in requests a localhost callback even when the configured public domain is live",async()=>{
+  const original=process.env.NEXT_PUBLIC_BASE_URL;
+  process.env.NEXT_PUBLIC_BASE_URL="https://www.qubitsells.com";
+  try{
+    for(const origin of ["http://localhost:3000","http://localhost:3218","http://127.0.0.1:3000"]){
+      const jar=new Map<string,string>();
+      const browser=createBrowserClient("https://auth-test.supabase.co","sb_publishable_test_fixture",{
+        isSingleton:false,auth:{autoRefreshToken:false,detectSessionInUrl:false},
+        cookies:{getAll:()=>[...jar].map(([name,value])=>({name,value})),setAll:values=>values.forEach(({name,value})=>jar.set(name,value))},
+      });
+      const {data,error}=await browser.auth.signInWithOAuth(googleSignInRequest(origin));
+      assert.equal(error,null);
+      assert.equal(new URL(data.url!).searchParams.get("redirect_to"),`${origin}/auth/callback`);
+      assert.ok([...jar.keys()].some(name=>name.includes("code-verifier")));
+      const destination="/products/halloween-pumpkin-moon?duration=720";
+      const result=await authCallbackDestination(`${origin}/auth/callback?code=fixture`,async()=>({error:null}),undefined,encodeURIComponent(destination));
+      assert.equal(result.toString(),`${origin}${destination}`);
+      assert.equal(new URL(authCallbackUrl(origin,"/reset-password")).origin,origin);
+    }
+  }finally{if(original===undefined)delete process.env.NEXT_PUBLIC_BASE_URL;else process.env.NEXT_PUBLIC_BASE_URL=original;}
+});
+
 test("return cookies are short-lived, host-only, and cannot redirect outside the site", async () => {
   const destination = "/products/love-letter?duration=168&review=1#reviews";
   assert.equal(authReturnDestination(encodeURIComponent(destination)), destination);

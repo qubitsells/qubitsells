@@ -14,6 +14,8 @@ The default development URL is `http://localhost:3000`.
 
 For Google sign-in on `https://qubitsells.com`, follow the complete [Google Cloud, Supabase, and Vercel setup guide](docs/google-sign-in.md). The Google OAuth secret belongs in Supabase provider settings. Vercel needs the Supabase public URL/key at build time; local `.env.local` values are not automatically uploaded.
 
+For localhost sign-in, Stripe test keys, and local webhook forwarding, follow [local testing](docs/local-testing.md). Keep the production Supabase Site URL and add the exact localhost callback URLs to its allowed redirects.
+
 For profile password reset and account deletion, follow [Account security setup](docs/account-security.md). Apply `20261020223922_account_deletion.sql` before enabling deletion in production, and configure Supabase recovery email delivery. The endpoint blocks deletion until the safety trigger is installed.
 
 ## Features

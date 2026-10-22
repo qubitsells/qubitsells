@@ -3,12 +3,22 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { z } from "zod";
 import type { checkoutRequestSchema, StoreOrder } from "@/lib/commerce";
 import { LINK_DURATION_PRICES, PRODUCTS, editorHref } from "@/lib/storefront";
+import { authRequestOrigin } from "@/lib/auth/navigation";
 import { adminClient, HttpError } from "./security";
 import { confirmCheckout, databaseResult } from "./commerce";
 import { stripeMode, stripeRequest, type StripeSession } from "./stripe";
 
 type CheckoutOrder = StoreOrder & {buyer_id: string; stripe_session_id: string | null};
 type Buyer = {id: string; email?: string};
+
+export function checkoutReturnOrigin(request: Request) {
+  const vercel = process.env.VERCEL === "1";
+  const visitedOrigin = authRequestOrigin(request, vercel);
+  // A copied production base URL must not send local test checkout returns to
+  // the live website. Keep production/custom-proxy canonical behavior intact.
+  if (!vercel && ["localhost", "127.0.0.1", "[::1]"].includes(new URL(visitedOrigin).hostname)) return visitedOrigin;
+  return new URL(process.env.NEXT_PUBLIC_BASE_URL?.trim() || visitedOrigin).origin;
+}
 
 export async function createOrResumeCheckout(input: z.infer<typeof checkoutRequestSchema>, buyer: Buyer, origin: string, db: SupabaseClient = adminClient()) {
   const orders = () => db.from("store_orders").select("*").eq("buyer_id", buyer.id).eq("payment_mode", stripeMode());
