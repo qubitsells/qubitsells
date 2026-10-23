@@ -1,10 +1,11 @@
+import { withNotificationEmails } from "@/lib/server/notification-email";
 import { NextResponse } from "next/server";
 import { adminClient, apiError, boundedBody, HttpError } from "@/lib/server/security";
 import { confirmCheckout, databaseResult } from "@/lib/server/commerce";
 import { stripeMode, stripeRequest, verifyStripeSignature,type StripeIntent } from "@/lib/server/stripe";
 
 export const runtime = "nodejs";
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   try {
     const raw = await boundedBody(request, 128 * 1024);
     verifyStripeSignature(raw, request.headers.get("stripe-signature"), process.env.STRIPE_WEBHOOK_SECRET || "");
@@ -25,3 +26,5 @@ export async function POST(request: Request) {
     return NextResponse.json({received: true});
   } catch (error) { return apiError(error); }
 }
+
+export const POST = withNotificationEmails(handlePOST);

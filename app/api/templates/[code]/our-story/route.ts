@@ -1,3 +1,4 @@
+import { withNotificationEmails } from "@/lib/server/notification-email";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createHash, randomBytes } from "node:crypto";
@@ -97,7 +98,7 @@ export async function GET(request: Request, context: Context) {
   }
 }
 
-export async function POST(request: Request, context: Context) {
+async function handlePOST(request: Request, context: Context) {
   try {
     requireSameOrigin(request);
     await rateLimit(request, "template-our-story-contribute", 30);
@@ -176,7 +177,7 @@ export async function POST(request: Request, context: Context) {
   }
 }
 
-export async function DELETE(request: Request, context: Context) {
+async function handleDELETE(request: Request, context: Context) {
   try {
     requireSameOrigin(request);
     await rateLimit(request, "template-our-story-delete", 30);
@@ -211,3 +212,7 @@ export async function DELETE(request: Request, context: Context) {
     return apiError(error);
   }
 }
+
+export const POST = withNotificationEmails(handlePOST);
+
+export const DELETE = withNotificationEmails(handleDELETE);

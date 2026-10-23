@@ -392,7 +392,7 @@ export function InvitationTool({
             </span>
 
             {invitation.format === "online" ? (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs bg-sky-500/20 text-sky-300 border border-sky-500/30">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs bg-[var(--brand-accent)]/20 text-[var(--brand-accent)] border border-[var(--brand-accent)]/30">
                 <Video className="h-3 w-3" /> Virtual Date
               </span>
             ) : (
@@ -410,7 +410,7 @@ export function InvitationTool({
               className="inline-flex items-center gap-1.5 px-3 py-1 text-xs rounded-full bg-white/5 border border-white/15 text-neutral-300 hover:bg-white/10 transition-colors"
               title="Click to change your time zone"
             >
-              <Globe className="h-3 w-3 text-cyan-400" />
+              <Globe className="h-3 w-3 text-[var(--brand-accent)]" />
               <span>{viewerTimezone.replace("_", " ")}</span>
               <ChevronDown className="h-3 w-3 opacity-60" />
             </button>
@@ -469,9 +469,9 @@ export function InvitationTool({
               href={invitation.meeting_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-500/15 border border-sky-500/30 text-sky-200 hover:bg-sky-500/25 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--brand-accent)]/15 border border-[var(--brand-accent)]/30 text-[var(--brand-accent)] hover:bg-[var(--brand-accent)]/25 transition-colors"
             >
-              <Video className="h-3.5 w-3.5 text-sky-400" />
+              <Video className="h-3.5 w-3.5 text-[var(--brand-accent)]" />
               <span>Online Meeting Link</span>
               <ExternalLink className="h-3 w-3 opacity-60" />
             </a>
@@ -620,11 +620,11 @@ export function InvitationTool({
 
         {/* State 4: DEFERRED (Decide Later) */}
         {isDeferred && (
-          <div className="rounded-2xl border border-sky-500/40 bg-sky-950/20 p-5 text-center">
-            <div className="mx-auto w-12 h-12 rounded-full bg-sky-500/20 flex items-center justify-center border border-sky-500/40 text-sky-400 mb-3">
+          <div className="rounded-2xl border border-[var(--brand-accent)]/40 bg-[var(--brand-hover)]/20 p-5 text-center">
+            <div className="mx-auto w-12 h-12 rounded-full bg-[var(--brand-accent)]/20 flex items-center justify-center border border-[var(--brand-accent)]/40 text-[var(--brand-accent)] mb-3">
               <HelpCircle className="h-6 w-6" />
             </div>
-            <h3 className="text-base font-semibold text-sky-200">Decide Later</h3>
+            <h3 className="text-base font-semibold text-[var(--brand-accent)]">Decide Later</h3>
             <p className="mt-1 text-xs text-neutral-300 max-w-md mx-auto">
               Take all the time you need! You can accept or suggest another time whenever you&apos;re ready.
             </p>

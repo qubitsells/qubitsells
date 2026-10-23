@@ -12,6 +12,16 @@ body {
 
 /* ─── Luxury Soft Pink & Silk White Romantic Theme ─── */
 :root {
+  --brand-accent: #481925;
+  --brand-hover: #652738;
+  --brand-highlight: #713347;
+  --brand-soft: #faf1f3;
+  --brand-surface: #fdf8fa;
+  --brand-tint: #edd5dc;
+  --brand-border: #dcc0c8;
+  --brand-border-strong: #b88896;
+  --brand-on-accent: #fff;
+  --brand-rgb: 72 25 37;
   --bg-main: #fff8f9;
   --bg-secondary: #fff0f3;
   --bg-card: rgba(255, 255, 255, 0.88);

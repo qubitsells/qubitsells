@@ -1,3 +1,4 @@
+import { withNotificationEmails } from "@/lib/server/notification-email";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createHash, randomBytes } from "node:crypto";
@@ -11,7 +12,7 @@ type Context = { params: Promise<{ code: string }> };
 export const DELETION_POLICY_NOTICE =
   "The reply and its server-stored media have been permanently removed. Downloaded, screenshotted, or offline copies retained by the recipient cannot be deleted remotely.";
 
-export async function POST(request: Request, context: Context) {
+async function handlePOST(request: Request, context: Context) {
   try {
     requireSameOrigin(request);
     await rateLimit(request, "template-reply-submit", 20);
@@ -114,7 +115,7 @@ export async function POST(request: Request, context: Context) {
   }
 }
 
-export async function DELETE(request: Request, context: Context) {
+async function handleDELETE(request: Request, context: Context) {
   try {
     requireSameOrigin(request);
     await rateLimit(request, "template-reply-delete", 30);
@@ -167,3 +168,7 @@ export async function DELETE(request: Request, context: Context) {
     return apiError(error);
   }
 }
+
+export const POST = withNotificationEmails(handlePOST);
+
+export const DELETE = withNotificationEmails(handleDELETE);

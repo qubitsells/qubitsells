@@ -456,7 +456,7 @@ export function BucketListTool({
           onClick={() => setFilter("wished")}
           className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
             filter === "wished"
-              ? "bg-sky-400 text-slate-900 font-bold shadow-md"
+              ? "bg-[var(--brand-highlight)] text-slate-900 font-bold shadow-md"
               : "bg-white/5 text-slate-300 hover:bg-white/10"
           }`}
         >
@@ -525,7 +525,7 @@ export function BucketListTool({
                             ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
                             : isPlanning
                             ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                            : "bg-sky-500/20 text-sky-300 border border-sky-500/30"
+                            : "bg-[var(--brand-accent)]/20 text-[var(--brand-accent)] border border-[var(--brand-accent)]/30"
                         }`}
                       >
                         {isCompleted ? "🎉 Completed" : isPlanning ? "🗓️ Planning" : "💭 Wishlist"}

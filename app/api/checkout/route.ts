@@ -1,3 +1,4 @@
+import { withNotificationEmails } from "@/lib/server/notification-email";
 import { NextResponse } from "next/server";
 import { checkoutRequestSchema } from "@/lib/commerce";
 import { adminClient, apiError, HttpError, jsonBody, rateLimit, requireSameOrigin, requireUser } from "@/lib/server/security";
@@ -12,7 +13,7 @@ export async function GET() {
   }
   return NextResponse.json({available, mode: stripeMode()}, {headers: privateHeaders});
 }
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   try {
     requireSameOrigin(request); const user = await requireUser(); await rateLimit(request, "checkout", 20);
     if (!stripeReady()) throw new HttpError(503, "Checkout is temporarily unavailable. Please try again later.");
@@ -23,3 +24,5 @@ export async function POST(request: Request) {
     return NextResponse.json(result, {headers: privateHeaders});
   } catch (error) { return apiError(error); }
 }
+
+export const POST = withNotificationEmails(handlePOST);

@@ -16,6 +16,8 @@ For Google sign-in on `https://qubitsells.com`, follow the complete [Google Clou
 
 For localhost sign-in, Stripe test keys, and local webhook forwarding, follow [local testing](docs/local-testing.md). Keep the production Supabase Site URL and add the exact localhost callback URLs to its allowed redirects.
 
+For Spacemail order confirmations and notification emails, follow [email setup](docs/email-setup.md). Apply the email outbox migration, add the server-only SMTP variables, and configure Supabase Auth SMTP separately for confirmation/password-reset emails.
+
 For profile password reset and account deletion, follow [Account security setup](docs/account-security.md). Apply `20261020223922_account_deletion.sql` before enabling deletion in production, and configure Supabase recovery email delivery. The endpoint blocks deletion until the safety trigger is installed.
 
 ## Features

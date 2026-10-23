@@ -316,7 +316,7 @@ export function InlineAudioPlayer({
       className={`rounded-2xl p-3 sm:p-3.5 transition-all border shadow-xs ${
         isDark
           ? "bg-white/5 border-white/10 hover:border-white/20 text-white"
-          : isCyan ? "bg-white border-sky-200 text-slate-800"
+          : isCyan ? "bg-white border-[var(--brand-border)] text-slate-800"
           : "bg-rose-50/80 border-rose-200/90 text-rose-950"
       } ${className}`}
     >
@@ -347,7 +347,7 @@ export function InlineAudioPlayer({
               className={`w-10 h-10 rounded-full flex items-center justify-center text-white transition-transform active:scale-90 shadow-md cursor-pointer flex-shrink-0 ${
                 isDark
                   ? "bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700"
-                  : isCyan ? "bg-sky-500 hover:bg-sky-600"
+                  : isCyan ? "bg-[var(--brand-accent)] hover:bg-[var(--brand-hover)]"
                   : "bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600"
               }`}
               title={isPlaying ? "Pause voice note" : "Play voice note"}
@@ -364,7 +364,7 @@ export function InlineAudioPlayer({
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs font-bold truncate flex items-center gap-1.5">
-                  <Music className={`w-3.5 h-3.5 flex-shrink-0 ${isCyan ? "text-sky-600" : "text-rose-500"}`} />
+                  <Music className={`w-3.5 h-3.5 flex-shrink-0 ${isCyan ? "text-[var(--brand-accent)]" : "text-rose-500"}`} />
                   <span>{authorName}</span>
                 </span>
                 <span
@@ -399,7 +399,7 @@ export function InlineAudioPlayer({
                         : { duration: 0.2 }
                     }
                     className={`w-1 rounded-full ${
-                      isDark ? "bg-pink-400" : isCyan ? "bg-sky-500" : "bg-rose-500"
+                      isDark ? "bg-pink-400" : isCyan ? "bg-[var(--brand-accent)]" : "bg-rose-500"
                     }`}
                     style={{ minHeight: "3px" }}
                   />
@@ -419,11 +419,11 @@ export function InlineAudioPlayer({
                 value={currentTime}
                 onChange={handleSeek}
                 aria-label="Voice note playback position"
-                className={`w-full h-1.5 rounded-lg appearance-none cursor-pointer bg-neutral-200/60 dark:bg-white/10 focus:outline-none ${isCyan ? "accent-sky-500" : "accent-rose-500"}`}
+                className={`w-full h-1.5 rounded-lg appearance-none cursor-pointer bg-neutral-200/60 dark:bg-white/10 focus:outline-none ${isCyan ? "accent-[var(--brand-accent)]" : "accent-rose-500"}`}
                 style={{
                   background: isDark
                     ? `linear-gradient(to right, #ec4899 ${progressPercent}%, rgba(255,255,255,0.1) ${progressPercent}%)`
-                    : isCyan ? `linear-gradient(to right, #00aef0 ${progressPercent}%, #d9edf7 ${progressPercent}%)`
+                    : isCyan ? `linear-gradient(to right, #481925 ${progressPercent}%, #d9edf7 ${progressPercent}%)`
                     : `linear-gradient(to right, #f43f5e ${progressPercent}%, rgba(244,63,94,0.15) ${progressPercent}%)`,
                 }}
               />
@@ -438,7 +438,7 @@ export function InlineAudioPlayer({
                   className={`px-2 py-0.5 rounded-md font-bold text-[10px] transition-colors cursor-pointer border ${
                     isDark
                       ? "bg-white/10 hover:bg-white/20 border-white/10 text-white"
-                      : isCyan ? "bg-sky-50 hover:bg-sky-100 border-sky-200 text-sky-800"
+                      : isCyan ? "bg-[var(--brand-soft)] hover:bg-[var(--brand-tint)] border-[var(--brand-border)] text-[var(--brand-accent)]"
                       : "bg-white hover:bg-rose-100 border-rose-200 text-rose-800"
                   }`}
                   title="Playback speed"
@@ -450,7 +450,7 @@ export function InlineAudioPlayer({
                   type="button"
                   onClick={restartAudio}
                   className={`p-1 rounded-md transition-colors cursor-pointer ${
-                    isDark ? "hover:bg-white/10 text-white/60" : isCyan ? "hover:bg-sky-100 text-slate-600" : "hover:bg-rose-100 text-rose-700/60"
+                    isDark ? "hover:bg-white/10 text-white/60" : isCyan ? "hover:bg-[var(--brand-tint)] text-slate-600" : "hover:bg-rose-100 text-rose-700/60"
                   }`}
                   title="Restart audio"
                 >
@@ -461,7 +461,7 @@ export function InlineAudioPlayer({
                   type="button"
                   onClick={toggleMute}
                   className={`p-1 rounded-md transition-colors cursor-pointer ${
-                    isDark ? "hover:bg-white/10 text-white/60" : isCyan ? "hover:bg-sky-100 text-slate-600" : "hover:bg-rose-100 text-rose-700/60"
+                    isDark ? "hover:bg-white/10 text-white/60" : isCyan ? "hover:bg-[var(--brand-tint)] text-slate-600" : "hover:bg-rose-100 text-rose-700/60"
                   }`}
                   title={isMuted ? "Unmute" : "Mute"}
                 >
@@ -475,7 +475,7 @@ export function InlineAudioPlayer({
                     type="button"
                     onClick={onOpenModal}
                     className={`inline-flex items-center gap-1 text-[10px] font-semibold transition-colors cursor-pointer ${
-                      isDark ? "text-white/50 hover:text-white" : isCyan ? "text-slate-600 hover:text-sky-700" : "text-rose-800/60 hover:text-rose-900"
+                      isDark ? "text-white/50 hover:text-white" : isCyan ? "text-slate-600 hover:text-[var(--brand-accent)]" : "text-rose-800/60 hover:text-rose-900"
                     }`}
                     title="Open audio player in modal view"
                   >
@@ -490,7 +490,7 @@ export function InlineAudioPlayer({
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`inline-flex items-center gap-1 text-[10px] font-semibold transition-colors ${
-                    isDark ? "text-white/50 hover:text-white" : isCyan ? "text-slate-600 hover:text-sky-700" : "text-rose-800/60 hover:text-rose-900"
+                    isDark ? "text-white/50 hover:text-white" : isCyan ? "text-slate-600 hover:text-[var(--brand-accent)]" : "text-rose-800/60 hover:text-rose-900"
                   }`}
                   title="Download voice note"
                 >
@@ -530,7 +530,7 @@ export function InlineVideoCard({
   return (
     <div
       className={`rounded-2xl overflow-hidden border p-2 space-y-2 max-w-sm ${
-        isDark ? "bg-white/5 border-white/10" : isCyan ? "bg-white border-sky-200" : "bg-white border-rose-200"
+        isDark ? "bg-white/5 border-white/10" : isCyan ? "bg-white border-[var(--brand-border)]" : "bg-white border-rose-200"
       }`}
     >
       <div className="relative aspect-video rounded-xl overflow-hidden bg-black group">
@@ -555,14 +555,14 @@ export function InlineVideoCard({
 
       <div className="flex items-center justify-between text-xs px-1">
         <span className={`font-semibold flex items-center gap-1.5 truncate ${isDark ? "text-white" : isCyan ? "text-slate-800" : "text-rose-950 dark:text-white"}`}>
-          <Film className={`w-3.5 h-3.5 ${isCyan ? "text-sky-600" : "text-rose-500"}`} />
+          <Film className={`w-3.5 h-3.5 ${isCyan ? "text-[var(--brand-accent)]" : "text-rose-500"}`} />
           <span className="truncate">{authorName}</span>
         </span>
         {onOpenLightbox && (
           <button
             type="button"
             onClick={onOpenLightbox}
-            className={`text-[11px] font-bold transition-colors cursor-pointer ${isDark ? "text-pink-400 hover:text-pink-300" : isCyan ? "text-sky-700 hover:text-sky-900" : "text-rose-600 hover:text-rose-800 dark:text-pink-400 dark:hover:text-pink-300"}`}
+            className={`text-[11px] font-bold transition-colors cursor-pointer ${isDark ? "text-pink-400 hover:text-pink-300" : isCyan ? "text-[var(--brand-accent)] hover:text-[var(--brand-accent)]" : "text-rose-600 hover:text-rose-800 dark:text-pink-400 dark:hover:text-pink-300"}`}
           >
             Full View
           </button>
@@ -599,11 +599,11 @@ export function InlineImageThumbnail({
         className={`w-20 h-20 rounded-xl border flex flex-col items-center justify-center text-[10px] p-1.5 text-center transition-colors ${
           isDark
             ? "bg-white/5 border-white/10 text-white/50"
-            : isCyan ? "bg-sky-50 border-sky-200 text-slate-600"
+            : isCyan ? "bg-[var(--brand-soft)] border-[var(--brand-border)] text-slate-600"
             : "bg-rose-50 border-rose-200 text-rose-900/60"
         }`}
       >
-        <AlertCircle className={`w-4 h-4 mb-1 ${isCyan ? "text-sky-600" : "text-rose-400"}`} />
+        <AlertCircle className={`w-4 h-4 mb-1 ${isCyan ? "text-[var(--brand-accent)]" : "text-rose-400"}`} />
         <span className="line-clamp-2">Photo unavailable</span>
       </div>
     );
@@ -613,8 +613,8 @@ export function InlineImageThumbnail({
     <button
       type="button"
       onClick={onClick}
-      className={`group relative w-20 h-20 rounded-2xl overflow-hidden border transition-all duration-300 hover:scale-[1.04] active:scale-95 cursor-pointer shadow-2xs hover:shadow-md focus:outline-none focus:ring-2 ${isCyan ? "focus:ring-sky-500" : "focus:ring-rose-400"} ${
-        isDark ? "border-white/15 bg-black/40" : isCyan ? "border-sky-200 bg-white" : "border-rose-200 bg-white"
+      className={`group relative w-20 h-20 rounded-2xl overflow-hidden border transition-all duration-300 hover:scale-[1.04] active:scale-95 cursor-pointer shadow-2xs hover:shadow-md focus:outline-none focus:ring-2 ${isCyan ? "focus:ring-[var(--brand-accent)]" : "focus:ring-rose-400"} ${
+        isDark ? "border-white/15 bg-black/40" : isCyan ? "border-[var(--brand-border)] bg-white" : "border-rose-200 bg-white"
       }`}
       title="Click to view photo in full size"
     >

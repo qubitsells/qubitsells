@@ -1050,7 +1050,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
           particleCount: 120,
           spread: 100,
           origin: { y: 0.5 },
-          colors: ["#00aef0", "#9be3fc", "#16232d", "#ffffff"],
+          colors: ["#481925", "#edd5dc", "#16232d", "#ffffff"],
         });
       } catch {}
 
@@ -1181,7 +1181,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
     setRespondingRequestId(null);
     try {
       confetti({ disableForReducedMotion: true, particleCount: 80, spread: 80, origin: { y: 0.5 },
-        colors: ["#00aef0", "#9be3fc", "#16232d", "#ffffff"] });
+        colors: ["#481925", "#edd5dc", "#16232d", "#ffffff"] });
     } catch {}
   } catch (error) { setOperationError(error instanceof Error ? error.message : "The operation could not be completed. Please try again."); } finally { setRespondingRequestId(null); setRespondingUnlockRequestId(null); setResendingCapsuleId(null); setCoupleUnlockVoteLoading(false); } };
 
@@ -1263,7 +1263,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
 
       try {
         confetti({ disableForReducedMotion: true, particleCount: 120, spread: 100, origin: { y: 0.5 },
-          colors: ["#00aef0", "#9be3fc", "#16232d", "#ffffff"] });
+          colors: ["#481925", "#edd5dc", "#16232d", "#ffffff"] });
       } catch {}
       sfx.playSealSound();
     }
@@ -1318,7 +1318,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
       setSelectedCapsule(opened);
       try {
         confetti({ disableForReducedMotion: true, particleCount: 100, spread: 90, origin: { y: 0.5 },
-          colors: ["#00aef0", "#9be3fc", "#16232d", "#ffffff"] });
+          colors: ["#481925", "#edd5dc", "#16232d", "#ffffff"] });
       } catch {}
       sfx.playChime();
     }
@@ -1391,7 +1391,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-sky-50 border border-amber-300/80 shadow-md"
+              className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-[var(--brand-soft)] border border-amber-300/80 shadow-md"
             >
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0 border border-amber-200">
@@ -1403,7 +1403,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                     Couple Seal Request
                   </div>
                   <p className="text-sm font-semibold text-[#16232d] mt-0.5 line-clamp-1">
-                    Your partner wants to seal <span className="text-sky-600">&quot;{req.capsule_title || "a capsule"}&quot;</span> together with you
+                    Your partner wants to seal <span className="text-[var(--brand-accent)]">&quot;{req.capsule_title || "a capsule"}&quot;</span> together with you
                   </p>
                   <p className="text-[11px] text-[#617c8b] mt-0.5">
                     Accept to co-seal this capsule — it will lock for both of you. If you decline, your partner can adjust and request again.
@@ -1416,7 +1416,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                   whileTap={{ scale: 0.96 }}
                   disabled={respondingRequestId === req.id}
                   onClick={() => handleAcceptSealRequest(req)}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold transition-all cursor-pointer shadow-sm disabled:opacity-60"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--brand-accent)] hover:bg-[var(--brand-hover)] text-white text-xs font-bold transition-all cursor-pointer shadow-sm disabled:opacity-60"
                 >
                   <UserCheck className="w-3.5 h-3.5" />
                   Accept & Co-Seal
@@ -1444,19 +1444,19 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 rounded-2xl bg-gradient-to-r from-cyan-50 via-sky-50 to-amber-50 border border-sky-300 shadow-lg shadow-sky-100/70"
+              className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 rounded-2xl bg-gradient-to-r from-[var(--brand-soft)] via-[var(--brand-soft)] to-amber-50 border border-[var(--brand-border-strong)] shadow-lg shadow-[var(--brand-accent)]/70"
             >
               <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center shrink-0 border border-sky-200">
-                  <Unlock className="w-5 h-5 text-sky-600 animate-bounce" />
+                <div className="w-10 h-10 rounded-full bg-[var(--brand-tint)] flex items-center justify-center shrink-0 border border-[var(--brand-border)]">
+                  <Unlock className="w-5 h-5 text-[var(--brand-accent)] animate-bounce" />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-xs font-extrabold text-sky-900 uppercase tracking-wide flex items-center gap-1.5">
-                    <Bell className="w-3.5 h-3.5 text-sky-500 animate-pulse" />
+                  <div className="text-xs font-extrabold text-[var(--brand-accent)] uppercase tracking-wide flex items-center gap-1.5">
+                    <Bell className="w-3.5 h-3.5 text-[var(--brand-accent)] animate-pulse" />
                     <span>Capsule Unlock Request</span>
                   </div>
                   <p className="text-sm font-semibold text-[#16232d] mt-0.5 line-clamp-1">
-                    Your partner is requesting to open <span className="text-sky-600 font-bold">&quot;{req.capsule_title || "a capsule"}&quot;</span> together with you!
+                    Your partner is requesting to open <span className="text-[var(--brand-accent)] font-bold">&quot;{req.capsule_title || "a capsule"}&quot;</span> together with you!
                   </p>
                   <p className="text-[11px] text-[#617c8b] mt-0.5">
                     Both partners must agree to unlock. Approve to open your shared memories when the opening date arrives.
@@ -1485,7 +1485,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                       loadCoupleUnlockState(target);
                     }
                   }}
-                  className="flex items-center gap-1 px-3 py-2 rounded-xl bg-white hover:bg-sky-50 text-sky-700 border border-sky-200 text-xs font-bold transition-all cursor-pointer"
+                  className="flex items-center gap-1 px-3 py-2 rounded-xl bg-white hover:bg-[var(--brand-soft)] text-[var(--brand-accent)] border border-[var(--brand-border)] text-xs font-bold transition-all cursor-pointer"
                 >
                   <Eye className="w-3.5 h-3.5" />
                   <span>View</span>
@@ -1525,10 +1525,10 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
               initial={{ opacity: 0, scale: 0.92, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.92, y: 20 }}
-              className={`${styles.dialogPanel} relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-sky-200 overflow-hidden my-auto max-h-[92vh] flex flex-col`}
+              className={`${styles.dialogPanel} relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-[var(--brand-border)] overflow-hidden my-auto max-h-[92vh] flex flex-col`}
             >
               {/* Modal Top Header */}
-              <div className={`${styles.dialogHeader} p-4 sm:p-5 bg-gradient-to-r from-sky-50 via-cyan-50 to-sky-50 border-b border-sky-200 flex items-center justify-between shrink-0`}>
+              <div className={`${styles.dialogHeader} p-4 sm:p-5 bg-gradient-to-r from-[var(--brand-soft)] via-[var(--brand-soft)] to-[var(--brand-soft)] border-b border-[var(--brand-border)] flex items-center justify-between shrink-0`}>
                 <div className="flex items-center gap-3">
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center text-lg border shadow-xs ${getSealStyles(
@@ -1544,7 +1544,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                     <div className={`${styles.dialogMeta} text-[11px] text-[#5f7b8c] font-medium flex items-center gap-2`}>
                       <span>Sealed: {selectedCapsule.sealed_date}</span>
                       <span>•</span>
-                      <span className="font-bold text-sky-600">
+                      <span className="font-bold text-[var(--brand-accent)]">
                         {selectedCapsule.is_locked ? "Sealed capsule" : "Opened memory"}
                       </span>
                     </div>
@@ -1563,7 +1563,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                   <button
                     onClick={() => { setIsHoldingUnlock(false); setIsDetailModalOpen(false); }}
                     aria-label="Close capsule"
-                    className="w-8 h-8 rounded-full bg-white/80 hover:bg-sky-100 text-sky-900 flex items-center justify-center transition-colors cursor-pointer border border-sky-200"
+                    className="w-8 h-8 rounded-full bg-white/80 hover:bg-[var(--brand-tint)] text-[var(--brand-accent)] flex items-center justify-center transition-colors cursor-pointer border border-[var(--brand-border)]"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -1580,9 +1580,9 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                       <motion.div
                         animate={{ scale: [1, 1.25, 1], opacity: [0.3, 0.7, 0.3] }}
                         transition={{ repeat: Infinity, duration: 2.5 }}
-                        className="absolute inset-0 rounded-full bg-sky-200 blur-md"
+                        className="absolute inset-0 rounded-full bg-[var(--brand-border)] blur-md"
                       />
-                      <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-sky-600 to-cyan-500 flex items-center justify-center text-white shadow-xl relative z-10">
+                      <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-[var(--brand-hover)] to-[var(--brand-accent)] flex items-center justify-center text-white shadow-xl relative z-10">
                         <Lock className="w-10 h-10" />
                       </div>
                     </div>
@@ -1593,7 +1593,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                       </h3>
                       <p className="text-xs sm:text-sm text-[#526e7e] font-medium leading-relaxed">
                         This time capsule is sealed until{" "}
-                        <span className="font-bold text-sky-600">
+                        <span className="font-bold text-[var(--brand-accent)]">
                           {selectedCapsule.unlock_date.includes("T")
                             ? new Date(selectedCapsule.unlock_date).toLocaleDateString()
                             : selectedCapsule.unlock_date}
@@ -1606,8 +1606,8 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
 
                     {/* ── COUPLE CAPSULE: Dual-Vote Unlock Panel ── */}
                     {selectedCapsule.seal_mode === "couple" ? (
-                      <div className="p-6 rounded-3xl bg-gradient-to-b from-sky-50 to-cyan-50/50 border border-sky-200/80 max-w-md mx-auto space-y-5">
-                        <div className="text-xs font-bold text-sky-800 uppercase tracking-wider flex items-center gap-2">
+                      <div className="p-6 rounded-3xl bg-gradient-to-b from-[var(--brand-soft)] to-[var(--brand-soft)]/50 border border-[var(--brand-border)]/80 max-w-md mx-auto space-y-5">
+                        <div className="text-xs font-bold text-[var(--brand-accent)] uppercase tracking-wider flex items-center gap-2">
                           <Users className="w-3.5 h-3.5" />
                           Couple Unlock — Dual Consent Required
                         </div>
@@ -1620,14 +1620,14 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                               <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="p-3.5 rounded-2xl bg-gradient-to-r from-cyan-100 to-sky-100 border border-sky-300 flex items-center gap-3 text-left shadow-xs"
+                                className="p-3.5 rounded-2xl bg-gradient-to-r from-[var(--brand-tint)] to-[var(--brand-tint)] border border-[var(--brand-border-strong)] flex items-center gap-3 text-left shadow-xs"
                               >
-                                <div className="w-8 h-8 rounded-full bg-sky-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                                <div className="w-8 h-8 rounded-full bg-[var(--brand-accent)] text-white flex items-center justify-center shrink-0 shadow-xs">
                                   <Bell className="w-4 h-4 animate-bounce" />
                                 </div>
                                 <div>
-                                  <div className="text-xs font-extrabold text-sky-950">Partner Requested Unlock!</div>
-                                  <p className="text-[11px] text-sky-800 font-medium">Your partner wants to open this capsule together. Cast your vote below to unlock!</p>
+                                  <div className="text-xs font-extrabold text-[var(--brand-accent)]">Partner Requested Unlock!</div>
+                                  <p className="text-[11px] text-[var(--brand-accent)] font-medium">Your partner wants to open this capsule together. Cast your vote below to unlock!</p>
                                 </div>
                               </motion.div>
                             )}
@@ -1637,12 +1637,12 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                               <div className={`p-3 rounded-2xl border text-center space-y-1.5 ${
                                 coupleUnlockRequest.unlock_vote_requester
                                   ? "bg-emerald-50 border-emerald-300"
-                                  : "bg-white border-sky-200"
+                                  : "bg-white border-[var(--brand-border)]"
                               }`}>
                                 <div className={`w-8 h-8 rounded-full mx-auto flex items-center justify-center ${
                                   coupleUnlockRequest.unlock_vote_requester
                                     ? "bg-emerald-500 text-white"
-                                    : "bg-sky-100 text-sky-400"
+                                    : "bg-[var(--brand-tint)] text-[var(--brand-accent)]"
                                 }`}>
                                   {coupleUnlockRequest.unlock_vote_requester
                                     ? <Check className="w-4 h-4" />
@@ -1652,7 +1652,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                                   {coupleUnlockRequest.requester_id === user?.id ? "You (Creator)" : "Partner (Creator)"}
                                 </div>
                                 <div className={`text-[10px] font-semibold ${
-                                  coupleUnlockRequest.unlock_vote_requester ? "text-emerald-700" : "text-sky-500"
+                                  coupleUnlockRequest.unlock_vote_requester ? "text-emerald-700" : "text-[var(--brand-accent)]"
                                 }`}>
                                   {coupleUnlockRequest.unlock_vote_requester ? "✓ Approved" : "Pending..."}
                                 </div>
@@ -1661,12 +1661,12 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                               <div className={`p-3 rounded-2xl border text-center space-y-1.5 ${
                                 coupleUnlockRequest.unlock_vote_partner
                                   ? "bg-emerald-50 border-emerald-300"
-                                  : "bg-white border-sky-200"
+                                  : "bg-white border-[var(--brand-border)]"
                               }`}>
                                 <div className={`w-8 h-8 rounded-full mx-auto flex items-center justify-center ${
                                   coupleUnlockRequest.unlock_vote_partner
                                     ? "bg-emerald-500 text-white"
-                                    : "bg-sky-100 text-sky-400"
+                                    : "bg-[var(--brand-tint)] text-[var(--brand-accent)]"
                                 }`}>
                                   {coupleUnlockRequest.unlock_vote_partner
                                     ? <Check className="w-4 h-4" />
@@ -1676,7 +1676,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                                   {coupleUnlockRequest.partner_id === user?.id ? "You (Partner)" : "Partner"}
                                 </div>
                                 <div className={`text-[10px] font-semibold ${
-                                  coupleUnlockRequest.unlock_vote_partner ? "text-emerald-700" : "text-sky-500"
+                                  coupleUnlockRequest.unlock_vote_partner ? "text-emerald-700" : "text-[var(--brand-accent)]"
                                 }`}>
                                   {coupleUnlockRequest.unlock_vote_partner ? "✓ Approved" : "Pending..."}
                                 </div>
@@ -1743,8 +1743,8 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                       </div>
                     ) : (
                       /* ── SOLO CAPSULE: Fingerprint Hold-to-Unlock ── */
-                      <div className="p-6 rounded-3xl bg-gradient-to-b from-sky-50 to-cyan-50/50 border border-sky-200/80 max-w-md mx-auto space-y-4">
-                        <div className="text-xs font-bold text-sky-800 uppercase tracking-wider">
+                      <div className="p-6 rounded-3xl bg-gradient-to-b from-[var(--brand-soft)] to-[var(--brand-soft)]/50 border border-[var(--brand-border)]/80 max-w-md mx-auto space-y-4">
+                        <div className="text-xs font-bold text-[var(--brand-accent)] uppercase tracking-wider">
                           Hold to Open Your Solo Capsule
                         </div>
 
@@ -1764,8 +1764,8 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                             whileTap={{ scale: 0.95 }}
                             className={`${styles.holdToOpen} w-24 h-24 rounded-full border-4 flex flex-col items-center justify-center cursor-pointer transition-all relative overflow-hidden select-none ${
                               isHoldingUnlock
-                                ? "border-sky-500 bg-sky-500 text-white shadow-lg shadow-sky-500/40"
-                                : "border-sky-300 bg-white text-sky-600 hover:border-sky-400"
+                                ? "border-[var(--brand-accent)] bg-[var(--brand-accent)] text-white shadow-lg shadow-[var(--brand-accent)]/40"
+                                : "border-[var(--brand-border-strong)] bg-white text-[var(--brand-accent)] hover:border-[var(--brand-border-strong)]"
                             }`}
                           >
                             <Fingerprint className="w-10 h-10 animate-pulse" />
@@ -1775,7 +1775,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
 
                             {isHoldingUnlock && (
                               <div
-                                className="absolute bottom-0 left-0 right-0 bg-sky-700/60 transition-all duration-75"
+                                className="absolute bottom-0 left-0 right-0 bg-[var(--brand-hover)]/60 transition-all duration-75"
                                 style={{ height: `${unlockProgress}%` }}
                               />
                             )}
@@ -1795,7 +1795,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                   /* CASE B: CAPSULE IS UNLOCKED */
                   <div className="space-y-6">
                     {/* Navigation Tabs (Handwritten Letter Shows First) */}
-                    <div className={`${styles.memoryTabs} flex items-center justify-center gap-2 border-b border-sky-200 pb-3 flex-wrap`}>
+                    <div className={`${styles.memoryTabs} flex items-center justify-center gap-2 border-b border-[var(--brand-border)] pb-3 flex-wrap`}>
                       <button
                         onClick={() => {
                           sfx.playChime();
@@ -1803,8 +1803,8 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                         }}
                         className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                           activeMemoryTab === "letter"
-                            ? "bg-sky-500 text-white shadow-xs"
-                            : "bg-sky-50 text-[#617c8b] hover:bg-sky-100"
+                            ? "bg-[var(--brand-accent)] text-white shadow-xs"
+                            : "bg-[var(--brand-soft)] text-[#617c8b] hover:bg-[var(--brand-tint)]"
                         }`}
                       >
                         <FileText className="w-3.5 h-3.5" />
@@ -1818,8 +1818,8 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                         }}
                         className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                           activeMemoryTab === "gallery"
-                            ? "bg-sky-500 text-white shadow-xs"
-                            : "bg-sky-50 text-[#617c8b] hover:bg-sky-100"
+                            ? "bg-[var(--brand-accent)] text-white shadow-xs"
+                            : "bg-[var(--brand-soft)] text-[#617c8b] hover:bg-[var(--brand-tint)]"
                         }`}
                       >
                         <Folder className="w-3.5 h-3.5" />
@@ -1834,8 +1834,8 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                         }}
                         className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                           activeMemoryTab === "predictions"
-                            ? "bg-sky-500 text-white shadow-xs"
-                            : "bg-sky-50 text-[#617c8b] hover:bg-sky-100"
+                            ? "bg-[var(--brand-accent)] text-white shadow-xs"
+                            : "bg-[var(--brand-soft)] text-[#617c8b] hover:bg-[var(--brand-tint)]"
                         }`}
                       >
                         <Star className="w-3.5 h-3.5" />
@@ -1875,12 +1875,12 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                         {openedFolderId ? (
                           <div className="space-y-6">
                             {/* Breadcrumb Header */}
-                            <div className={`${styles.folderToolbar} flex items-center justify-between p-3.5 rounded-2xl bg-sky-50/80 border border-sky-200`}>
+                            <div className={`${styles.folderToolbar} flex items-center justify-between p-3.5 rounded-2xl bg-[var(--brand-soft)]/80 border border-[var(--brand-border)]`}>
                               <button
                                 onClick={() => setOpenedFolderId(null)}
-                                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white border border-sky-200 text-xs font-bold text-sky-800 hover:bg-sky-100 transition-colors cursor-pointer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white border border-[var(--brand-border)] text-xs font-bold text-[var(--brand-accent)] hover:bg-[var(--brand-tint)] transition-colors cursor-pointer"
                               >
-                                <ChevronLeft className="w-3.5 h-3.5 text-sky-500" />
+                                <ChevronLeft className="w-3.5 h-3.5 text-[var(--brand-accent)]" />
                                 <span>Back to All Folders</span>
                               </button>
 
@@ -1911,8 +1911,8 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                             {/* 1. Photos in this Folder */}
                             {selectedCapsule.polaroids.filter((p) => (p.folder_id || "f-memories") === openedFolderId).length > 0 && (
                               <div className="space-y-3">
-                                <h4 className="text-xs font-bold uppercase tracking-wider text-sky-900 flex items-center gap-1.5">
-                                  <ImageIcon className="w-3.5 h-3.5 text-sky-500" />
+                                <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--brand-accent)] flex items-center gap-1.5">
+                                  <ImageIcon className="w-3.5 h-3.5 text-[var(--brand-accent)]" />
                                   <span>Photos & Polaroids</span>
                                 </h4>
 
@@ -1930,7 +1930,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                                           whileHover={{ scale: 1.04, rotate: 0 }}
                                           className="bg-white p-3 pb-4 rounded-xl shadow-lg border border-stone-200 transition-all relative overflow-hidden"
                                         >
-                                          <div className="relative w-full h-44 rounded-md overflow-hidden bg-sky-50 mb-3">
+                                          <div className="relative w-full h-44 rounded-md overflow-hidden bg-[var(--brand-soft)] mb-3">
                                             <Image unoptimized
                                               src={p.image}
                                               alt={p.caption}
@@ -1962,8 +1962,8 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                               .filter((v) => (v.folder_id || "f-memories") === openedFolderId)
                               .length > 0 && (
                               <div className="space-y-3 pt-2">
-                                <h4 className="text-xs font-bold uppercase tracking-wider text-sky-900 flex items-center gap-1.5">
-                                  <VideoIcon className="w-3.5 h-3.5 text-sky-500" />
+                                <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--brand-accent)] flex items-center gap-1.5">
+                                  <VideoIcon className="w-3.5 h-3.5 text-[var(--brand-accent)]" />
                                   <span>Video memories</span>
                                 </h4>
 
@@ -1971,7 +1971,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                                   {(selectedCapsule.video_notes || (selectedCapsule.video_note ? [selectedCapsule.video_note] : []))
                                     .filter((v) => (v.folder_id || "f-memories") === openedFolderId)
                                     .map((vid) => (
-                                      <div key={vid.id || vid.videoUrl} className="p-3 bg-white rounded-2xl border border-sky-200 shadow-sm space-y-2">
+                                      <div key={vid.id || vid.videoUrl} className="p-3 bg-white rounded-2xl border border-[var(--brand-border)] shadow-sm space-y-2">
                                         <div className="rounded-xl overflow-hidden bg-black aspect-video">
                                           <video src={vid.videoUrl} controls className="w-full h-full object-cover" />
                                         </div>
@@ -1982,7 +1982,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                                               value={editingVideoTitleText}
                                               onChange={(e) => setEditingVideoTitleText(e.target.value)}
                                               placeholder="Video Title"
-                                              className="flex-1 px-2 py-1 rounded-lg border border-sky-300 text-xs font-bold"
+                                              className="flex-1 px-2 py-1 rounded-lg border border-[var(--brand-border-strong)] text-xs font-bold"
                                             />
                                             <button
                                               onClick={() => saveVideoTitleEdit(vid.id || "")}
@@ -1992,7 +1992,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                                             </button>
                                             <button
                                               onClick={() => setEditingVideoId(null)}
-                                              className="text-xs text-sky-700 font-bold"
+                                              className="text-xs text-[var(--brand-accent)] font-bold"
                                             >
                                               Cancel
                                             </button>
@@ -2005,7 +2005,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                                                 setEditingVideoId(vid.id || null);
                                                 setEditingVideoTitleText(vid.title || "");
                                               }}
-                                              className="text-[10px] text-sky-600 font-bold hover:underline flex items-center gap-0.5 cursor-pointer"
+                                              className="text-[10px] text-[var(--brand-accent)] font-bold hover:underline flex items-center gap-0.5 cursor-pointer"
                                             >
                                               <Edit3 className="w-3 h-3" />
                                               <span>Edit Name</span>
@@ -2023,8 +2023,8 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                               .filter((vn) => (vn.folder_id || "f-letters") === openedFolderId)
                               .length > 0 && (
                               <div className="space-y-4 pt-2">
-                                <h4 className="text-xs font-bold uppercase tracking-wider text-sky-900 flex items-center gap-1.5">
-                                  <Mic className="w-3.5 h-3.5 text-sky-500" />
+                                <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--brand-accent)] flex items-center gap-1.5">
+                                  <Mic className="w-3.5 h-3.5 text-[var(--brand-accent)]" />
                                   <span>Voice Tape Recordings</span>
                                 </h4>
 
@@ -2057,8 +2057,8 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                                           {/* Cassette Header Label */}
                                           <div className="flex items-center justify-between border-b border-stone-700/80 pb-2.5">
                                             <div className="flex items-center gap-2">
-                                              <span className="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse" />
-                                              <span className="text-[11px] font-bold uppercase tracking-wider text-sky-300 line-clamp-1">
+                                              <span className="w-2.5 h-2.5 rounded-full bg-[var(--brand-accent)] animate-pulse" />
+                                              <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--brand-accent)] line-clamp-1">
                                                 {vn.title}
                                               </span>
                                             </div>
@@ -2073,7 +2073,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                                             <motion.div
                                               animate={{ rotate: isCurrentPlaying ? 360 : 0 }}
                                               transition={{ repeat: Infinity, duration: 1.8, ease: "linear" }}
-                                              className="w-12 h-12 rounded-full border-4 border-dashed border-sky-400 flex items-center justify-center bg-stone-900 shadow-inner"
+                                              className="w-12 h-12 rounded-full border-4 border-dashed border-[var(--brand-border-strong)] flex items-center justify-center bg-stone-900 shadow-inner"
                                             >
                                               <div className="w-4 h-4 rounded-full bg-stone-700 border border-stone-600" />
                                             </motion.div>
@@ -2090,7 +2090,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                                             <motion.div
                                               animate={{ rotate: isCurrentPlaying ? 360 : 0 }}
                                               transition={{ repeat: Infinity, duration: 1.8, ease: "linear" }}
-                                              className="w-12 h-12 rounded-full border-4 border-dashed border-cyan-400 flex items-center justify-center bg-stone-900 shadow-inner"
+                                              className="w-12 h-12 rounded-full border-4 border-dashed border-[var(--brand-border-strong)] flex items-center justify-center bg-stone-900 shadow-inner"
                                             >
                                               <div className="w-4 h-4 rounded-full bg-stone-700 border border-stone-600" />
                                             </motion.div>
@@ -2100,7 +2100,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                                           <div className="space-y-1">
                                             <div className="w-full h-1.5 rounded-full bg-stone-700 overflow-hidden">
                                               <div
-                                                className="h-full bg-gradient-to-r from-sky-500 via-cyan-500 to-amber-400 transition-all duration-150"
+                                                className="h-full bg-gradient-to-r from-[var(--brand-accent)] via-[var(--brand-accent)] to-amber-400 transition-all duration-150"
                                                 style={{ width: isCurrentPlaying ? `${audioPlaybackProgress}%` : "0%" }}
                                               />
                                             </div>
@@ -2131,7 +2131,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                                                   }
                                                 }
                                               }}
-                                              className="px-4 py-2 rounded-full bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-lg transition-all"
+                                              className="px-4 py-2 rounded-full bg-[var(--brand-accent)] hover:bg-[var(--brand-hover)] text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-lg transition-all"
                                             >
                                               {isCurrentPlaying ? (
                                                 <>
@@ -2154,16 +2154,16 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                             )}
 
                             {/* 4. Secret Notes & Vows in this Folder */}
-                            <div className="space-y-3 pt-4 border-t border-sky-100">
+                            <div className="space-y-3 pt-4 border-t border-[var(--brand-border)]">
                               <div className="flex items-center justify-between">
-                                <h4 className="text-xs font-bold uppercase tracking-wider text-sky-900 flex items-center gap-1.5">
-                                  <StickyNote className="w-3.5 h-3.5 text-sky-500" />
+                                <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--brand-accent)] flex items-center gap-1.5">
+                                  <StickyNote className="w-3.5 h-3.5 text-[var(--brand-accent)]" />
                                   <span>Written notes in this folder</span>
                                 </h4>
 
                                 <button
                                   onClick={() => setIsAddingTextNote(!isAddingTextNote)}
-                                  className="px-3 py-1 rounded-xl bg-white border border-sky-200 text-sky-700 text-xs font-bold hover:bg-sky-50 transition-all cursor-pointer"
+                                  className="px-3 py-1 rounded-xl bg-white border border-[var(--brand-border)] text-[var(--brand-accent)] text-xs font-bold hover:bg-[var(--brand-soft)] transition-all cursor-pointer"
                                 >
                                   {isAddingTextNote ? "Cancel Note" : "+ Write Note"}
                                 </button>
@@ -2210,33 +2210,33 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                           <div className="space-y-6">
                             <div className="flex items-center justify-between">
                               <h3 className="text-sm font-bold uppercase tracking-wider text-[#16232d] flex items-center gap-2">
-                                <Layers className="w-4 h-4 text-sky-500" />
+                                <Layers className="w-4 h-4 text-[var(--brand-accent)]" />
                                 <span>Memory Folders ({nonEmptyFoldersInSelectedCapsule.length})</span>
                               </h3>
 
                               <button
                                 onClick={() => setIsAddingFolderInCapsule(true)}
-                                className="px-3.5 py-1.5 rounded-full bg-white border border-sky-300 text-sky-700 text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                                className="px-3.5 py-1.5 rounded-full bg-white border border-[var(--brand-border-strong)] text-[var(--brand-accent)] text-xs font-bold hover:bg-[var(--brand-soft)] transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
                               >
-                                <FolderPlus className="w-3.5 h-3.5 text-sky-500" />
+                                <FolderPlus className="w-3.5 h-3.5 text-[var(--brand-accent)]" />
                                 <span>+ Create New Folder</span>
                               </button>
                             </div>
 
                             {/* Create Folder Drawer */}
                             {isAddingFolderInCapsule && (
-                              <div className="p-4 rounded-2xl bg-white border border-sky-300 shadow-md flex items-center gap-2 max-w-lg mx-auto">
+                              <div className="p-4 rounded-2xl bg-white border border-[var(--brand-border-strong)] shadow-md flex items-center gap-2 max-w-lg mx-auto">
                                 <input
                                   type="text"
                                   placeholder="Folder Name (e.g. Paris Trip 2025)"
                                   value={newFolderNameInCapsule}
                                   onChange={(e) => setNewFolderNameInCapsule(e.target.value)}
-                                  className="flex-1 px-3 py-2 rounded-xl border border-sky-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-sky-400"
+                                  className="flex-1 px-3 py-2 rounded-xl border border-[var(--brand-border)] text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--brand-border-strong)]"
                                 />
                                 <select
                                   value={newFolderIconInCapsule}
                                   onChange={(e) => setNewFolderIconInCapsule(e.target.value)}
-                                  className="px-2.5 py-2 rounded-xl border border-sky-200 text-xs font-bold bg-sky-50"
+                                  className="px-2.5 py-2 rounded-xl border border-[var(--brand-border)] text-xs font-bold bg-[var(--brand-soft)]"
                                 >
                                   <option value="📁">📁 General</option>
                                   <option value="📸">📸 Photos</option>
@@ -2256,7 +2256,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                                 </button>
                                 <button
                                   onClick={() => setIsAddingFolderInCapsule(false)}
-                                  className="px-2 py-2 rounded-xl text-xs font-bold text-sky-700 hover:bg-sky-50 cursor-pointer"
+                                  className="px-2 py-2 rounded-xl text-xs font-bold text-[var(--brand-accent)] hover:bg-[var(--brand-soft)] cursor-pointer"
                                 >
                                   Cancel
                                 </button>
@@ -2292,19 +2292,19 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                                       sfx.playChime();
                                       setOpenedFolderId(f.id);
                                     }}
-                                    className="p-5 rounded-3xl bg-gradient-to-br from-white to-sky-50/60 border border-sky-200/90 shadow-md hover:shadow-xl hover:border-sky-300 transition-all cursor-pointer group flex flex-col justify-between"
+                                    className="p-5 rounded-3xl bg-gradient-to-br from-white to-[var(--brand-soft)]/60 border border-[var(--brand-border)]/90 shadow-md hover:shadow-xl hover:border-[var(--brand-border-strong)] transition-all cursor-pointer group flex flex-col justify-between"
                                   >
                                     <div className="flex items-start justify-between gap-2">
-                                      <div className="w-12 h-12 rounded-2xl bg-sky-100/80 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                                      <div className="w-12 h-12 rounded-2xl bg-[var(--brand-tint)]/80 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
                                         {f.icon || "📁"}
                                       </div>
-                                      <span className="px-2.5 py-1 rounded-full bg-white border border-sky-200 text-[10px] font-bold text-sky-700">
+                                      <span className="px-2.5 py-1 rounded-full bg-white border border-[var(--brand-border)] text-[10px] font-bold text-[var(--brand-accent)]">
                                         {badges.join(" • ") || "Empty"}
                                       </span>
                                     </div>
 
                                     <div className="mt-4">
-                                      <h4 className="text-base font-extrabold text-[#16232d] group-hover:text-sky-600 transition-colors">
+                                      <h4 className="text-base font-extrabold text-[#16232d] group-hover:text-[var(--brand-accent)] transition-colors">
                                         {f.name}
                                       </h4>
                                       <p className="text-[11px] text-[#5f7b8c] mt-1 font-medium">
@@ -2327,7 +2327,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                         animate={{ opacity: 1, y: 0 }}
                         className="space-y-5"
                       >
-                        <div className="flex items-center justify-between p-3 rounded-2xl bg-sky-50/80 border border-sky-200">
+                        <div className="flex items-center justify-between p-3 rounded-2xl bg-[var(--brand-soft)]/80 border border-[var(--brand-border)]">
                           <div className="text-xs text-[#5f7b8c] font-medium">
                             {isEditingPredictions
                               ? "Edit questions, update partner answers, or check off predictions!"
@@ -2363,11 +2363,11 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                           {(isEditingPredictions ? editablePredictions : (selectedCapsule.predictions || [])).map((pred, i) => (
                             <div
                               key={i}
-                              className="p-5 rounded-2xl bg-white border border-sky-200 shadow-sm space-y-3 text-left"
+                              className="p-5 rounded-2xl bg-white border border-[var(--brand-border)] shadow-sm space-y-3 text-left"
                             >
                               {isEditingPredictions ? (
                                 <div className="space-y-2">
-                                  <label className="text-[11px] font-bold text-sky-800 uppercase tracking-wider block">
+                                  <label className="text-[11px] font-bold text-[var(--brand-accent)] uppercase tracking-wider block">
                                     Prediction Question #{i + 1}
                                   </label>
                                   <input
@@ -2379,7 +2379,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                                         prev.map((p, idx) => (idx === i ? { ...p, question: val } : p))
                                       );
                                     }}
-                                    className="w-full px-3 py-1.5 rounded-xl border border-sky-300 text-xs font-bold bg-sky-50/30"
+                                    className="w-full px-3 py-1.5 rounded-xl border border-[var(--brand-border-strong)] text-xs font-bold bg-[var(--brand-soft)]/30"
                                   />
                                 </div>
                               ) : (
@@ -2406,8 +2406,8 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                               )}
 
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-medium">
-                                <div className="p-3 rounded-xl bg-sky-50/50 border border-sky-100">
-                                  <span className="text-[10px] font-bold text-sky-600 block mb-1">
+                                <div className="p-3 rounded-xl bg-[var(--brand-soft)]/50 border border-[var(--brand-border)]">
+                                  <span className="text-[10px] font-bold text-[var(--brand-accent)] block mb-1">
                                     Partner 1 Guess / Answer:
                                   </span>
                                   {isEditingPredictions ? (
@@ -2421,7 +2421,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                                           prev.map((p, idx) => (idx === i ? { ...p, partner1Answer: val } : p))
                                         );
                                       }}
-                                      className="w-full px-2 py-1 rounded-lg border border-sky-200 bg-white text-xs"
+                                      className="w-full px-2 py-1 rounded-lg border border-[var(--brand-border)] bg-white text-xs"
                                     />
                                   ) : (
                                     <span className="text-[#253e4d]">
@@ -2430,8 +2430,8 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                                   )}
                                 </div>
 
-                                <div className="p-3 rounded-xl bg-sky-50/50 border border-sky-100">
-                                  <span className="text-[10px] font-bold text-cyan-600 block mb-1">
+                                <div className="p-3 rounded-xl bg-[var(--brand-soft)]/50 border border-[var(--brand-border)]">
+                                  <span className="text-[10px] font-bold text-[var(--brand-accent)] block mb-1">
                                     Partner 2 Guess / Answer:
                                   </span>
                                   {isEditingPredictions ? (
@@ -2445,7 +2445,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                                           prev.map((p, idx) => (idx === i ? { ...p, partner2Answer: val } : p))
                                         );
                                       }}
-                                      className="w-full px-2 py-1 rounded-lg border border-cyan-200 bg-white text-xs"
+                                      className="w-full px-2 py-1 rounded-lg border border-[var(--brand-border)] bg-white text-xs"
                                     />
                                   ) : (
                                     <span className="text-[#253e4d]">
@@ -2456,7 +2456,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                               </div>
 
                               {isEditingPredictions && (
-                                <div className="flex items-center justify-between pt-1 border-t border-sky-100 text-xs">
+                                <div className="flex items-center justify-between pt-1 border-t border-[var(--brand-border)] text-xs">
                                   <div className="flex items-center gap-1.5">
                                     <span className="text-[10px] font-bold text-stone-600">Status:</span>
                                     <select
@@ -2467,7 +2467,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                                           prev.map((p, idx) => (idx === i ? { ...p, status: val } : p))
                                         );
                                       }}
-                                      className="px-2 py-1 rounded-lg border border-sky-200 text-xs font-bold bg-white"
+                                      className="px-2 py-1 rounded-lg border border-[var(--brand-border)] text-xs font-bold bg-white"
                                     >
                                       <option value="pending">⏳ Sealed Guess</option>
                                       <option value="came_true">✅ Came True!</option>
@@ -2502,7 +2502,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                                   },
                                 ]);
                               }}
-                              className="w-full py-2.5 rounded-2xl border border-dashed border-sky-300 text-sky-700 text-xs font-bold hover:bg-sky-50 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                              className="w-full py-2.5 rounded-2xl border border-dashed border-[var(--brand-border-strong)] text-[var(--brand-accent)] text-xs font-bold hover:bg-[var(--brand-soft)] transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                             >
                               <Plus className="w-4 h-4" />
                               <span>+ Add Another Prediction Question</span>
@@ -2516,10 +2516,10 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
               </div>
 
               {/* Modal Bottom Actions */}
-              <div className={`${styles.dialogFooter} p-4 bg-sky-50/50 border-t border-sky-100 flex items-center justify-between shrink-0`}>
+              <div className={`${styles.dialogFooter} p-4 bg-[var(--brand-soft)]/50 border-t border-[var(--brand-border)] flex items-center justify-between shrink-0`}>
                 <button
                   onClick={() => { setIsHoldingUnlock(false); setIsDetailModalOpen(false); }}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-sky-800 hover:bg-sky-100/70 transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-[var(--brand-accent)] hover:bg-[var(--brand-tint)]/70 transition-colors cursor-pointer"
                 >
                   Close Vault
                 </button>
@@ -2557,7 +2557,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
 
                   <button
                     onClick={() => setIsEditingPolaroid(!isEditingPolaroid)}
-                    className="px-4 py-2 rounded-full bg-sky-500/80 hover:bg-sky-500 text-xs font-bold backdrop-blur-md flex items-center gap-1.5 cursor-pointer transition-all border border-sky-400"
+                    className="px-4 py-2 rounded-full bg-[var(--brand-accent)]/80 hover:bg-[var(--brand-accent)] text-xs font-bold backdrop-blur-md flex items-center gap-1.5 cursor-pointer transition-all border border-[var(--brand-border-strong)]"
                   >
                     <Edit3 className="w-3.5 h-3.5" />
                     <span>{isEditingPolaroid ? "Done Editing" : "Edit Name & Quote"}</span>
@@ -2599,14 +2599,14 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                     {isEditingPolaroid ? (
                       <div className="space-y-3 pt-2">
                         <div>
-                          <label className="text-[11px] font-bold text-sky-800 uppercase tracking-wider block mb-1">
+                          <label className="text-[11px] font-bold text-[var(--brand-accent)] uppercase tracking-wider block mb-1">
                             Photo Name / Title
                           </label>
                           <input
                             type="text"
                             value={editCaption}
                             onChange={(e) => setEditCaption(e.target.value)}
-                            className="w-full px-3 py-2 rounded-xl border border-sky-300 font-script text-xl text-[#16232d]"
+                            className="w-full px-3 py-2 rounded-xl border border-[var(--brand-border-strong)] font-script text-xl text-[#16232d]"
                           />
                         </div>
                         <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-2">
@@ -2656,7 +2656,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                     <div className="w-full min-h-[380px] sm:min-h-[440px] rounded-2xl bg-[#fffdf7] border border-amber-200/80 p-6 sm:p-8 flex flex-col justify-between text-left relative overflow-hidden shadow-inner">
                       <div className="absolute top-4 right-4 text-3xl opacity-20">💌</div>
                       <div>
-                        <div className="text-xs font-bold text-sky-600 uppercase tracking-wider mb-3">
+                        <div className="text-xs font-bold text-[var(--brand-accent)] uppercase tracking-wider mb-3">
                           Back-Side Handwritten Love Quote
                         </div>
 
@@ -2667,7 +2667,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                               value={editNoteOnBack}
                               onChange={(e) => setEditNoteOnBack(e.target.value)}
                               placeholder="Write your heartfelt quote, whisper, or memory here..."
-                              className="w-full p-3 rounded-xl border border-sky-300 font-serif text-sm leading-relaxed text-[#16232d] bg-white focus:outline-none focus:ring-2 focus:ring-sky-400"
+                              className="w-full p-3 rounded-xl border border-[var(--brand-border-strong)] font-serif text-sm leading-relaxed text-[#16232d] bg-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-border-strong)]"
                             />
                             <button
                               onClick={savePolaroidEdits}
@@ -2708,9 +2708,9 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
               initial={{ opacity: 0, scale: 0.94, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.94, y: 20 }}
-              className={`${styles.dialogPanel} relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-sky-200 overflow-hidden my-auto max-h-[92vh] flex flex-col`}
+              className={`${styles.dialogPanel} relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-[var(--brand-border)] overflow-hidden my-auto max-h-[92vh] flex flex-col`}
             >
-              <div className={`${styles.dialogHeader} p-5 bg-gradient-to-r from-sky-50 via-cyan-50 to-sky-50 border-b border-sky-200 flex items-center justify-between shrink-0`}>
+              <div className={`${styles.dialogHeader} p-5 bg-gradient-to-r from-[var(--brand-soft)] via-[var(--brand-soft)] to-[var(--brand-soft)] border-b border-[var(--brand-border)] flex items-center justify-between shrink-0`}>
                 <div>
                   <h2 className="text-lg font-extrabold text-[#16232d]">
                     Create a time capsule
@@ -2728,7 +2728,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                 <button
                   onClick={handleCloseCreateWizard}
                   aria-label="Close capsule editor"
-                  className="w-8 h-8 rounded-full bg-white hover:bg-sky-100 text-sky-900 flex items-center justify-center transition-colors cursor-pointer border border-sky-200"
+                  className="w-8 h-8 rounded-full bg-white hover:bg-[var(--brand-tint)] text-[var(--brand-accent)] flex items-center justify-center transition-colors cursor-pointer border border-[var(--brand-border)]"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -2753,7 +2753,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                         placeholder="e.g. A letter for next year"
                         value={newTitle}
                         onChange={(e) => setNewTitle(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl border border-sky-200 bg-sky-50/40 text-xs sm:text-sm font-semibold text-[#16232d] focus:outline-none focus:ring-2 focus:ring-sky-400"
+                        className="w-full px-4 py-2.5 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-soft)]/40 text-xs sm:text-sm font-semibold text-[#16232d] focus:outline-none focus:ring-2 focus:ring-[var(--brand-border-strong)]"
                       />
                     </div>
 
@@ -2790,8 +2790,8 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                             onClick={() => setNewCategory(cat.id as TimeCapsuleRecord["category"])}
                             className={`p-3 rounded-2xl text-left border transition-all cursor-pointer ${
                               newCategory === cat.id
-                                ? "bg-sky-50 border-sky-500 ring-2 ring-sky-400/30"
-                                : "bg-white border-sky-100 hover:bg-sky-50/50"
+                                ? "bg-[var(--brand-soft)] border-[var(--brand-accent)] ring-2 ring-[var(--brand-border-strong)]/30"
+                                : "bg-white border-[var(--brand-border)] hover:bg-[var(--brand-soft)]/50"
                             }`}
                           >
                             <div className="text-xs font-bold text-[#16232d]">{cat.title}</div>
@@ -2810,7 +2810,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                           type="date"
                           value={newUnlockDate}
                           onChange={(e) => setNewUnlockDate(e.target.value)}
-                          className="w-full px-4 py-2.5 rounded-xl border border-sky-200 bg-sky-50/40 text-xs sm:text-sm font-semibold text-[#16232d] focus:outline-none focus:ring-2 focus:ring-sky-400"
+                          className="w-full px-4 py-2.5 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-soft)]/40 text-xs sm:text-sm font-semibold text-[#16232d] focus:outline-none focus:ring-2 focus:ring-[var(--brand-border-strong)]"
                         />
                       </div>
                     )}
@@ -2831,7 +2831,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                           type="text"
                           value={newLetterAuthor}
                           onChange={(e) => setNewLetterAuthor(e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl border border-sky-200 text-xs font-semibold"
+                          className="w-full px-3 py-2 rounded-xl border border-[var(--brand-border)] text-xs font-semibold"
                         />
                       </div>
                       <div>
@@ -2840,7 +2840,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                           type="text"
                           value={newLetterGreeting}
                           onChange={(e) => setNewLetterGreeting(e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl border border-sky-200 text-xs font-semibold"
+                          className="w-full px-3 py-2 rounded-xl border border-[var(--brand-border)] text-xs font-semibold"
                         />
                       </div>
                     </div>
@@ -2854,7 +2854,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                         placeholder="What would you like to remember when you open this? Write to yourself or someone important to you."
                         value={newLetterBody}
                         onChange={(e) => setNewLetterBody(e.target.value)}
-                        className="w-full p-4 rounded-2xl border border-sky-200 bg-[#fffdfa] text-xs sm:text-sm font-serif leading-relaxed text-[#16232d] focus:outline-none focus:ring-2 focus:ring-sky-400"
+                        className="w-full p-4 rounded-2xl border border-[var(--brand-border)] bg-[#fffdfa] text-xs sm:text-sm font-serif leading-relaxed text-[#16232d] focus:outline-none focus:ring-2 focus:ring-[var(--brand-border-strong)]"
                       />
                     </div>
 
@@ -2864,7 +2864,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                         type="text"
                         value={newLetterSignOff}
                         onChange={(e) => setNewLetterSignOff(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl border border-sky-200 text-xs font-semibold"
+                        className="w-full px-3 py-2 rounded-xl border border-[var(--brand-border)] text-xs font-semibold"
                       />
                     </div>
                   </motion.div>
@@ -2878,36 +2878,36 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                     className="space-y-6"
                   >
                     {/* Folder Tabs in Wizard */}
-                    <div className="p-4 rounded-2xl bg-sky-50/70 border border-sky-200 space-y-3">
+                    <div className="p-4 rounded-2xl bg-[var(--brand-soft)]/70 border border-[var(--brand-border)] space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold uppercase tracking-wider text-sky-900 flex items-center gap-1.5">
-                          <Layers className="w-3.5 h-3.5 text-sky-500" />
+                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--brand-accent)] flex items-center gap-1.5">
+                          <Layers className="w-3.5 h-3.5 text-[var(--brand-accent)]" />
                           <span>Active Folder & Album Selector</span>
                         </span>
 
                         <button
                           type="button"
                           onClick={() => setIsAddingWizardFolder(true)}
-                          className="px-3 py-1 rounded-full bg-white border border-sky-300 text-sky-700 text-xs font-bold hover:bg-sky-50 transition-all flex items-center gap-1 cursor-pointer"
+                          className="px-3 py-1 rounded-full bg-white border border-[var(--brand-border-strong)] text-[var(--brand-accent)] text-xs font-bold hover:bg-[var(--brand-soft)] transition-all flex items-center gap-1 cursor-pointer"
                         >
-                          <FolderPlus className="w-3.5 h-3.5 text-sky-500" />
+                          <FolderPlus className="w-3.5 h-3.5 text-[var(--brand-accent)]" />
                           <span>+ Add Folder</span>
                         </button>
                       </div>
 
                       {isAddingWizardFolder && (
-                        <div className="p-3 rounded-xl bg-white border border-sky-300 flex items-center gap-2">
+                        <div className="p-3 rounded-xl bg-white border border-[var(--brand-border-strong)] flex items-center gap-2">
                           <input
                             type="text"
                             placeholder="New Folder Name (e.g. Rome 2025)"
                             value={newWizardFolderName}
                             onChange={(e) => setNewWizardFolderName(e.target.value)}
-                            className="flex-1 px-3 py-1.5 rounded-lg border border-sky-200 text-xs font-semibold"
+                            className="flex-1 px-3 py-1.5 rounded-lg border border-[var(--brand-border)] text-xs font-semibold"
                           />
                           <select
                             value={newWizardFolderIcon}
                             onChange={(e) => setNewWizardFolderIcon(e.target.value)}
-                            className="px-2 py-1.5 rounded-lg border border-sky-200 text-xs font-bold bg-sky-50"
+                            className="px-2 py-1.5 rounded-lg border border-[var(--brand-border)] text-xs font-bold bg-[var(--brand-soft)]"
                           >
                             <option value="📁">📁</option>
                             <option value="📸">📸</option>
@@ -2944,7 +2944,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                           <button
                             type="button"
                             onClick={() => setIsAddingWizardFolder(false)}
-                            className="px-2 py-1.5 text-xs text-sky-700 font-bold"
+                            className="px-2 py-1.5 text-xs text-[var(--brand-accent)] font-bold"
                           >
                             Cancel
                           </button>
@@ -2960,8 +2960,8 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                             onClick={() => setActiveWizardFolderId(f.id)}
                             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
                               activeWizardFolderId === f.id
-                                ? "bg-sky-500 text-white shadow-xs ring-2 ring-sky-300"
-                                : "bg-white border border-sky-200 text-sky-900 hover:bg-sky-100"
+                                ? "bg-[var(--brand-accent)] text-white shadow-xs ring-2 ring-[var(--brand-border-strong)]"
+                                : "bg-white border border-[var(--brand-border)] text-[var(--brand-accent)] hover:bg-[var(--brand-tint)]"
                             }`}
                           >
                             <span>{f.icon || "📁"}</span>
@@ -2971,21 +2971,21 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                       </div>
 
                       <div className="text-[11px] text-[#5f7b8c] font-medium pt-1">
-                        👉 Adding assets into: <span className="font-bold text-sky-700">
+                        👉 Adding assets into: <span className="font-bold text-[var(--brand-accent)]">
                           {wizardFolders.find((f) => f.id === activeWizardFolderId)?.name || "Active Folder"}
                         </span>
                       </div>
                     </div>
 
                     {/* 1. Upload Photos in Active Folder */}
-                    <div className="p-4 rounded-2xl bg-white border border-sky-200 space-y-3">
+                    <div className="p-4 rounded-2xl bg-white border border-[var(--brand-border)] space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-[#16232d] uppercase tracking-wider flex items-center gap-1.5">
-                          <ImageIcon className="w-3.5 h-3.5 text-sky-500" />
+                          <ImageIcon className="w-3.5 h-3.5 text-[var(--brand-accent)]" />
                           <span>1. Photos & Polaroids</span>
                         </span>
                         {isUploadingImage && (
-                          <span className="text-xs text-sky-600 font-bold flex items-center gap-1">
+                          <span className="text-xs text-[var(--brand-accent)] font-bold flex items-center gap-1">
                             <RefreshCw className="w-3 h-3 animate-spin" />
                             Uploading your photos…
                           </span>
@@ -2997,7 +2997,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                         accept="image/*"
                         multiple
                         onChange={(e) => handlePhotoUpload(e, activeWizardFolderId)}
-                        className="text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100 cursor-pointer"
+                        className="text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[var(--brand-soft)] file:text-[var(--brand-accent)] hover:file:bg-[var(--brand-tint)] cursor-pointer"
                       />
 
                       {uploadedPolaroids.filter((p) => (p.folder_id || "f-memories") === activeWizardFolderId).length > 0 && (
@@ -3005,7 +3005,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                           {uploadedPolaroids
                             .filter((p) => (p.folder_id || "f-memories") === activeWizardFolderId)
                             .map((p) => (
-                              <div key={p.id} className="p-2.5 rounded-xl border border-sky-200 bg-sky-50/40 flex gap-2.5 items-start">
+                              <div key={p.id} className="p-2.5 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-soft)]/40 flex gap-2.5 items-start">
                                 <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-stone-200 shrink-0">
                                   <Image unoptimized src={p.image} alt={p.caption} fill className="object-cover" />
                                 </div>
@@ -3020,7 +3020,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                                         prev.map((item) => (item.id === p.id ? { ...item, caption: val } : item))
                                       );
                                     }}
-                                    className="w-full px-2 py-0.5 rounded border border-sky-200 text-[11px] font-bold bg-white"
+                                    className="w-full px-2 py-0.5 rounded border border-[var(--brand-border)] text-[11px] font-bold bg-white"
                                   />
                                   <input
                                     type="text"
@@ -3032,7 +3032,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                                         prev.map((item) => (item.id === p.id ? { ...item, noteOnBack: val } : item))
                                       );
                                     }}
-                                    className="w-full px-2 py-0.5 rounded border border-sky-200 text-[10px] bg-white"
+                                    className="w-full px-2 py-0.5 rounded border border-[var(--brand-border)] text-[10px] bg-white"
                                   />
                                 </div>
                                 <button
@@ -3053,14 +3053,14 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                     </div>
 
                     {/* 2. Upload Video in Active Folder */}
-                    <div className="p-4 rounded-2xl bg-white border border-sky-200 space-y-3">
+                    <div className="p-4 rounded-2xl bg-white border border-[var(--brand-border)] space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-[#16232d] uppercase tracking-wider flex items-center gap-1.5">
-                          <VideoIcon className="w-3.5 h-3.5 text-sky-500" />
+                          <VideoIcon className="w-3.5 h-3.5 text-[var(--brand-accent)]" />
                           <span>2. Video Vow / Video Message</span>
                         </span>
                         {isUploadingVideo && (
-                          <span className="text-xs text-sky-600 font-bold flex items-center gap-1">
+                          <span className="text-xs text-[var(--brand-accent)] font-bold flex items-center gap-1">
                             <RefreshCw className="w-3 h-3 animate-spin" />
                             Uploading Video...
                           </span>
@@ -3071,7 +3071,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                         type="file"
                         accept="video/*"
                         onChange={(e) => handleVideoUpload(e, activeWizardFolderId)}
-                        className="text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100 cursor-pointer"
+                        className="text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[var(--brand-soft)] file:text-[var(--brand-accent)] hover:file:bg-[var(--brand-tint)] cursor-pointer"
                       />
 
                       {wizardVideos.filter((v) => (v.folder_id || "f-memories") === activeWizardFolderId).length > 0 && (
@@ -3115,10 +3115,10 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                     </div>
 
                     {/* 3. Live Voice Recording in Active Folder */}
-                    <div className="p-4 rounded-2xl bg-white border border-sky-200 space-y-3">
+                    <div className="p-4 rounded-2xl bg-white border border-[var(--brand-border)] space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-[#16232d] uppercase tracking-wider flex items-center gap-1.5">
-                          <Mic className="w-3.5 h-3.5 text-sky-500" />
+                          <Mic className="w-3.5 h-3.5 text-[var(--brand-accent)]" />
                           <span>3. Voice Tape Recording</span>
                         </span>
                         {isLiveRecording && (
@@ -3134,7 +3134,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                           placeholder="Voice Title (e.g. Midnight Thoughts)"
                           value={liveVoiceTitle}
                           onChange={(e) => setLiveVoiceTitle(e.target.value)}
-                          className="flex-1 px-3 py-1.5 rounded-lg border border-sky-200 text-xs font-semibold"
+                          className="flex-1 px-3 py-1.5 rounded-lg border border-[var(--brand-border)] text-xs font-semibold"
                         />
 
                         {!isLiveRecording ? (
@@ -3202,17 +3202,17 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                     </div>
 
                     {/* 4. Write Secret Notes & Vows in Active Folder */}
-                    <div className="p-4 rounded-2xl bg-white border border-sky-200 space-y-3">
+                    <div className="p-4 rounded-2xl bg-white border border-[var(--brand-border)] space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-[#16232d] uppercase tracking-wider flex items-center gap-1.5">
-                          <StickyNote className="w-3.5 h-3.5 text-sky-500" />
+                          <StickyNote className="w-3.5 h-3.5 text-[var(--brand-accent)]" />
                           <span>4. Written notes</span>
                         </span>
 
                         <button
                           type="button"
                           onClick={() => setIsAddingWizardTextNote(!isAddingWizardTextNote)}
-                          className="px-3 py-1 rounded-xl bg-sky-50 text-sky-700 text-xs font-bold hover:bg-sky-100 cursor-pointer"
+                          className="px-3 py-1 rounded-xl bg-[var(--brand-soft)] text-[var(--brand-accent)] text-xs font-bold hover:bg-[var(--brand-tint)] cursor-pointer"
                         >
                           {isAddingWizardTextNote ? "Cancel" : "+ Write Note"}
                         </button>
@@ -3276,8 +3276,8 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                     animate={{ opacity: 1, x: 0 }}
                     className="space-y-4"
                   >
-                    <div className="p-4 rounded-2xl bg-sky-50/70 border border-sky-200 flex items-center justify-between">
-                      <span className="text-xs font-bold text-sky-900 uppercase tracking-wider">
+                    <div className="p-4 rounded-2xl bg-[var(--brand-soft)]/70 border border-[var(--brand-border)] flex items-center justify-between">
+                      <span className="text-xs font-bold text-[var(--brand-accent)] uppercase tracking-wider">
                         Hopes, predictions & possibilities
                       </span>
                       <button
@@ -3294,7 +3294,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                             },
                           ]);
                         }}
-                        className="px-3 py-1 rounded-full bg-white border border-sky-300 text-sky-700 text-xs font-bold hover:bg-sky-50 cursor-pointer flex items-center gap-1"
+                        className="px-3 py-1 rounded-full bg-white border border-[var(--brand-border-strong)] text-[var(--brand-accent)] text-xs font-bold hover:bg-[var(--brand-soft)] cursor-pointer flex items-center gap-1"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         <span>+ Add Question</span>
@@ -3303,7 +3303,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
 
                     <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
                       {wizardPredictions.map((pred, idx) => (
-                        <div key={pred.id || idx} className="p-4 rounded-2xl bg-white border border-sky-200 shadow-xs space-y-2.5">
+                        <div key={pred.id || idx} className="p-4 rounded-2xl bg-white border border-[var(--brand-border)] shadow-xs space-y-2.5">
                           <div className="flex items-center justify-between gap-2">
                             <input
                               type="text"
@@ -3315,7 +3315,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                                   prev.map((p, i) => (i === idx ? { ...p, question: val } : p))
                                 );
                               }}
-                              className="w-full px-3 py-1.5 rounded-xl border border-sky-200 text-xs font-bold bg-sky-50/30"
+                              className="w-full px-3 py-1.5 rounded-xl border border-[var(--brand-border)] text-xs font-bold bg-[var(--brand-soft)]/30"
                             />
                             {wizardPredictions.length > 1 && (
                               <button
@@ -3339,7 +3339,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                                   prev.map((p, i) => (i === idx ? { ...p, partner1Answer: val } : p))
                                 );
                               }}
-                              className="px-2.5 py-1.5 rounded-lg border border-sky-200 text-xs"
+                              className="px-2.5 py-1.5 rounded-lg border border-[var(--brand-border)] text-xs"
                             />
                             <input
                               type="text"
@@ -3351,7 +3351,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                                   prev.map((p, i) => (i === idx ? { ...p, partner2Answer: val } : p))
                                 );
                               }}
-                              className="px-2.5 py-1.5 rounded-lg border border-cyan-200 text-xs"
+                              className="px-2.5 py-1.5 rounded-lg border border-[var(--brand-border)] text-xs"
                             />
                           </div>
                         </div>
@@ -3394,7 +3394,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                               </motion.button>
                               <button
                                 onClick={handleCloseCreateWizard}
-                                className="px-5 py-2.5 rounded-xl bg-white hover:bg-sky-50 text-[#526e7e] text-sm font-semibold border border-sky-200 cursor-pointer"
+                                className="px-5 py-2.5 rounded-xl bg-white hover:bg-[var(--brand-soft)] text-[#526e7e] text-sm font-semibold border border-[var(--brand-border)] cursor-pointer"
                               >
                                 Return to Vault
                               </button>
@@ -3423,7 +3423,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                             <motion.div
                               animate={{ scale: [1, 1.15, 1] }}
                               transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-                              className="w-20 h-20 rounded-full bg-gradient-to-tr from-sky-500 to-cyan-400 flex items-center justify-center text-white shadow-xl mx-auto"
+                              className="w-20 h-20 rounded-full bg-gradient-to-tr from-[var(--brand-accent)] to-[var(--brand-highlight)] flex items-center justify-center text-white shadow-xl mx-auto"
                             >
                               <Users className="w-9 h-9" />
                             </motion.div>
@@ -3444,7 +3444,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                                 <span className="text-xs font-bold text-amber-800">Waiting for partner acceptance</span>
                               </div>
                               <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-sky-300" />
+                                <div className="w-2 h-2 rounded-full bg-[var(--brand-border)]" />
                                 <span className="text-xs font-medium text-amber-700">Capsule locks when partner agrees</span>
                               </div>
                             </div>
@@ -3473,20 +3473,20 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                             onClick={() => setNewSealMode("solo")}
                             className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer ${
                               newSealMode === "solo"
-                                ? "border-sky-500 bg-sky-50 shadow-md shadow-sky-100"
-                                : "border-sky-200 bg-white hover:border-sky-300"
+                                ? "border-[var(--brand-accent)] bg-[var(--brand-soft)] shadow-md shadow-[var(--brand-accent)]"
+                                : "border-[var(--brand-border)] bg-white hover:border-[var(--brand-border-strong)]"
                             }`}
                           >
                             <div className="flex items-center gap-3 mb-2">
                               <div className={`w-9 h-9 rounded-full flex items-center justify-center text-lg ${
-                                newSealMode === "solo" ? "bg-sky-500 text-white" : "bg-sky-100 text-sky-500"
+                                newSealMode === "solo" ? "bg-[var(--brand-accent)] text-white" : "bg-[var(--brand-tint)] text-[var(--brand-accent)]"
                               }`}>
                                 🧍
                               </div>
                               <div>
                                 <div className="text-sm font-extrabold text-[#16232d]">Solo Seal</div>
                                 {newSealMode === "solo" && (
-                                  <div className="text-[10px] font-bold text-sky-600 uppercase tracking-wide">Selected ✓</div>
+                                  <div className="text-[10px] font-bold text-[var(--brand-accent)] uppercase tracking-wide">Selected ✓</div>
                                 )}
                               </div>
                             </div>
@@ -3501,20 +3501,20 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                             onClick={() => setNewSealMode("couple")}
                             className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer ${
                               newSealMode === "couple"
-                                ? "border-cyan-500 bg-cyan-50 shadow-md shadow-cyan-100"
-                                : "border-sky-200 bg-white hover:border-sky-300"
+                                ? "border-[var(--brand-accent)] bg-[var(--brand-soft)] shadow-md shadow-[var(--brand-accent)]"
+                                : "border-[var(--brand-border)] bg-white hover:border-[var(--brand-border-strong)]"
                             }`}
                           >
                             <div className="flex items-center gap-3 mb-2">
                               <div className={`w-9 h-9 rounded-full flex items-center justify-center text-lg ${
-                                newSealMode === "couple" ? "bg-cyan-500 text-white" : "bg-cyan-100 text-cyan-500"
+                                newSealMode === "couple" ? "bg-[var(--brand-accent)] text-white" : "bg-[var(--brand-tint)] text-[var(--brand-accent)]"
                               }`}>
                                 💑
                               </div>
                               <div>
                                 <div className="text-sm font-extrabold text-[#16232d]">Couple Seal</div>
                                 {newSealMode === "couple" && (
-                                  <div className="text-[10px] font-bold text-cyan-600 uppercase tracking-wide">Selected ✓</div>
+                                  <div className="text-[10px] font-bold text-[var(--brand-accent)] uppercase tracking-wide">Selected ✓</div>
                                 )}
                               </div>
                             </div>
@@ -3525,9 +3525,9 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                         </div>
 
                         {newSealMode === "couple" && (
-                          <div className="flex items-start gap-2 p-3 rounded-xl bg-cyan-50 border border-cyan-200">
-                            <Bell className="w-4 h-4 text-cyan-500 shrink-0 mt-0.5" />
-                            <p className="text-[11px] text-cyan-700 font-medium leading-relaxed">
+                          <div className="flex items-start gap-2 p-3 rounded-xl bg-[var(--brand-soft)] border border-[var(--brand-border)]">
+                            <Bell className="w-4 h-4 text-[var(--brand-accent)] shrink-0 mt-0.5" />
+                            <p className="text-[11px] text-[var(--brand-accent)] font-medium leading-relaxed">
                               Your partner will receive a notification to co-seal. The capsule won&#39;t lock until they accept.
                               Opening it later also requires both of you to agree.
                             </p>
@@ -3556,7 +3556,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                               setNewSealColor(c.id as TimeCapsuleRecord["seal_color"]);
                             }}
                             className={`w-9 h-9 rounded-full ${c.color} flex items-center justify-center text-white transition-all cursor-pointer ${
-                              newSealColor === c.id ? "ring-4 ring-sky-400 scale-110 shadow-md" : "opacity-80"
+                              newSealColor === c.id ? "ring-4 ring-[var(--brand-border-strong)] scale-110 shadow-md" : "opacity-80"
                             }`}
                           >
                             {newSealColor === c.id && <Check className="w-4 h-4" />}
@@ -3580,8 +3580,8 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                             }}
                             className={`w-10 h-10 rounded-2xl text-lg flex items-center justify-center border transition-all cursor-pointer ${
                               newSealStamp === stamp
-                                ? "bg-sky-100 border-sky-500 scale-110 shadow-xs"
-                                : "bg-white border-sky-100 hover:bg-sky-50"
+                                ? "bg-[var(--brand-tint)] border-[var(--brand-accent)] scale-110 shadow-xs"
+                                : "bg-white border-[var(--brand-border)] hover:bg-[var(--brand-soft)]"
                             }`}
                           >
                             {stamp}
@@ -3591,8 +3591,8 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                     </div>
 
                     {/* Hold to Seal Action */}
-                    <div className="p-6 rounded-3xl bg-gradient-to-b from-sky-50 to-cyan-50 border border-sky-200 space-y-3">
-                      <div className="text-xs font-bold text-sky-900 uppercase tracking-wider">
+                    <div className="p-6 rounded-3xl bg-gradient-to-b from-[var(--brand-soft)] to-[var(--brand-soft)] border border-[var(--brand-border)] space-y-3">
+                      <div className="text-xs font-bold text-[var(--brand-accent)] uppercase tracking-wider">
                         Ready for another day
                       </div>
                       <p className="text-xs text-[#617c8b]">
@@ -3616,7 +3616,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                           whileHover={{ scale: 1.03 }}
                           whileTap={{ scale: 0.97 }}
                           className={`${styles.sealAction} px-8 py-3.5 rounded-full font-bold text-sm text-white transition-all select-none cursor-pointer relative overflow-hidden shadow-lg ${
-                            isHoldingToSeal ? "bg-sky-700 shadow-sky-600/40" : "btn-love-primary"
+                            isHoldingToSeal ? "bg-[var(--brand-hover)] shadow-[var(--brand-accent)]/40" : "btn-love-primary"
                           }`}
                         >
                           <span className="relative z-10 flex items-center gap-2">
@@ -3632,7 +3632,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
 
                           {isHoldingToSeal && (
                             <div
-                              className="absolute top-0 bottom-0 left-0 bg-sky-700/30 transition-all duration-75"
+                              className="absolute top-0 bottom-0 left-0 bg-[var(--brand-hover)]/30 transition-all duration-75"
                               style={{ width: `${sealProgress}%` }}
                             />
                           )}
@@ -3640,7 +3640,7 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                       </div>
 
                       {isHoldingToSeal && (
-                        <div className="text-[11px] font-bold text-sky-700">
+                        <div className="text-[11px] font-bold text-[var(--brand-accent)]">
                           Sealing your capsule ({sealProgress}%)...
                         </div>
                       )}
@@ -3651,11 +3651,11 @@ export default function TimeCapsuleStudio({sharedOnly=false}: {sharedOnly?:boole
                 )}
               </div>
 
-              <div className={`${styles.wizardFooter} p-4 bg-sky-50/60 border-t border-sky-100 flex items-center justify-between shrink-0`}>
+              <div className={`${styles.wizardFooter} p-4 bg-[var(--brand-soft)]/60 border-t border-[var(--brand-border)] flex items-center justify-between shrink-0`}>
                 {createStep > 1 && !sealRequestSent ? (
                   <button
                     onClick={() => setCreateStep((prev) => (prev - 1) as typeof createStep)}
-                    className="px-4 py-2 rounded-xl text-xs font-semibold text-sky-800 hover:bg-sky-100 transition-colors cursor-pointer"
+                    className="px-4 py-2 rounded-xl text-xs font-semibold text-[var(--brand-accent)] hover:bg-[var(--brand-tint)] transition-colors cursor-pointer"
                   >
                     Back
                   </button>

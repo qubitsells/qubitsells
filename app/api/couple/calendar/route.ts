@@ -1,3 +1,4 @@
+import { withNotificationEmails } from "@/lib/server/notification-email";
 import {NextResponse} from "next/server";
 import {z} from "zod";
 import {calendarDays,calendarEventSchema,calendarMonthSchema} from "@/lib/calendar";
@@ -25,10 +26,12 @@ export async function GET(request:Request){try{
 }catch(error){return apiError(error);}}
 
 const mutation=z.object({couple_id:z.uuid(),event_id:z.uuid(),operation:z.enum(["create","update","delete","accept","decline"]),version:z.number().int().positive().nullable(),event:calendarEventSchema.optional()}).superRefine((value,ctx)=>{if((value.operation==="create"||value.operation==="update")&&!value.event)ctx.addIssue({code:"custom",message:"Add the plan details.",path:["event"]});if(value.operation!=="create"&&!value.version)ctx.addIssue({code:"custom",message:"Refresh this plan before changing it.",path:["version"]});});
-export async function POST(request:Request){try{
+async function handlePOST(request:Request){try{
   requireSameOrigin(request);const user=await requireUser();await rateLimit(request,"couple-calendar",100);
   const input=mutation.safeParse(await jsonBody(request,20000));if(!input.success)throw new HttpError(400,input.error.issues[0]?.message||"Check the plan details.");
   const client=await createClient();await requireCalendarPair(client,input.data.couple_id,user.id);
   const {data,error}=await adminClient().rpc("qubit_calendar_operation",{p_actor_id:user.id,p_couple_id:input.data.couple_id,p_operation:input.data.operation,p_event_id:input.data.event_id,p_expected_version:input.data.version,p_data:input.data.event||{}});calendarError(error);
   return NextResponse.json({success:true,event:data},{headers:privateHeaders});
 }catch(error){return apiError(error);}}
+
+export const POST = withNotificationEmails(handlePOST);

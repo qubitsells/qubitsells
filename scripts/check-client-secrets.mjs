@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import nextEnv from "@next/env";
 nextEnv.loadEnvConfig(process.cwd());
-const names=["SUPABASE_SERVICE_ROLE_KEY","CLOUDINARY_API_KEY","CLOUDINARY_API_SECRET","CAPSULE_ENCRYPTION_KEY","IP_HASH_SALT","CRON_SECRET","STRIPE_SECRET_KEY","STRIPE_WEBHOOK_SECRET"];
+const names=["SUPABASE_SERVICE_ROLE_KEY","CLOUDINARY_API_KEY","CLOUDINARY_API_SECRET","CAPSULE_ENCRYPTION_KEY","IP_HASH_SALT","CRON_SECRET","STRIPE_SECRET_KEY","STRIPE_WEBHOOK_SECRET","SMTP_PASSWORD"];
 const secrets=names.map(name=>({name,value:process.env[name]})).filter(item=>item.value && item.value.length>=12);
 const findings=[];
 function scan(directory) {

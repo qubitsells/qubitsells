@@ -1,10 +1,11 @@
+import { withNotificationEmails } from "@/lib/server/notification-email";
 import { NextResponse } from "next/server";
 import { adminClient, apiError, HttpError, jsonBody, requireSameOrigin, requireUser } from "@/lib/server/security";
 import { databaseResult, privateHeaders } from "@/lib/server/commerce";
 import {createClient} from "@/lib/supabase/server";
 import { ensureReviewInvitations } from "@/lib/server/reviews";
 
-export async function GET(request: Request) {
+async function handleGET(request: Request) {
   try { const user = await requireUser(); await ensureReviewInvitations(user.id, adminClient()); const db = await createClient();
     const page = Math.max(0, Math.min(Number(new URL(request.url).searchParams.get("page")) || 0, 10000));
     const [items, unread] = await Promise.all([
@@ -22,3 +23,5 @@ export async function PATCH(request: Request) {
     await databaseResult(query); return NextResponse.json({success: true}, {headers: privateHeaders});
   } catch (error) { return apiError(error); }
 }
+
+export const GET = withNotificationEmails(handleGET);

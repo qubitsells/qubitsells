@@ -3,7 +3,7 @@ import {Suspense,useCallback,useEffect,useRef,useState} from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {useRouter} from "next/navigation";
-import {ArrowRight,ArrowUpRight,Check,ChevronRight,Clock3,FileText,ImageIcon,Link2,Loader2,MessageSquare,MonitorPlay,Play,ShieldCheck} from "lucide-react";
+import {ArrowRight,ArrowUpRight,Check,ChevronRight,Clock3,FileText,ImageIcon,Link2,Loader2,MessageSquare,MonitorPlay,ShieldCheck} from "lucide-react";
 import {useAuth} from "@/context/AuthContext";
 import {LINK_DURATION_PRICES,PRODUCTS,editorHref,productHref} from "@/lib/storefront";
 import type {getProductDetails} from "@/lib/product-details";
@@ -11,13 +11,14 @@ import {money} from "@/lib/commerce";
 import WishlistButton from "./WishlistButton";
 import ProductReviews from "./ProductReviews";
 import ProductQuery from "./ProductQuery";
+import ProductGallery from "./ProductGallery";
 import type {productOptions} from "@/lib/product-navigation";
 import styles from "./commerce.module.css";
 
 type Product=NonNullable<ReturnType<typeof getProductDetails>>;
 export default function ProductPage({product,initialDuration=72,requestReview=false,cancelled=false}: {product:Product;initialDuration?:number;requestReview?:boolean;cancelled?:boolean}) {
   const [queryReview,setQueryReview]=useState(requestReview),[queryCancelled,setQueryCancelled]=useState(cancelled);
-  const {user}=useAuth(),router=useRouter();const [selected,setSelected]=useState(0),[video,setVideo]=useState(false),[hours,setHours]=useState(initialDuration),[checkout,setCheckout]=useState<{available:boolean;mode:string}|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState("");
+  const {user}=useAuth(),router=useRouter();const [hours,setHours]=useState(initialDuration),[checkout,setCheckout]=useState<{available:boolean;mode:string}|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState("");
   const attempt=useRef<string|null>(null); const price=LINK_DURATION_PRICES.find(price=>price.maxHours===hours)||LINK_DURATION_PRICES[0];
   const testCheckout=useRef<HTMLDialogElement>(null);
   const applyQuery=useCallback((options:ReturnType<typeof productOptions>)=>{setHours(options.duration);setQueryReview(options.review);setQueryCancelled(options.cancelled);attempt.current=null;},[]);
@@ -29,7 +30,7 @@ export default function ProductPage({product,initialDuration=72,requestReview=fa
     <Suspense fallback={null}><ProductQuery onChange={applyQuery}/></Suspense>
     <nav className={styles.breadcrumb} aria-label="Breadcrumb"><Link href="/">Home</Link><ChevronRight size={12} aria-hidden="true"/><Link href="/templates">Templates</Link><ChevronRight size={12} aria-hidden="true"/><span aria-current="page">{product.name}</span></nav>
     <section className={styles.productHero}>
-      <div className={styles.gallery}><div className={styles.mainArtwork}>{video&&product.video?<video src={product.video} controls autoPlay playsInline className={styles.productVideo}/>:<Image src={product.scenes[selected]?.file||product.image} alt={`${product.name}: ${product.scenes[selected]?.title||"illustrated artwork"}`} fill sizes="(max-width: 850px) 95vw, 700px" priority/>}<span className={styles.artLabel}>{video?"Video preview":`Scene ${selected+1} of ${product.scenes.length}`}</span></div><div className={styles.thumbnails} role="group" aria-label="Preview scenes">{product.scenes.map((scene,index)=><button key={scene.file} type="button" aria-label={`View scene ${index+1}: ${scene.title}`} aria-pressed={!video&&selected===index} onClick={()=>{setSelected(index);setVideo(false);}}><Image src={scene.file} alt="" fill sizes="90px"/><span>{String(index+1).padStart(2,"0")}</span></button>)}{product.video&&<button type="button" className={styles.videoThumb} aria-pressed={video} onClick={()=>setVideo(true)}><Play size={19} aria-hidden="true"/><span>Film</span></button>}</div><p className={styles.galleryCaption}>Original scene artwork · Personalize the names, message, and supported memories in the editor.</p></div>
+      <ProductGallery key={product.slug} name={product.name} poster={product.image} youtubeVideoId={product.youtubeVideoId} scenes={product.scenes}/>
       <div className={styles.productInfo}><div className={styles.productTags}>{product.occasions.map(occasion=><span key={occasion}>{occasion}</span>)}<span>Digital template</span></div><h1>{product.name}</h1><p className={styles.productLead}>{product.description}</p><a href="#reviews" className={styles.reviewJump}>Customer reviews <ArrowRight size={12} aria-hidden="true"/></a><div className={styles.price}><strong>{money(price.amountCents)}</strong><span>USD · one-time purchase<br/>One personalized sharing link</span></div>
       <fieldset className={styles.duration}><legend>How long should your link stay live?</legend><div>{LINK_DURATION_PRICES.map(item=><label key={item.maxHours} className={hours===item.maxHours?styles.durationSelected:""}><input type="radio" name="link-duration" value={item.maxHours} checked={hours===item.maxHours} onChange={()=>{setHours(item.maxHours);attempt.current=null;}}/><span>{item.label}</span><strong>{money(item.amountCents)}</strong>{hours===item.maxHours&&<Check size={12} aria-hidden="true"/>}</label>)}</div><p><Clock3 size={13} aria-hidden="true"/>The clock starts when you publish your link.</p></fieldset>
       {queryCancelled&&<p className={styles.notice} role="status">Checkout was cancelled. You can continue browsing or try again.</p>}

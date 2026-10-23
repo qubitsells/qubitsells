@@ -570,7 +570,7 @@ export function CreatorRepliesDrawer({
                             : invitation.status === "declined"
                             ? "bg-neutral-800 text-neutral-400 border border-neutral-700"
                             : invitation.status === "deferred"
-                            ? "bg-sky-500/20 text-sky-300 border border-sky-500/30"
+                            ? "bg-[var(--brand-accent)]/20 text-[var(--brand-accent)] border border-[var(--brand-accent)]/30"
                             : "bg-pink-500/20 text-pink-300 border border-pink-500/30"
                         }`}
                       >
