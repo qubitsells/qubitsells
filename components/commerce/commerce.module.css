@@ -202,11 +202,11 @@
 .resumePayment > .error { flex-basis:100%; margin:0; }
 .reviewCta { position:relative; isolation:isolate; overflow:hidden; background:linear-gradient(120deg,var(--brand-accent),var(--brand-highlight)); color:var(--brand-on-accent); border-color:var(--brand-accent); box-shadow:0 4px 14px rgb(var(--brand-rgb) / 19%),inset 0 1px 0 rgb(255 255 255 / 45%); min-height:48px; padding:12px 20px; font-size:13px; font-weight:650; letter-spacing:.1px; }
 .reviewCta::before { content:""; position:absolute; z-index:-1; inset:0; background:linear-gradient(110deg,transparent 25%,rgb(255 255 255 / 45%) 50%,transparent 75%); transform:translateX(-150%); pointer-events:none; }
-.reviewCta > svg:first-child { fill:rgb(7 50 71 / 9%); }
+.reviewCta > svg:first-child { fill:rgb(255 255 255 / 12%); }
 .reviewCtaArrow { margin-left:7px; font-size:18px; }
 .reviewCta:focus-visible { outline:3px solid var(--brand-accent); outline-offset:4px; }
 .orderActions .reviewCta { min-height:44px; font-size:12px; padding:11px 17px; }
-.notificationItem a.reviewCta { display:inline-flex; margin-top:13px; width:fit-content; color:var(--brand-accent); font-size:12px; text-decoration:none; }
+.notificationItem a.reviewCta { display:inline-flex; margin-top:13px; width:fit-content; color:var(--brand-on-accent); font-size:12px; text-decoration:none; }
 .reviewDialog { width:min(560px,calc(100% - 32px)); max-height:calc(100dvh - 40px); margin:auto; padding:30px; color:#16232d; background:#fff; border:1px solid var(--brand-border); border-radius:17px; box-shadow:0 30px 100px rgb(5 35 50 / 25%); overflow:auto; overscroll-behavior:contain; }
 .reviewDialog::backdrop { background:rgb(9 30 43 / 48%); backdrop-filter:blur(5px); }
 .checkoutDialog h2 { font-family:var(--font-playfair),Georgia,serif; font-size:32px; line-height:1.2; margin-top:12px; }

@@ -13,6 +13,7 @@ export type StoreProduct = {
   description: string;
   image: string;
   occasions: Occasion[];
+  youtubeVideoId: string;
   video?: string;
   heroVideo?: string;
   heroVideoMobile?: string;
@@ -23,6 +24,7 @@ export type StoreProduct = {
 export const PRODUCTS: StoreProduct[] = [
   {
     slug: "halloween-pumpkin-moon",
+    youtubeVideoId: "PezZNNxm0e8",
     name: "Pumpkin Moon Date",
     description: "A pumpkin patch, a little magic, and a moonlit invitation just for them.",
     image: "/templates/halloween-pumpkin-moon/06-our-pumpkin-moon-date.png",
@@ -35,6 +37,7 @@ export const PRODUCTS: StoreProduct[] = [
   },
   {
     slug: "our-little-pink-day",
+    youtubeVideoId: "VMkLdJkeyA8",
     name: "Our Little Pink Day",
     description: "Turn café dates, shared desserts, and everyday moments into a little love story.",
     image: "/templates/our-little-pink-day/01-my-favorite-meetup.png",
@@ -47,6 +50,7 @@ export const PRODUCTS: StoreProduct[] = [
   },
   {
     slug: "halloween-midnight-key",
+    youtubeVideoId: "629TeAfKUXI",
     name: "The Midnight Key",
     description: "Follow the fireflies, unlock a secret garden, and leave a message worth finding.",
     image: "/templates/halloween-midnight-key/01-the-hidden-key.png",
@@ -59,6 +63,7 @@ export const PRODUCTS: StoreProduct[] = [
   },
   {
     slug: "starlit-story",
+    youtubeVideoId: "mtPf4ZfW7T0",
     name: "Starlit Story",
     description: "An illustrated letter beneath the stars, for an anniversary or a just-because moment.",
     image: "/templates/starlit-story/05-beneath-one-sky.png",
@@ -67,6 +72,7 @@ export const PRODUCTS: StoreProduct[] = [
   },
   {
     slug: "spooky-the-haunted-waltz",
+    youtubeVideoId: "oQIvFdIF62E",
     name: "The Haunted Waltz",
     description: "A candlelit manor and a ghostly ballroom for someone who loves a spooky story.",
     image: "/templates/spooky-the-haunted-waltz/05-the-haunted-waltz.png",
@@ -75,6 +81,7 @@ export const PRODUCTS: StoreProduct[] = [
   },
   {
     slug: "anime-storm-and-flame",
+    youtubeVideoId: "T-b3P7_ffas",
     name: "Storm & Flame",
     description: "An anime adventure about showing up for each other, even when the storm rolls in.",
     image: "/templates/anime-storm-and-flame/05-our-combined-strength.png",

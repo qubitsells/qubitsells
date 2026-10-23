@@ -48,7 +48,7 @@ export default function Home() {
       <ExperienceDemo />
       <section className={`${styles.container} ${styles.coupleSection}`}>
         <div className={styles.coupleVisual}>
-          <Image src="/couple-space-shared-memories.png" alt="A couple opening a cyan memory box with photos, a letter, and a voice note" fill sizes="(max-width: 760px) 100vw, 600px" className={styles.sharedMemoriesImage} />
+          <Image src="/couple-space-shared-memories.webp" alt="A couple opening a cyan memory box with photos, a letter, and a voice note" fill sizes="(max-width: 760px) 100vw, 600px" className={styles.sharedMemoriesImage} />
           <span>Shared memories · illustration</span>
         </div>
         <div className={styles.coupleCopy}><p className={styles.eyebrow}>A space to keep coming back to</p><h2>For the two of you,<br />there’s Couple Space.</h2><p>Beyond a single gift, keep a private corner for your relationship — with shared milestones and memories to open another day.</p><ul><li>Plan a date with the Vibe Check generator.</li><li>Keep photos, letters, and voice notes in capsules.</li><li>Co-seal shared capsules with your partner’s consent.</li></ul><Link href="/couple-space" className={`${styles.button} ${styles.coupleExplore}`}><span>Explore Couple Space</span><span className={styles.coupleExploreIcon} aria-hidden="true"><ArrowUpRight size={19} /></span></Link><p className={styles.purchaseNote}>Separate from gifting. Private features require sign-in.</p></div>
