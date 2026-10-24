@@ -1,5 +1,10 @@
 "use client";
 
+import { SenderAnswerField, SenderPollChoices } from "@/components/tools/SenderSetupFields";
+import VenueEditor from "@/components/tools/VenueEditor";
+import { buildVenue } from "@/lib/template-venue";
+import DateSlotEditor from "@/components/tools/DateSlotEditor";
+import type { InvitationSlot } from "@/lib/supabase/coupleTemplates";
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -68,19 +73,20 @@ export default function HauntedWaltzStudio() {
 
   // 2. T02 Date Invitation & Proposed Slots
   const [dateToolEnabled, setDateToolEnabled] = useState(true);
-  const [dateSlots, setDateSlots] = useState([
-    { id: "slot_1", start_time: "Midnight Manor Stroll, 8:00 PM", label: "Midnight Manor Stroll (8:00 PM)" },
-    { id: "slot_2", start_time: "Candlelit Horror Film, 10:00 PM", label: "Candlelit Horror Film (10:00 PM)" },
-  ]);
-  const [newSlotInput, setNewSlotInput] = useState("");
+  const [dateSlots, setDateSlots] = useState<InvitationSlot[]>([]);
 
   // 3. T03 Date Location & Venue Map
   const [locationToolEnabled, setLocationToolEnabled] = useState(false);
   const [dateFormat, setDateFormat] = useState<"in_person" | "online">("in_person");
+  const [meetingUrl, setMeetingUrl] = useState("");
+  const [reservationUrl, setReservationUrl] = useState("");
   const [dateLocation, setDateLocation] = useState("Under the Grand Manor Chandelier");
 
   // 4. T04 Vibe Check & Choice Polls
   const [pollToolEnabled, setPollToolEnabled] = useState(false);
+  const [senderPollChoices,setSenderPollChoices]=useState<string[]>([]);
+  const [senderQuestionAnswer,setSenderQuestionAnswer]=useState("");
+  const [senderSecretAnswer,setSenderSecretAnswer]=useState("");
   const [pollQuestion, setPollQuestion] = useState("What eerie adventure should we take next?");
   const [pollOptions, setPollOptions] = useState([
     "Explore an ancient candlelit manor together",
@@ -357,23 +363,6 @@ export default function HauntedWaltzStudio() {
     }
   };
 
-  const handleAddSlot = () => {
-    if (!newSlotInput.trim()) return;
-    setDateSlots((prev) => [
-      ...prev,
-      {
-        id: `slot_${Date.now()}`,
-        start_time: newSlotInput.trim(),
-        label: newSlotInput.trim(),
-      },
-    ]);
-    setNewSlotInput("");
-  };
-
-  const handleRemoveSlot = (id: string) => {
-    setDateSlots((prev) => prev.filter((s) => s.id !== id));
-  };
-
   const handleAddPollOption = () => {
     if (!newPollOption.trim()) return;
     setPollOptions((prev) => [...prev, newPollOption.trim()]);
@@ -381,6 +370,7 @@ export default function HauntedWaltzStudio() {
   };
 
   const handleRemovePollOption = (index: number) => {
+    setSenderPollChoices([]);
     setPollOptions((prev) => prev.filter((_, i) => i !== index));
   };
 
@@ -458,8 +448,13 @@ export default function HauntedWaltzStudio() {
   };
 
   // Assemble template tools configuration payload
+  const senderSetupError = pollToolEnabled && !senderPollChoices.some(id=>pollOptions.some((_,index)=>id===`opt_${index+1}`)) ? "Choose your own answer in Vibe Check & Poll." : questionToolEnabled && !senderQuestionAnswer.trim() ? "Write your answer in Heart-to-Heart Q&A." : revealToolEnabled && !senderSecretAnswer.trim() ? "Write your private answer in Synchronized Secret." : "";
+
   const buildToolsPayload = (): TemplateTool[] => {
+    if(senderSetupError)throw new Error(senderSetupError);
     const tools: TemplateTool[] = [];
+    const venue = locationToolEnabled ? buildVenue(dateFormat, dateLocation, meetingUrl, reservationUrl) : null;
+    if (venue) tools.push(venue);
 
     // 1. T01: Reply Tool
     if (replyToolEnabled) {
@@ -483,14 +478,17 @@ export default function HauntedWaltzStudio() {
 
     // 2 & 3. T02 & T03: Date Invitation & Location
     if (dateToolEnabled) {
+      if (!dateSlots.length) throw new Error("Add at least one exact date in Date Night & RSVP, or turn that tool off.");
       tools.push({
         id: "invitation_t02",
         type: "invitation",
         enabled: true,
         activity: "The Haunted Waltz",
         invitationMessage: HAUNTED_WALTZ_CONFIG.finalQuestion,
-        format: locationToolEnabled ? dateFormat : "in_person",
-        location: locationToolEnabled ? dateLocation.trim() || "Under the Grand Manor Chandelier" : undefined,
+        format: venue?.format || "in_person",
+        location: venue?.location,
+        meetingUrl: venue?.meetingUrl,
+        reservationUrl: venue?.reservationUrl,
         dateMode: "slots",
         durationMinutes: 120,
         senderTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
@@ -512,6 +510,7 @@ export default function HauntedWaltzStudio() {
         question: pollQuestion.trim() || "What eerie adventure should we take next?",
         description: "Vote for your favorite idea!",
         selectionMode: "both_vote",
+        senderOptionIds: senderPollChoices,
         allowMultiple: false,
         allowCustomSuggestion: true,
         options: pollOptions.map((opt, i) => ({
@@ -536,6 +535,7 @@ export default function HauntedWaltzStudio() {
             type: "short",
             skippable: true,
             reveal_mode: "after_partner_answers",
+            sender_answer: senderQuestionAnswer.trim(),
           },
         ],
       });
@@ -550,6 +550,7 @@ export default function HauntedWaltzStudio() {
         prompt: revealPrompt.trim() || "A gothic confession waiting to be unlocked together in the dark...",
         description: "Locked surprise unlocked together.",
         countdownSeconds: 3,
+        senderAnswers: {main:senderSecretAnswer.trim()},
       });
     }
 
@@ -1057,47 +1058,7 @@ export default function HauntedWaltzStudio() {
                   </div>
 
                   {dateToolEnabled && (
-                    <div className="pt-2 space-y-2 border-t border-[#2E414A]">
-                      <div className="text-[11px] font-bold text-[#90C9C6]">
-                        Proposed Time Slots:
-                      </div>
-                      <div className="space-y-1 max-h-28 overflow-y-auto">
-                        {dateSlots.map((slot) => (
-                          <div
-                            key={slot.id}
-                            className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-[#0B1015] border border-[#2E414A] text-xs text-[#EDF1ED]"
-                          >
-                            <span className="truncate">{slot.label}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveSlot(slot.id)}
-                              className="text-rose-400 hover:text-rose-300 p-0.5 shrink-0"
-                              title="Delete slot"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="flex gap-1.5 pt-1">
-                        <input
-                          type="text"
-                          value={newSlotInput}
-                          onChange={(e) => setNewSlotInput(e.target.value)}
-                          onKeyDown={(e) => e.key === "Enter" && handleAddSlot()}
-                          placeholder="Add slot (e.g. Midnight, 11:30 PM)..."
-                          className="flex-1 px-3 py-1.5 rounded-xl bg-[#0B1015] border border-[#2E414A] text-xs text-[#EDF1ED] focus:outline-none focus:border-[#90C9C6]"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleAddSlot}
-                          className="px-3 py-1.5 rounded-xl bg-[#90C9C6] text-[#0B1015] text-xs font-bold hover:scale-105 active:scale-95 transition-all shadow-2xs cursor-pointer"
-                        >
-                          Add
-                        </button>
-                      </div>
-                    </div>
+                    <DateSlotEditor value={dateSlots} onChange={setDateSlots} palette={HAUNTED_WALTZ_PALETTE} />
                   )}
                 </div>
               </div>
@@ -1142,50 +1103,7 @@ export default function HauntedWaltzStudio() {
                   </div>
 
                   {locationToolEnabled && (
-                    <div className="pt-2 space-y-2 border-t border-[#2E414A]">
-                      <div>
-                        <label className="text-[10px] font-bold text-[#90C9C6] block mb-1">
-                          Date Format:
-                        </label>
-                        <div className="grid grid-cols-2 gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => setDateFormat("in_person")}
-                            className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                              dateFormat === "in_person"
-                                ? "bg-[#90C9C6] text-[#0B1015] shadow-2xs"
-                                : "bg-[#0B1015] border border-[#2E414A] text-[#EDF1ED]"
-                            }`}
-                          >
-                            🏡 In-Person
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setDateFormat("online")}
-                            className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                              dateFormat === "online"
-                                ? "bg-[#90C9C6] text-[#0B1015] shadow-2xs"
-                                : "bg-[#0B1015] border border-[#2E414A] text-[#EDF1ED]"
-                            }`}
-                          >
-                            💻 Online Date
-                          </button>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="text-[10px] font-bold text-[#90C9C6] block mb-0.5">
-                          Venue or Meeting Spot:
-                        </label>
-                        <input
-                          type="text"
-                          value={dateLocation}
-                          onChange={(e) => setDateLocation(e.target.value)}
-                          placeholder="E.g. Under the Grand Manor Chandelier..."
-                          className="w-full px-3 py-1.5 rounded-xl bg-[#0B1015] border border-[#2E414A] text-xs text-[#EDF1ED] focus:outline-none focus:border-[#90C9C6]"
-                        />
-                      </div>
-                    </div>
+                    <VenueEditor format={dateFormat} onFormat={setDateFormat} location={dateLocation} onLocation={setDateLocation} meetingUrl={meetingUrl} onMeetingUrl={setMeetingUrl} reservationUrl={reservationUrl} onReservationUrl={setReservationUrl} palette={HAUNTED_WALTZ_PALETTE} />
                   )}
                 </div>
               </div>
@@ -1280,6 +1198,7 @@ export default function HauntedWaltzStudio() {
                           Add
                         </button>
                       </div>
+                      <SenderPollChoices options={pollOptions} value={senderPollChoices} onChange={setSenderPollChoices} palette={HAUNTED_WALTZ_PALETTE} />
                     </div>
                   )}
                 </div>
@@ -1320,7 +1239,7 @@ export default function HauntedWaltzStudio() {
                       5. Heart-to-Heart Q&amp;A
                     </h4>
                     <p className="text-xs text-[#B8C6CE] mt-1 leading-snug">
-                      Ask an intimate question that {partnerName || "your partner"} answers before continuing through the story scenes.
+                      Add your answer now, then invite them to share their side.
                     </p>
                   </div>
 
@@ -1336,6 +1255,7 @@ export default function HauntedWaltzStudio() {
                         placeholder="If we were ghosts, where would our haunt be?..."
                         className="w-full px-3 py-1.5 rounded-xl bg-[#0B1015] border border-[#2E414A] text-xs text-[#EDF1ED] focus:outline-none focus:border-[#90C9C6]"
                       />
+                      <SenderAnswerField kind="question" value={senderQuestionAnswer} onChange={setSenderQuestionAnswer} palette={HAUNTED_WALTZ_PALETTE} />
                     </div>
                   )}
                 </div>
@@ -1376,14 +1296,14 @@ export default function HauntedWaltzStudio() {
                       6. Synchronized Secret
                     </h4>
                     <p className="text-xs text-[#B8C6CE] mt-1 leading-snug">
-                      A locked confession or surprise note with a countdown that only unlocks when both of you open it together.
+                      Lock your answer during setup. They add theirs and open both answers when ready.
                     </p>
                   </div>
 
                   {revealToolEnabled && (
                     <div className="pt-2 space-y-1.5 border-t border-[#2E414A]">
                       <label className="text-[11px] font-bold text-[#90C9C6] block">
-                        Confession / Secret Note:
+                        Question for both of you:
                       </label>
                       <input
                         type="text"
@@ -1392,6 +1312,7 @@ export default function HauntedWaltzStudio() {
                         placeholder="A gothic confession that unlocks together..."
                         className="w-full px-3 py-1.5 rounded-xl bg-[#0B1015] border border-[#2E414A] text-xs text-[#EDF1ED] focus:outline-none focus:border-[#90C9C6]"
                       />
+                      <SenderAnswerField kind="secret" value={senderSecretAnswer} onChange={setSenderSecretAnswer} palette={HAUNTED_WALTZ_PALETTE} />
                     </div>
                   )}
                 </div>
@@ -1768,6 +1689,7 @@ export default function HauntedWaltzStudio() {
             </div>
 
             {/* Nav Buttons */}
+            {senderSetupError && <p className="text-sm leading-relaxed" role="status">{senderSetupError} Complete your side before continuing.</p>}
             <div className="pt-4 flex items-center justify-between">
               <button
                 type="button"
@@ -1780,6 +1702,8 @@ export default function HauntedWaltzStudio() {
               <button
                 type="button"
                 onClick={() => setStep(2)}
+                disabled={!!senderSetupError}
+                title={senderSetupError || undefined}
                 className="px-7 py-3 rounded-full text-[#0B1015] font-bold text-xs shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-2 bg-gradient-to-r from-[#90C9C6] via-[#A4DAD7] to-[#FFCC99]"
               >
                 <span>Continue to Floating Gallery</span>

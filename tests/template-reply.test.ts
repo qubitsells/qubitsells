@@ -1,7 +1,9 @@
 import { before, after, test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
+import { PRODUCTS } from "../lib/storefront";
+import type { TemplateReply } from "../lib/supabase/coupleTemplates";
 import { PGlite } from "@electric-sql/pglite";
 import { submitReplySchema, templateInputSchema } from "../lib/security/validation";
 
@@ -200,4 +202,34 @@ test("T01 reply workflow: creation, idempotent retry, cross-device sender access
     [replyId]
   );
   assert.equal(Number(afterDeleteCheck.rows[0].count), 0);
+});
+
+test("all six themes preserve photo and voice metadata, enforce enabled formats, and keep reply retries private", async () => {
+  for (const [index, product] of PRODUCTS.entries()) {
+    const code = `voicefixture${index}`, guest = `reply-guest-${index}`, receiptHash = createHash("sha256").update(guest).digest("hex"), clientId = randomUUID();
+    const tool = { id: "reply_t01", type: "reply", enabled: true, enabledFormats: { text: true, photo: true, voice: true }, maxPhotos: 3, maxVoiceSeconds: 60, allowMultiple: true };
+    await db.query(`INSERT INTO public.couple_templates(short_code,theme,scene_index,partner_name,partner_from,message,has_media,media_items,expires_at,owner_id,deletion_hash,tools) VALUES($1,$2,0,'Sam','Alex','Hello',false,'[]',now()+interval '2 days',$3,$4,$5::jsonb)`, [code, product.slug, creatorId, deletionHash, JSON.stringify([tool])]);
+    const photo = randomUUID(), voice = randomUUID();
+    for (const [id, type, format, duration] of [[photo, "image", "webp", null], [voice, "video", "m4a", 12.4]]) await db.query(`SELECT public.bonded_register_media($1::jsonb)`, [JSON.stringify({ id, public_id: `fixture/${id}`, resource_type: type, format, duration, owner_id: null, guest_hash: guest })]);
+    const body = [code, clientId, "Sammy", "A photo and a voice note", "❤️", [photo, voice], receiptHash, guest];
+    const saved = await db.query<{ value: { reply: TemplateReply; idempotent: boolean } }>(`SELECT public.bonded_submit_template_reply($1,$2::uuid,$3,$4,$5,$6::uuid[],$7,NULL,$8) AS value`, body);
+    const reply = saved.rows[0].value.reply;
+    assert.equal(reply.author_name, "Sammy"); assert.equal(reply.message, "A photo and a voice note"); assert.equal(reply.reaction, "❤️");
+    assert.equal(reply.media_items.length, 2);
+    const audio = reply.media_items.find(item => item.public_id === voice)!;
+    assert.equal(audio.duration, 12.4); assert.equal(audio.format, "m4a"); assert.equal((audio as unknown as { media_type: string }).media_type, "voice");
+    assert.ok(reply.media_items.some(item => item.public_id === photo && item.type === "image"));
+    const retry = await db.query<{ value: { idempotent: boolean; reply: TemplateReply } }>(`SELECT public.bonded_submit_template_reply($1,$2::uuid,$3,$4,$5,$6::uuid[],$7,NULL,$8) AS value`, body);
+    assert.equal(retry.rows[0].value.idempotent, true); assert.equal(retry.rows[0].value.reply.id, reply.id);
+    await assert.rejects(db.query(`SELECT public.bonded_submit_template_reply($1,$2::uuid,'Other','Hello',NULL,'{}',$3,NULL,'other-guest')`, [code, clientId, deletionHash]), /another receipt/);
+    const creator = await db.query<{ value: { replies: TemplateReply[] } }>(`SELECT public.bonded_get_template_replies($1,NULL,NULL,$2::uuid) AS value`, [code, creatorId]);
+    assert.equal(creator.rows[0].value.replies[0].media_items.find(item => item.public_id === voice)?.duration, 12.4);
+    const longVoice = randomUUID();
+    await db.query(`SELECT public.bonded_register_media($1::jsonb)`, [JSON.stringify({ id: longVoice, public_id: `fixture/${longVoice}`, resource_type: "video", format: "webm", duration: 70, guest_hash: guest })]);
+    await assert.rejects(db.query(`SELECT public.bonded_submit_template_reply($1,$2::uuid,'Sam','',NULL,$3::uuid[],$4,NULL,$5)`, [code, randomUUID(), [longVoice], receiptHash, guest]), /recording limit/);
+    await db.query(`UPDATE public.couple_templates SET tools=$2::jsonb WHERE short_code=$1`, [code, JSON.stringify([{ ...tool, enabledFormats: { ...tool.enabledFormats, voice: false } }])]);
+    await assert.rejects(db.query(`SELECT public.bonded_submit_template_reply($1,$2::uuid,'Sam','',NULL,$3::uuid[],$4,NULL,$5)`, [code, randomUUID(), [longVoice], receiptHash, guest]), /Voice replies are disabled/);
+    await db.query(`UPDATE public.couple_templates SET tools=$2::jsonb WHERE short_code=$1`, [code, JSON.stringify([{ ...tool, enabled: false }])]);
+    await assert.rejects(db.query(`SELECT public.bonded_submit_template_reply($1,$2::uuid,'Sam','Hello',NULL,'{}',$3,NULL,$4)`, [code, randomUUID(), receiptHash, guest]), /not enabled/);
+  }
 });

@@ -1,5 +1,10 @@
 "use client";
 
+import { SenderAnswerField, SenderPollChoices } from "@/components/tools/SenderSetupFields";
+import VenueEditor from "@/components/tools/VenueEditor";
+import { buildVenue } from "@/lib/template-venue";
+import DateSlotEditor from "@/components/tools/DateSlotEditor";
+import type { InvitationSlot } from "@/lib/supabase/coupleTemplates";
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -92,29 +97,22 @@ export default function StarlitStoryStudio() {
 
   // 2. T02 Date Invitation & Proposed Slots
   const [dateToolEnabled, setDateToolEnabled] = useState(true);
-  const [dateSlots, setDateSlots] = useState([
-    {
-      id: "slot_1",
-      start_time: "Friday Evening, 7:30 PM",
-      label: "Rooftop Dinner Under Fairy Lights (7:30 PM)",
-    },
-    {
-      id: "slot_2",
-      start_time: "Saturday Dusk, 6:45 PM",
-      label: "Stargazing & Warm Tea at Sunset (6:45 PM)",
-    },
-  ]);
-  const [newSlotInput, setNewSlotInput] = useState("");
+  const [dateSlots, setDateSlots] = useState<InvitationSlot[]>([]);
 
   // 3. T03 Date Location & Venue Map
   const [locationToolEnabled, setLocationToolEnabled] = useState(false);
   const [dateFormat, setDateFormat] = useState<"in_person" | "online">("in_person");
+  const [meetingUrl, setMeetingUrl] = useState("");
+  const [reservationUrl, setReservationUrl] = useState("");
   const [dateLocation, setDateLocation] = useState(
     "Rooftop Terrace Under Fairy Lights"
   );
 
   // 4. T04 Vibe Check & Choice Polls
   const [pollToolEnabled, setPollToolEnabled] = useState(false);
+  const [senderPollChoices,setSenderPollChoices]=useState<string[]>([]);
+  const [senderQuestionAnswer,setSenderQuestionAnswer]=useState("");
+  const [senderSecretAnswer,setSenderSecretAnswer]=useState("");
   const [pollQuestion, setPollQuestion] = useState(
     "What should we do on our next evening together?"
   );
@@ -432,23 +430,6 @@ export default function StarlitStoryStudio() {
     }
   };
 
-  const handleAddSlot = () => {
-    if (!newSlotInput.trim()) return;
-    setDateSlots((prev) => [
-      ...prev,
-      {
-        id: `slot_${Date.now()}`,
-        start_time: newSlotInput.trim(),
-        label: newSlotInput.trim(),
-      },
-    ]);
-    setNewSlotInput("");
-  };
-
-  const handleRemoveSlot = (id: string) => {
-    setDateSlots((prev) => prev.filter((s) => s.id !== id));
-  };
-
   const handleAddPollOption = () => {
     if (!newPollOption.trim()) return;
     setPollOptions((prev) => [...prev, newPollOption.trim()]);
@@ -456,6 +437,7 @@ export default function StarlitStoryStudio() {
   };
 
   const handleRemovePollOption = (index: number) => {
+    setSenderPollChoices([]);
     setPollOptions((prev) => prev.filter((_, i) => i !== index));
   };
 
@@ -546,8 +528,13 @@ export default function StarlitStoryStudio() {
   };
 
   // Compile all tools into valid payload
+  const senderSetupError = pollToolEnabled && !senderPollChoices.some(id=>pollOptions.some((_,index)=>id===`opt_${index+1}`)) ? "Choose your own answer in Vibe Check & Poll." : questionToolEnabled && !senderQuestionAnswer.trim() ? "Write your answer in Heart-to-Heart Q&A." : revealToolEnabled && !senderSecretAnswer.trim() ? "Write your private answer in Synchronized Secret." : "";
+
   const buildToolsPayload = (): TemplateTool[] => {
+    if(senderSetupError)throw new Error(senderSetupError);
     const tools: TemplateTool[] = [];
+    const venue = locationToolEnabled ? buildVenue(dateFormat, dateLocation, meetingUrl, reservationUrl) : null;
+    if (venue) tools.push(venue);
 
     // 1. T01: Reply Tool
     if (replyToolEnabled) {
@@ -573,16 +560,17 @@ export default function StarlitStoryStudio() {
 
     // 2 & 3. T02 & T03: Date Invitation & Location
     if (dateToolEnabled) {
+      if (!dateSlots.length) throw new Error("Add at least one exact date in Date Night & RSVP, or turn that tool off.");
       tools.push({
         id: "invitation_t02",
         type: "invitation",
         enabled: true,
         activity: "Our Next Starlit Date",
         invitationMessage: STARLIT_STORY_CONFIG.finalQuestion,
-        format: locationToolEnabled ? dateFormat : "in_person",
-        location: locationToolEnabled
-          ? dateLocation.trim() || "Rooftop Terrace Under Fairy Lights"
-          : undefined,
+        format: venue?.format || "in_person",
+        location: venue?.location,
+        meetingUrl: venue?.meetingUrl,
+        reservationUrl: venue?.reservationUrl,
         dateMode: "slots",
         durationMinutes: 180,
         senderTimezone:
@@ -607,6 +595,7 @@ export default function StarlitStoryStudio() {
           "What should we do on our next evening together?",
         description: "Vote for your dream evening together beneath the stars!",
         selectionMode: "both_vote",
+        senderOptionIds: senderPollChoices,
         allowMultiple: false,
         allowCustomSuggestion: true,
         options: pollOptions.map((opt, i) => ({
@@ -633,6 +622,7 @@ export default function StarlitStoryStudio() {
             type: "short",
             skippable: true,
             reveal_mode: "after_partner_answers",
+            sender_answer: senderQuestionAnswer.trim(),
           },
         ],
       });
@@ -649,6 +639,7 @@ export default function StarlitStoryStudio() {
           "A starlit secret waiting to be unlocked together under one sky...",
         description: "Locked surprise unlocked together under the night sky.",
         countdownSeconds: 3,
+        senderAnswers: {main:senderSecretAnswer.trim()},
       });
     }
 
@@ -1149,47 +1140,7 @@ export default function StarlitStoryStudio() {
                   </div>
 
                   {dateToolEnabled && (
-                    <div className="pt-2 space-y-2 border-t border-[#F0D5C9]">
-                      <div className="text-[11px] font-bold text-[#C26D7A]">
-                        Proposed Slots:
-                      </div>
-                      <div className="space-y-1 max-h-24 overflow-y-auto">
-                        {dateSlots.map((slot) => (
-                          <div
-                            key={slot.id}
-                            className="flex items-center justify-between px-2.5 py-1 rounded-xl bg-[#FFF8F4] border border-[#F0D5C9] text-xs text-[#3A231C]"
-                          >
-                            <span className="truncate">{slot.label}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveSlot(slot.id)}
-                              className="text-[#C26D7A] hover:text-[#B55D6B] p-0.5 shrink-0"
-                              title="Delete slot"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="flex gap-1.5 pt-0.5">
-                        <input
-                          type="text"
-                          value={newSlotInput}
-                          onChange={(e) => setNewSlotInput(e.target.value)}
-                          onKeyDown={(e) => e.key === "Enter" && handleAddSlot()}
-                          placeholder="Add slot (e.g. Sunday 7:30 PM)..."
-                          className="flex-1 px-3 py-1.5 rounded-xl bg-[#FFF8F4] border border-[#F0D5C9] text-xs text-[#3A231C] focus:outline-none focus:border-[#C26D7A]"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleAddSlot}
-                          className="px-3 py-1.5 rounded-xl bg-[#C26D7A] text-white text-xs font-bold hover:scale-105 active:scale-95 transition-all shadow-2xs"
-                        >
-                          Add
-                        </button>
-                      </div>
-                    </div>
+                    <DateSlotEditor value={dateSlots} onChange={setDateSlots} palette={STARLIT_STORY_PALETTE} />
                   )}
                 </div>
               </div>
@@ -1234,40 +1185,7 @@ export default function StarlitStoryStudio() {
                   </div>
 
                   {locationToolEnabled && (
-                    <div className="pt-2 space-y-2 border-t border-[#F0D5C9]">
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setDateFormat("in_person")}
-                          className={`flex-1 py-1 rounded-xl text-xs font-bold transition-all ${
-                            dateFormat === "in_person"
-                              ? "bg-[#C26D7A] text-white shadow-2xs"
-                              : "bg-[#FFF8F4] text-[#75564C] border border-[#F0D5C9]"
-                          }`}
-                        >
-                          In Person
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setDateFormat("online")}
-                          className={`flex-1 py-1 rounded-xl text-xs font-bold transition-all ${
-                            dateFormat === "online"
-                              ? "bg-[#C26D7A] text-white shadow-2xs"
-                              : "bg-[#FFF8F4] text-[#75564C] border border-[#F0D5C9]"
-                          }`}
-                        >
-                          Virtual / Call
-                        </button>
-                      </div>
-
-                      <input
-                        type="text"
-                        value={dateLocation}
-                        onChange={(e) => setDateLocation(e.target.value)}
-                        placeholder="E.g. Rooftop Terrace Under Fairy Lights..."
-                        className="w-full px-3 py-1.5 rounded-xl bg-[#FFF8F4] border border-[#F0D5C9] text-xs text-[#3A231C] focus:outline-none focus:border-[#C26D7A]"
-                      />
-                    </div>
+                    <VenueEditor format={dateFormat} onFormat={setDateFormat} location={dateLocation} onLocation={setDateLocation} meetingUrl={meetingUrl} onMeetingUrl={setMeetingUrl} reservationUrl={reservationUrl} onReservationUrl={setReservationUrl} palette={STARLIT_STORY_PALETTE} />
                   )}
                 </div>
               </div>
@@ -1357,6 +1275,7 @@ export default function StarlitStoryStudio() {
                           Add
                         </button>
                       </div>
+                      <SenderPollChoices options={pollOptions} value={senderPollChoices} onChange={setSenderPollChoices} palette={STARLIT_STORY_PALETTE} />
                     </div>
                   )}
                 </div>
@@ -1413,6 +1332,7 @@ export default function StarlitStoryStudio() {
                         placeholder="When you look up at the stars, what wish comes to your mind?..."
                         className="w-full px-3 py-1.5 rounded-xl bg-[#FFF8F4] border border-[#F0D5C9] text-xs text-[#3A231C] leading-relaxed focus:outline-none focus:border-[#C26D7A]"
                       />
+                      <SenderAnswerField kind="question" value={senderQuestionAnswer} onChange={setSenderQuestionAnswer} palette={STARLIT_STORY_PALETTE} />
                     </div>
                   )}
                 </div>
@@ -1469,6 +1389,7 @@ export default function StarlitStoryStudio() {
                         placeholder="A secret confession waiting to be unlocked under the stars..."
                         className="w-full px-3 py-1.5 rounded-xl bg-[#FFF8F4] border border-[#F0D5C9] text-xs text-[#3A231C] leading-relaxed focus:outline-none focus:border-[#C26D7A]"
                       />
+                      <SenderAnswerField kind="secret" value={senderSecretAnswer} onChange={setSenderSecretAnswer} palette={STARLIT_STORY_PALETTE} />
                     </div>
                   )}
                 </div>
@@ -1840,6 +1761,7 @@ export default function StarlitStoryStudio() {
               </div>
             </div>
 
+            {senderSetupError && <p className="text-sm leading-relaxed" role="status">{senderSetupError} Complete your side before continuing.</p>}
             {/* Stepper Navigation */}
             <div className="pt-4 flex items-center justify-between">
               <button
@@ -1853,6 +1775,8 @@ export default function StarlitStoryStudio() {
               <button
                 type="button"
                 onClick={() => setStep(2)}
+                disabled={!!senderSetupError}
+                title={senderSetupError || undefined}
                 className="px-7 py-3 rounded-full text-white font-bold text-xs shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-2 bg-[#C26D7A] hover:bg-[#B55D6B]"
               >
                 <span>Continue to Floating Gallery</span>

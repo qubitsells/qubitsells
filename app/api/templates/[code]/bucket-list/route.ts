@@ -38,7 +38,7 @@ async function getAuthCredentials(request: Request, code: string) {
       : null;
 
   // Partner receipt token
-  let partnerToken =
+  const partnerToken =
     jar.get(`bonded_bucket_list_${code}`)?.value ||
     jar.get(`bonded_reply_${code}`)?.value ||
     request.headers.get("x-partner-token");
@@ -135,7 +135,7 @@ async function handlePOST(request: Request, context: Context) {
 
     if (error) {
       throw new HttpError(
-        error.code === "42501" ? 403 : error.code === "22023" ? 400 : 503,
+        error.code === "42501" ? 403 : error.code === "22023" ? 400 : error.code === "40001" ? 409 : 503,
         error.message || "Failed to update bucket list."
       );
     }

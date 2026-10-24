@@ -48,9 +48,14 @@ export interface InvitationSlot {
 }
 
 export type InvitationFormat = "in_person" | "online";
+export interface VenueToolConfig {
+  id: "venue_t03"; type: "venue"; enabled: boolean; format: InvitationFormat;
+  location: string; meetingUrl?: string; reservationUrl?: string;
+}
 export type InvitationDateMode = "fixed" | "slots" | "date_only";
 export type InvitationStatus =
   | "proposed"
+  | "awaiting_confirmation"
   | "counterproposed"
   | "confirmed"
   | "declined"
@@ -104,6 +109,7 @@ export interface PollToolConfig {
   allowCustomSuggestion: boolean;
   closingTime?: string;
   options: PollOption[];
+  senderOptionIds?: string[];
 }
 
 export type QuestionType = "short" | "long" | "choice";
@@ -168,6 +174,7 @@ export interface RevealToolConfig {
   description?: string;
   questions?: RevealQuestionItem[];
   countdownSeconds?: number;
+  senderAnswers?: Record<string, string>;
 }
 
 export interface TemplatePrivateReveal {
@@ -185,6 +192,7 @@ export interface TemplatePrivateReveal {
   is_eligible: boolean;
   is_revealed: boolean;
   creator_ready?: boolean;
+  sender_prepared?: boolean;
   partner_ready?: boolean;
   revealed_at?: string | null;
   my_draft?: Record<string, string> | null;
@@ -243,7 +251,11 @@ export interface TemplateCoupon {
   cancel_reason: string | null;
   created_at: string;
   updated_at: string;
+  history?: CouponEvent[];
 }
+
+export interface CouponEvent { action: string; status: CouponStatus; at: string; request_note?: string | null; preferred_date?: string | null; cancel_reason?: string | null; }
+export interface TemplateScratchReveal { config: ScratchRevealToolConfig; opened_at?: string | null; method?: "scratch" | "button" | "keyboard" | null; target_available?: boolean; }
 
 export interface OpenWhenEnvelope {
   id: string;
@@ -271,7 +283,7 @@ export interface TemplateOpenWhenLetters {
   description: string;
   attach_reply: boolean;
   envelopes: OpenWhenEnvelope[];
-  opened_envelopes: Record<string, { opened_at: string }>;
+  opened_envelopes: Record<string, { opened_at: string; envelope?: OpenWhenEnvelope }>;
   revision: number;
   created_at: string;
   updated_at: string;
@@ -318,6 +330,8 @@ export interface TemplateOurStory {
 
 export type BucketItemStatus = "wished" | "planning" | "completed";
 
+export interface BucketActivity { action: string; by: "creator" | "partner"; at: string; status: BucketItemStatus; note?: string | null; photo_url?: string | null; }
+
 export interface BucketListItem {
   id: string;
   title: string;
@@ -331,6 +345,9 @@ export interface BucketListItem {
   completed_at?: string | null;
   memory_photo_url?: string | null;
   memory_note?: string | null;
+  memory_saved_at?: string | null;
+  memory_by?: "creator" | "partner";
+  history?: BucketActivity[];
 }
 
 export interface BucketListToolConfig {
@@ -355,6 +372,7 @@ export interface TemplateBucketList {
 }
 
 export type TemplateTool =
+  | VenueToolConfig
   | ReplyToolConfig
   | InvitationToolConfig
   | PollToolConfig
@@ -379,6 +397,7 @@ export interface TemplatePoll {
   options: PollOption[];
   custom_suggestions: PollCustomSuggestion[];
   creator_voted?: boolean;
+  sender_prepared?: boolean;
   partner_voted?: boolean;
   creator_votes: string[];
   partner_votes: string[];
@@ -413,6 +432,9 @@ export interface TemplateInvitation {
   recipient_response?: string | null;
   recipient_timezone?: string | null;
   recipient_note?: string | null;
+  recipient_activities?: string[];
+  recipient_idea?: string | null;
+  available_slots?: InvitationSlot[];
   agreed_revision?: number | null;
   responded_at?: string | null;
   created_at: string;
@@ -520,6 +542,14 @@ export interface CreatorTemplateItem {
     partner_counter_note?: string;
     partner_counter_proposed_at?: string;
     partner_response_status?: string;
+    recipient_activities?: string[];
+    recipient_idea?: string | null;
+    available_slots?: InvitationSlot[];
+    proposed_slots?: InvitationSlot[];
+    meeting_url?: string | null;
+    reservation_url?: string | null;
+    sender_private_notes?: string | null;
+    revision?: number;
     updated_at: string;
   } | null;
   poll?: {
@@ -566,6 +596,8 @@ export interface CreatorTemplateItem {
     preferred_date?: string | null;
     cancelled_at?: string | null;
     cancel_reason?: string | null;
+    history?: CouponEvent[];
+    expires_at?: string | null;
   } | null;
   open_when?: {
     id: string;
@@ -574,8 +606,12 @@ export interface CreatorTemplateItem {
       id: string;
       label: string;
       opened_at?: string | null;
+      message?: string;
+      media_url?: string;
+      media_type?: "image" | "video";
     }>;
   } | null;
+  scratch?: TemplateScratchReveal | null;
   our_story?: {
     id: string;
     title: string;
@@ -602,6 +638,9 @@ export interface CreatorTemplateItem {
       completed_at?: string | null;
       memory_photo_url?: string | null;
       memory_note?: string | null;
+      memory_saved_at?: string | null;
+      memory_by?: "creator" | "partner";
+      history?: BucketActivity[];
     }>;
   } | null;
 }

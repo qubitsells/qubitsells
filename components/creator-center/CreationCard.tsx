@@ -19,10 +19,11 @@ type Props = {
   deleting: boolean;
   onCopy: (code: string) => Promise<void>;
   onDelete: (code: string) => Promise<boolean>;
+  onUpdated?: () => void;
 };
 
-export default function CreationCard({ item, now, defaultExpanded, copied, deleting, onCopy, onDelete }: Props) {
-  const [expanded, setExpanded] = useState(Boolean(defaultExpanded));
+export default function CreationCard({ item, now, defaultExpanded, copied, deleting, onCopy, onDelete, onUpdated }: Props) {
+  const [expanded, setExpanded] = useState(Boolean(defaultExpanded || item.invitation?.status === "awaiting_confirmation"));
   const [confirmDelete, setConfirmDelete] = useState(false);
   const deleteTrigger = useRef<HTMLButtonElement>(null);
   const responseTrigger = useRef<HTMLButtonElement>(null);
@@ -54,10 +55,11 @@ export default function CreationCard({ item, now, defaultExpanded, copied, delet
     </div>
     {confirmDelete && <div className={styles.deleteConfirm} id={confirmationId} onKeyDown={event => { if (event.key === "Escape" && !deleting) { setConfirmDelete(false); deleteTrigger.current?.focus(); } }}><div><strong>Delete this gift permanently?</strong><p>The link will stop working. Its replies and content cannot be recovered.</p></div><div><button type="button" className={styles.cancelDelete} disabled={deleting} onClick={() => { setConfirmDelete(false); deleteTrigger.current?.focus(); }}>Keep gift</button><button type="button" className={styles.confirmDelete} disabled={deleting} onClick={() => void onDelete(item.short_code)}>{deleting ? "Deleting…" : "Yes, delete gift"}</button></div></div>}
     {item.is_expired ? <div className={styles.expiryNotice}><Clock3 size={16} aria-hidden="true" /><p>This link has expired. Replies and interactive content are no longer available.</p></div> : <div className={styles.responseSection}>
-      <button type="button" className={styles.responseToggle} ref={responseTrigger} aria-expanded={expanded} aria-controls={responseId} onClick={() => setExpanded(!expanded)}><span><MessageSquare size={16} aria-hidden="true" />Responses &amp; activity <span className={styles.replyCount}>{replies.length} {replies.length === 1 ? "message" : "messages"}</span></span><span>{expanded ? "Hide" : "View"}<ChevronDown size={16} aria-hidden="true" className={expanded ? styles.chevronOpen : undefined} /></span></button>
-      <AnimatePresence initial={false}>{expanded && <motion.div key="responses" id={responseId} initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: reducedMotion ? 0 : .25, ease: [.2, .8, .2, 1] }} className={styles.responseReveal} onKeyDown={event => { if (event.key === "Escape") { setExpanded(false); responseTrigger.current?.focus(); } }}><div className={styles.responseContent}>
+      <button type="button" className={styles.responseToggle} ref={responseTrigger} aria-expanded={expanded} aria-controls={responseId} onClick={() => setExpanded(!expanded)}><span><MessageSquare size={16} aria-hidden="true" />Replies &amp; tool responses <span className={styles.replyCount}>{replies.length} {replies.length === 1 ? "message" : "messages"}</span></span><span>{expanded ? "Hide" : "View"}<ChevronDown size={16} aria-hidden="true" className={expanded ? styles.chevronOpen : undefined} /></span></button>
+      <AnimatePresence initial={false}>{expanded && <motion.div key="responses" id={responseId} initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: reducedMotion ? 0 : .25, ease: [.2, .8, .2, 1] }} className={styles.responseReveal} onKeyDown={event => { if (event.key === "Escape") { setExpanded(false); responseTrigger.current?.focus(); } }}><div className={styles.responseContent}><section aria-label="Replies"><div className={styles.responseSubheading}><h4>Replies <span className={styles.replyCount}>{replies.length}</span></h4><p>Personal messages, reactions, photos, and voice notes.</p></div>
         {replies.length > 0 ? <div className={styles.replies}>{replies.map(reply => <div className={styles.reply} key={reply.id}><div className={styles.replyHeading}><span className={styles.replyAvatar} aria-hidden="true">{(reply.author_name || item.partner_name).slice(0, 1).toUpperCase()}</span><strong>{reply.author_name || item.partner_name}</strong>{reply.reaction && <span className={styles.replyReaction} role="img" aria-label={`Reaction: ${reply.reaction}`}>{reply.reaction}</span>}<time dateTime={reply.created_at}>{formatDate(reply.created_at, true)}</time></div>{reply.message && <p className={styles.replyMessage}>{reply.message}</p>}{Array.isArray(reply.media_items) && reply.media_items.length > 0 && <div className={styles.mediaWell}><InlineMediaGallery mediaItems={reply.media_items} shortCode={item.short_code} authorName={reply.author_name || item.partner_name} createdDate={formatDate(reply.created_at, true)} paletteTheme="cyan" /></div>}</div>)}</div> : <div className={styles.waiting}><Mail size={21} aria-hidden="true" /><div><h4>A little anticipation.</h4><p>No messages yet. Share your gift with {item.partner_name}, then refresh to check for a reply.</p></div></div>}
-        <ReceiverDetails item={item} />
+        </section>
+        <section aria-label="Tool responses"><div className={styles.responseSubheading}><h4>Tool responses</h4><p>Date plans, checked options, answers, and other activity from this gift.</p></div><ReceiverDetails item={item} onUpdated={onUpdated} /></section>
       </div></motion.div>}</AnimatePresence>
     </div>}
   </article>;

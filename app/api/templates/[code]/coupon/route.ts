@@ -48,9 +48,9 @@ export async function GET(request: Request, context: Context) {
     const { manageHash, actorId } = await getCreatorCredentials(request, code);
 
     const { data, error } = await adminClient().rpc("bonded_get_template_coupon", {
-      link_code: code,
-      manage_token_hash: manageHash,
-      actor_id: actorId,
+      p_link_code: code,
+      p_manage_token_hash: manageHash,
+      p_actor_id: actorId,
     });
 
     if (error) {
@@ -98,15 +98,15 @@ async function handlePOST(request: Request, context: Context) {
       }
 
       const { data, error } = await adminClient().rpc("bonded_request_template_coupon", {
-        link_code: code,
-        request_note: parsed.data.request_note || null,
-        preferred_date: parsed.data.preferred_date || null,
-        expected_revision: parsed.data.expected_revision,
+        p_link_code: code,
+        p_request_note: parsed.data.request_note || null,
+        p_preferred_date: parsed.data.preferred_date || null,
+        p_expected_revision: parsed.data.expected_revision,
       });
 
       if (error) {
         if (error.code === "40001") throw new HttpError(409, "Coupon state has updated. Please refresh.");
-        throw new HttpError(error.code === "42501" ? 400 : 503, error.message || "Could not request coupon redemption.");
+        throw new HttpError(error.code === "42501" || error.code === "22023" ? 400 : 503, error.message || "Could not request coupon redemption.");
       }
 
       return NextResponse.json({
@@ -125,17 +125,17 @@ async function handlePOST(request: Request, context: Context) {
     const { manageHash, actorId } = await getCreatorCredentials(request, code);
 
     const { data, error } = await adminClient().rpc("bonded_manage_template_coupon", {
-      link_code: code,
-      action_type: parsed.data.action,
-      manage_token_hash: manageHash,
-      actor_id: actorId,
-      expected_revision: parsed.data.expected_revision,
-      cancel_reason: parsed.data.cancel_reason || null,
+      p_link_code: code,
+      p_action_type: parsed.data.action,
+      p_manage_token_hash: manageHash,
+      p_actor_id: actorId,
+      p_expected_revision: parsed.data.expected_revision,
+      p_cancel_reason: parsed.data.cancel_reason || null,
     });
 
     if (error) {
       if (error.code === "40001") throw new HttpError(409, "Coupon state has updated. Please refresh.");
-      throw new HttpError(error.code === "42501" ? 403 : 503, error.message || "Failed to update coupon.");
+      throw new HttpError(error.code === "42501" ? 403 : error.code === "22023" ? 400 : 503, error.message || "Failed to update coupon.");
     }
 
     return NextResponse.json({

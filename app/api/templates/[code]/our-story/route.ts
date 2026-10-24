@@ -41,7 +41,7 @@ async function getAuthCredentials(request: Request, code: string) {
       : null;
 
   // Partner receipt token
-  let partnerToken =
+  const partnerToken =
     jar.get(`bonded_story_partner_${code}`)?.value ||
     jar.get(`bonded_reply_${code}`)?.value ||
     request.headers.get("x-partner-token");
@@ -118,12 +118,14 @@ async function handlePOST(request: Request, context: Context) {
     const guest = await guestIdentity(true);
 
     // If caller has creator manage hash or is recognized as creator, block them from submitting as partner
-    const { data: storyData } = await adminClient().rpc("bonded_get_template_our_story", {
+    const { data: storyData, error: storyError } = await adminClient().rpc("bonded_get_template_our_story", {
       p_link_code: code,
       p_manage_token_hash: manageHash,
       p_actor_id: actorId,
     });
 
+    if (storyError) throw new HttpError(503, "Could not check this story. Please try again.");
+    if (!storyData?.success || !storyData.story) throw new HttpError(404, "This story is not available.");
     if (storyData?.is_creator) {
       throw new HttpError(403, "Template creators cannot submit the partner's side of the story.");
     }
@@ -151,7 +153,7 @@ async function handlePOST(request: Request, context: Context) {
 
     if (error) {
       throw new HttpError(
-        error.code === "42501" ? 403 : 503,
+        error.code === "42501" ? 403 : error.code === "22023" ? 400 : error.code === "40001" ? 409 : 503,
         error.message || "Failed to submit your side of the story."
       );
     }

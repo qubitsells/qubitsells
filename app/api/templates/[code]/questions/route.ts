@@ -136,7 +136,7 @@ async function handlePOST(request: Request, context: Context) {
       const { data, error } = await adminClient().rpc("bonded_save_question_draft", {
         link_code: code,
         expected_revision: input.expected_revision,
-        answers: JSON.stringify(input.answers),
+        answers: input.answers,
         is_creator_draft: input.is_creator,
         manage_token_hash: manageHash,
         partner_token_hash: partnerHashToUse,
@@ -179,7 +179,7 @@ async function handlePOST(request: Request, context: Context) {
     const { data, error } = await adminClient().rpc("bonded_submit_question_answers", {
       link_code: code,
       expected_revision: input.expected_revision,
-      answers: JSON.stringify(input.answers),
+      answers: input.answers,
       is_creator_submission: input.is_creator,
       manage_token_hash: manageHash,
       partner_token_hash: partnerHashToUse,

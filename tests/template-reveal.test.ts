@@ -228,15 +228,12 @@ test("T06: Private Reveal lifecycle: Zero leakage before eligibility, locking, w
     /One person cannot answer as the other/
   );
 
-  // 7. Now that eligibility is achieved, both answers can be verified and revealed
-  const eligibleCheck = await db.query<{ res: { reveal: { is_eligible: boolean; partner_answer: { main: string } } } }>(`
+  // 7. Both locks enable the reveal, but the other answer stays off the wire until confirmation.
+  const eligibleCheck = await db.query<{ res: { reveal: { is_eligible: boolean; partner_answer: { main: string } | null } } }>(`
     SELECT public.bonded_get_template_reveal($1, NULL, $2, NULL) as res
   `, [testCode, partnerHash]);
   assert.equal(eligibleCheck.rows[0].res.reveal.is_eligible, true);
-  assert.equal(
-    eligibleCheck.rows[0].res.reveal.partner_answer.main,
-    "How comfortable quiet moments are with you."
-  );
+  assert.equal(eligibleCheck.rows[0].res.reveal.partner_answer, null);
 
   // 8. Partner confirms reveal
   const confirmRes = await db.query<{ res: { success: boolean; status: string } }>(`
@@ -245,6 +242,8 @@ test("T06: Private Reveal lifecycle: Zero leakage before eligibility, locking, w
     ) as res
   `, [testCode, partnerHash]);
   assert.equal(confirmRes.rows[0].res.status, "revealed");
+  const revealed = await db.query<{ res: { reveal: { partner_answer: { main: string } } } }>(`SELECT public.bonded_get_template_reveal($1,NULL,$2,NULL) AS res`, [testCode, partnerHash]);
+  assert.equal(revealed.rows[0].res.reveal.partner_answer.main, "How comfortable quiet moments are with you.");
 
   // Verify that once revealed, withdrawal is forbidden (Information already seen cannot be made unseen)
   await assert.rejects(

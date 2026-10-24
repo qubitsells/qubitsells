@@ -92,17 +92,29 @@ async function handlePOST(request: Request, context: Context) {
       throw new HttpError(400, "Invalid envelope request.");
     }
 
+    const { manageHash, actorId } = await getCreatorCredentials(request, code);
+    if (manageHash || actorId) {
+      const preview = await adminClient().rpc("bonded_get_template_open_when", { p_link_code: code, p_manage_token_hash: manageHash, p_actor_id: actorId });
+      if (preview.error) throw new HttpError(503, "Could not check letter access.");
+      if (preview.data?.is_creator) {
+        const envelope = preview.data.letters?.envelopes?.find((entry: { id: string }) => entry.id === parsed.data.envelope_id);
+        if (!envelope) throw new HttpError(404, "Letter not found.");
+        return NextResponse.json({ success: true, preview: true, envelope, opened_envelopes: preview.data.letters.opened_envelopes }, { headers: { "Cache-Control": "private, no-store" } });
+      }
+    }
+
     const { data, error } = await adminClient().rpc("bonded_open_template_envelope", {
       p_link_code: code,
       p_envelope_id: parsed.data.envelope_id,
     });
 
     if (error) {
-      throw new HttpError(error.code === "42501" ? 400 : 503, error.message || "Failed to open envelope.");
+      throw new HttpError(error.code === "42501" || error.code === "22023" ? 400 : 503, error.message || "Failed to open envelope.");
     }
 
     return NextResponse.json({
       success: true,
+      envelope: data.envelope,
       envelope_id: data.envelope_id,
       opened_at: data.opened_at,
       opened_envelopes: data.opened_envelopes,

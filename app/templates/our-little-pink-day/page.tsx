@@ -1,5 +1,10 @@
 "use client";
 
+import { SenderAnswerField, SenderPollChoices } from "@/components/tools/SenderSetupFields";
+import VenueEditor from "@/components/tools/VenueEditor";
+import { buildVenue } from "@/lib/template-venue";
+import DateSlotEditor from "@/components/tools/DateSlotEditor";
+import type { InvitationSlot } from "@/lib/supabase/coupleTemplates";
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -85,19 +90,20 @@ export default function OurLittlePinkDayStudio() {
 
   // 2. T02 Date Invitation & Proposed Slots
   const [dateToolEnabled, setDateToolEnabled] = useState(true);
-  const [dateSlots, setDateSlots] = useState([
-    { id: "slot_1", start_time: "Friday Evening, 7:00 PM", label: "Friday Evening (7:00 PM)" },
-    { id: "slot_2", start_time: "Saturday Sunset, 6:30 PM", label: "Saturday Sunset (6:30 PM)" },
-  ]);
-  const [newSlotInput, setNewSlotInput] = useState("");
+  const [dateSlots, setDateSlots] = useState<InvitationSlot[]>([]);
 
   // 3. T03 Date Location & Venue Map
   const [locationToolEnabled, setLocationToolEnabled] = useState(false);
   const [dateFormat, setDateFormat] = useState<"in_person" | "online">("in_person");
+  const [meetingUrl, setMeetingUrl] = useState("");
+  const [reservationUrl, setReservationUrl] = useState("");
   const [dateLocation, setDateLocation] = useState("Our Favorite Cozy Cafe");
 
   // 4. T04 Vibe Check & Choice Polls
   const [pollToolEnabled, setPollToolEnabled] = useState(false);
+  const [senderPollChoices,setSenderPollChoices]=useState<string[]>([]);
+  const [senderQuestionAnswer,setSenderQuestionAnswer]=useState("");
+  const [senderSecretAnswer,setSenderSecretAnswer]=useState("");
   const [pollQuestion, setPollQuestion] = useState("What should we do for our date tonight?");
   const [pollOptions, setPollOptions] = useState([
     "Dessert & Bubble Tea",
@@ -356,23 +362,6 @@ export default function OurLittlePinkDayStudio() {
     }
   };
 
-  const handleAddSlot = () => {
-    if (!newSlotInput.trim()) return;
-    setDateSlots((prev) => [
-      ...prev,
-      {
-        id: `slot_${Date.now()}`,
-        start_time: newSlotInput.trim(),
-        label: newSlotInput.trim(),
-      },
-    ]);
-    setNewSlotInput("");
-  };
-
-  const handleRemoveSlot = (id: string) => {
-    setDateSlots((prev) => prev.filter((s) => s.id !== id));
-  };
-
   const handleAddPollOption = () => {
     if (!newPollOption.trim()) return;
     setPollOptions((prev) => [...prev, newPollOption.trim()]);
@@ -380,6 +369,7 @@ export default function OurLittlePinkDayStudio() {
   };
 
   const handleRemovePollOption = (index: number) => {
+    setSenderPollChoices([]);
     setPollOptions((prev) => prev.filter((_, i) => i !== index));
   };
 
@@ -443,8 +433,13 @@ export default function OurLittlePinkDayStudio() {
   };
 
   // Compile all tools into valid payload
+  const senderSetupError = pollToolEnabled && !senderPollChoices.some(id=>pollOptions.some((_,index)=>id===`opt_${index+1}`)) ? "Choose your own answer in Vibe Check & Poll." : questionToolEnabled && !senderQuestionAnswer.trim() ? "Write your answer in Heart-to-Heart Q&A." : revealToolEnabled && !senderSecretAnswer.trim() ? "Write your private answer in Synchronized Secret." : "";
+
   const buildToolsPayload = (): TemplateTool[] => {
+    if(senderSetupError)throw new Error(senderSetupError);
     const tools: TemplateTool[] = [];
+    const venue = locationToolEnabled ? buildVenue(dateFormat, dateLocation, meetingUrl, reservationUrl) : null;
+    if (venue) tools.push(venue);
 
     // 1. T01: Reply Tool
     if (replyToolEnabled) {
@@ -468,14 +463,17 @@ export default function OurLittlePinkDayStudio() {
 
     // 2 & 3. T02 & T03: Date Invitation & Location
     if (dateToolEnabled) {
+      if (!dateSlots.length) throw new Error("Add at least one exact date in Date Night & RSVP, or turn that tool off.");
       tools.push({
         id: "invitation_t02",
         type: "invitation",
         enabled: true,
         activity: "Our Next Little Date",
         invitationMessage: "Pick our next little date?",
-        format: locationToolEnabled ? dateFormat : "in_person",
-        location: locationToolEnabled ? dateLocation.trim() || "Our Favorite Cozy Cafe" : undefined,
+        format: venue?.format || "in_person",
+        location: venue?.location,
+        meetingUrl: venue?.meetingUrl,
+        reservationUrl: venue?.reservationUrl,
         dateMode: "slots",
         durationMinutes: 120,
         senderTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
@@ -497,6 +495,7 @@ export default function OurLittlePinkDayStudio() {
         question: pollQuestion.trim() || "What should we do for our date tonight?",
         description: "Vote for your favorite idea!",
         selectionMode: "both_vote",
+        senderOptionIds: senderPollChoices,
         allowMultiple: false,
         allowCustomSuggestion: true,
         options: pollOptions.map((opt, i) => ({
@@ -521,6 +520,7 @@ export default function OurLittlePinkDayStudio() {
             type: "short",
             skippable: true,
             reveal_mode: "after_partner_answers",
+            sender_answer: senderQuestionAnswer.trim(),
           },
         ],
       });
@@ -535,6 +535,7 @@ export default function OurLittlePinkDayStudio() {
         prompt: revealPrompt.trim() || "A secret confession that only unlocks when we both open it...",
         description: "Locked surprise unlocked together.",
         countdownSeconds: 3,
+        senderAnswers: {main:senderSecretAnswer.trim()},
       });
     }
 
@@ -1007,47 +1008,7 @@ export default function OurLittlePinkDayStudio() {
                   </div>
 
                   {dateToolEnabled && (
-                    <div className="pt-2 space-y-2 border-t border-rose-100">
-                      <div className="text-[11px] font-bold text-[#A43F66]">
-                        Proposed Time Slots:
-                      </div>
-                      <div className="space-y-1 max-h-28 overflow-y-auto">
-                        {dateSlots.map((slot) => (
-                          <div
-                            key={slot.id}
-                            className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-[#FFF8FC] border border-rose-100 text-xs text-[#51253E]"
-                          >
-                            <span className="truncate">{slot.label}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveSlot(slot.id)}
-                              className="text-rose-400 hover:text-rose-700 p-0.5 shrink-0"
-                              title="Delete slot"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="flex gap-1.5 pt-1">
-                        <input
-                          type="text"
-                          value={newSlotInput}
-                          onChange={(e) => setNewSlotInput(e.target.value)}
-                          onKeyDown={(e) => e.key === "Enter" && handleAddSlot()}
-                          placeholder="Add slot (e.g. Sunday 5:00 PM)..."
-                          className="flex-1 px-3 py-1.5 rounded-xl bg-[#FFF8FC] border border-[#F7BFD5] text-xs text-[#51253E] focus:outline-none focus:border-[#A43F66]"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleAddSlot}
-                          className="px-3 py-1.5 rounded-xl bg-[#A43F66] text-white text-xs font-bold hover:scale-105 active:scale-95 transition-all shadow-2xs"
-                        >
-                          Add
-                        </button>
-                      </div>
-                    </div>
+                    <DateSlotEditor value={dateSlots} onChange={setDateSlots} palette={PINK_DAY_PALETTE} />
                   )}
                 </div>
               </div>
@@ -1092,50 +1053,7 @@ export default function OurLittlePinkDayStudio() {
                   </div>
 
                   {locationToolEnabled && (
-                    <div className="pt-2 space-y-2 border-t border-rose-100">
-                      <div>
-                        <label className="text-[10px] font-bold text-[#A43F66] block mb-1">
-                          Date Format:
-                        </label>
-                        <div className="grid grid-cols-2 gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => setDateFormat("in_person")}
-                            className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                              dateFormat === "in_person"
-                                ? "bg-[#A43F66] text-white shadow-2xs"
-                                : "bg-[#FFF8FC] border border-[#F7BFD5] text-[#51253E]"
-                            }`}
-                          >
-                            🏡 In-Person
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setDateFormat("online")}
-                            className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                              dateFormat === "online"
-                                ? "bg-[#A43F66] text-white shadow-2xs"
-                                : "bg-[#FFF8FC] border border-[#F7BFD5] text-[#51253E]"
-                            }`}
-                          >
-                            💻 Online Date
-                          </button>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="text-[10px] font-bold text-[#A43F66] block mb-0.5">
-                          Venue or Meeting Spot:
-                        </label>
-                        <input
-                          type="text"
-                          value={dateLocation}
-                          onChange={(e) => setDateLocation(e.target.value)}
-                          placeholder="E.g. Our Favorite Cozy Cafe..."
-                          className="w-full px-3 py-1.5 rounded-xl bg-[#FFF8FC] border border-[#F7BFD5] text-xs text-[#51253E] focus:outline-none focus:border-[#A43F66]"
-                        />
-                      </div>
-                    </div>
+                    <VenueEditor format={dateFormat} onFormat={setDateFormat} location={dateLocation} onLocation={setDateLocation} meetingUrl={meetingUrl} onMeetingUrl={setMeetingUrl} reservationUrl={reservationUrl} onReservationUrl={setReservationUrl} palette={PINK_DAY_PALETTE} />
                   )}
                 </div>
               </div>
@@ -1230,6 +1148,7 @@ export default function OurLittlePinkDayStudio() {
                           Add
                         </button>
                       </div>
+                      <SenderPollChoices options={pollOptions} value={senderPollChoices} onChange={setSenderPollChoices} palette={PINK_DAY_PALETTE} />
                     </div>
                   )}
                 </div>
@@ -1270,7 +1189,7 @@ export default function OurLittlePinkDayStudio() {
                       5. Heart-to-Heart Q&amp;A
                     </h4>
                     <p className="text-xs text-[#79566C] mt-1 leading-snug">
-                      Ask a sweet question that {partnerName || "your partner"} answers before continuing through the story scenes.
+                      Add your answer now, then invite them to share their side.
                     </p>
                   </div>
 
@@ -1286,6 +1205,7 @@ export default function OurLittlePinkDayStudio() {
                         placeholder="What was your favorite moment from our first date?..."
                         className="w-full px-3 py-1.5 rounded-xl bg-[#FFF8FC] border border-[#F7BFD5] text-xs text-[#51253E] focus:outline-none focus:border-[#A43F66]"
                       />
+                      <SenderAnswerField kind="question" value={senderQuestionAnswer} onChange={setSenderQuestionAnswer} palette={PINK_DAY_PALETTE} />
                     </div>
                   )}
                 </div>
@@ -1326,14 +1246,14 @@ export default function OurLittlePinkDayStudio() {
                       6. Synchronized Secret
                     </h4>
                     <p className="text-xs text-[#79566C] mt-1 leading-snug">
-                      A locked confession or surprise note with a countdown that only unlocks when both of you open it together.
+                      Lock your answer during setup. They add theirs and open both answers when ready.
                     </p>
                   </div>
 
                   {revealToolEnabled && (
                     <div className="pt-2 space-y-1.5 border-t border-rose-100">
                       <label className="text-[11px] font-bold text-[#A43F66] block">
-                        Confession / Secret Note:
+                        Question for both of you:
                       </label>
                       <input
                         type="text"
@@ -1342,6 +1262,7 @@ export default function OurLittlePinkDayStudio() {
                         placeholder="A secret confession that unlocks together..."
                         className="w-full px-3 py-1.5 rounded-xl bg-[#FFF8FC] border border-[#F7BFD5] text-xs text-[#51253E] focus:outline-none focus:border-[#A43F66]"
                       />
+                      <SenderAnswerField kind="secret" value={senderSecretAnswer} onChange={setSenderSecretAnswer} palette={PINK_DAY_PALETTE} />
                     </div>
                   )}
                 </div>
@@ -1702,6 +1623,7 @@ export default function OurLittlePinkDayStudio() {
               </div>
             </div>
 
+            {senderSetupError && <p className="text-sm leading-relaxed" role="status">{senderSetupError} Complete your side before continuing.</p>}
             {/* Stepper Navigation */}
             <div className="pt-4 flex items-center justify-between">
               <button
@@ -1715,6 +1637,8 @@ export default function OurLittlePinkDayStudio() {
               <button
                 type="button"
                 onClick={() => setStep(2)}
+                disabled={!!senderSetupError}
+                title={senderSetupError || undefined}
                 className="px-7 py-3 rounded-full text-white font-bold text-xs shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-2"
                 style={{ backgroundColor: PINK_DAY_PALETTE.accent }}
               >

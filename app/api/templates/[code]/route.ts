@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { createHash } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { adminClient,apiError,currentUser,HttpError,rateLimit,requireSameOrigin } from "@/lib/server/security";
 import { templateCode } from "@/lib/security/validation";
 import { runOpportunisticCleanup } from "@/lib/cloudinaryCleanup";
+import { publicActivityTools } from "@/lib/template-activities";
 type Context={params:Promise<{code:string}>};
 export async function GET(request:Request,context:Context) {
   try {
@@ -14,13 +15,15 @@ export async function GET(request:Request,context:Context) {
     if(error)throw new HttpError(503,"This template is temporarily unavailable.");
     if(!data)throw new HttpError(404,"Template not found.");
     if(data.expired) {runOpportunisticCleanup();return NextResponse.json({error:"This template has expired.",expired:true},{status:410});}
+    const jar=await cookies();
+    if(!/^[a-f0-9]{64}$/.test(jar.get(`bonded_reply_${code}`)?.value || "")) jar.set(`bonded_reply_${code}`,randomBytes(32).toString("hex"),{httpOnly:true,secure:process.env.NODE_ENV==="production",sameSite:"strict",path:"/",maxAge:60*60*24*30});
     const media=Array.isArray(data.media_items)?data.media_items:[];
     const visual=media.filter((m:Record<string,unknown>)=>m.type==="image" || m.type==="video").map((m:Record<string,unknown>)=>({
       ...m,public_id:typeof m.url==="string" && m.url.startsWith("/api/media/")?m.url.split("/").pop():m.public_id,
       url:typeof m.url==="string" && m.url.startsWith("/api/media/")?`${m.url}?template=${code}`:m.url,
     }));
     const music=data.music_track || media.find((m:Record<string,unknown>)=>m.type==="music_track" || m.type==="audio_track")?.track || null;
-    return NextResponse.json({success:true,template:{...data,music_track:music,media_items:visual}},{headers:{"Cache-Control":"private, no-store","Referrer-Policy":"no-referrer"}});
+    return NextResponse.json({success:true,template:{...data,tools:publicActivityTools(data.tools),music_track:music,media_items:visual}},{headers:{"Cache-Control":"private, no-store","Referrer-Policy":"no-referrer"}});
   } catch(error) {return apiError(error);}
 }
 export async function DELETE(request:Request,context:Context) {

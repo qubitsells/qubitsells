@@ -134,7 +134,7 @@ async function handlePOST(request: Request, context: Context) {
       const { data, error } = await adminClient().rpc("bonded_save_reveal_draft", {
         link_code: code,
         expected_revision: input.expected_revision,
-        answers: JSON.stringify(input.answers),
+        answers: input.answers,
         is_creator_action: input.is_creator,
         manage_token_hash: manageHash,
         partner_token_hash: partnerHashToUse,
@@ -230,7 +230,7 @@ async function handlePOST(request: Request, context: Context) {
     const { data, error } = await adminClient().rpc("bonded_lock_reveal_answer", {
       link_code: code,
       expected_revision: input.expected_revision,
-      answers: JSON.stringify(input.answers),
+      answers: input.answers,
       is_creator_action: input.is_creator,
       manage_token_hash: manageHash,
       partner_token_hash: partnerHashToUse,

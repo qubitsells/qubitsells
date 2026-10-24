@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { validInvitationDate, validInvitationInstant, validTimeZone } from "../invitation";
+import { venueLink } from "../template-venue";
 
 export const uuid = z.string().uuid();
 export const templateCode = z.string().regex(/^[A-Za-z0-9]{6,24}$/);
@@ -53,7 +55,7 @@ export const replyToolSchema = z.object({
 export const submitReplySchema = z.object({
   client_id: uuid,
   author_name: z.string().trim().max(100).default("My Love"),
-  message: z.string().trim().max(2000).default(""),
+  message: z.string().trim().max(5000).default(""),
   reaction: z.string().trim().max(20).optional().nullable(),
   media_items: z.array(z.object({
     url: mediaReference,
@@ -61,7 +63,7 @@ export const submitReplySchema = z.object({
     type: z.enum(["image", "video"]),
     media_type: z.enum(["photo", "voice"]).optional(),
     duration: z.number().nonnegative().max(3600).optional(),
-  })).max(4).default([]),
+  })).max(6).default([]),
 }).superRefine((val, ctx) => {
   if (!val.message && val.media_items.length === 0 && !val.reaction) {
     ctx.addIssue({ code: "custom", message: "A message, reaction, or attachment is required to reply." });
@@ -69,11 +71,14 @@ export const submitReplySchema = z.object({
 });
 
 export const invitationSlotSchema = z.object({
-  id: z.string().trim().max(100),
-  start_time: z.string().trim().max(100),
-  end_time: z.string().trim().max(100).optional(),
+  id: z.string().trim().min(1).max(100),
+  start_time: z.string().trim().max(100).refine(value => validInvitationDate(value) || validInvitationInstant(value), "Choose an exact calendar date and time."),
+  end_time: z.string().trim().max(100).refine(validInvitationInstant, "Choose a valid end time.").optional(),
   label: z.string().trim().max(200).optional(),
 });
+
+const venueUrl = z.string().trim().max(1000).refine(value => !value || !!venueLink(value), "Use a complete http or https link.").optional();
+export const venueToolSchema = z.object({ id: z.literal("venue_t03"), type: z.literal("venue"), enabled: z.boolean().default(true), format: z.enum(["in_person", "online"]), location: z.string().trim().min(1).max(300), meetingUrl: venueUrl, reservationUrl: venueUrl });
 
 export const invitationToolSchema = z.object({
   id: z.literal("invitation_t02"),
@@ -83,25 +88,37 @@ export const invitationToolSchema = z.object({
   invitationMessage: z.string().trim().max(1000).default("Will you be my date?"),
   format: z.enum(["in_person", "online"]).default("in_person"),
   location: z.string().trim().max(300).optional(),
-  meetingUrl: z.string().trim().url().max(1000).optional().or(z.literal("")),
-  reservationUrl: z.string().trim().url().max(1000).optional().or(z.literal("")),
+  meetingUrl: venueUrl,
+  reservationUrl: venueUrl,
   deadline: z.string().trim().max(100).optional(),
   senderPrivateNotes: z.string().trim().max(2000).optional(),
   dateMode: z.enum(["fixed", "slots", "date_only"]).default("slots"),
   durationMinutes: z.number().int().min(15).max(1440).default(120),
-  senderTimezone: z.string().trim().max(100).default("UTC"),
+  senderTimezone: z.string().trim().max(100).refine(validTimeZone, "Choose a valid time zone.").default("UTC"),
   proposedSlots: z.array(invitationSlotSchema).min(1).max(6).default([]),
   allowCounterproposal: z.boolean().default(true),
+}).superRefine((value, context) => {
+  if (new Set(value.proposedSlots.map(slot => slot.id)).size !== value.proposedSlots.length) context.addIssue({ code: "custom", path: ["proposedSlots"], message: "Each date option needs a unique ID." });
+  for (const [index, slot] of value.proposedSlots.entries()) {
+    if (value.dateMode !== "date_only" && !validInvitationInstant(slot.start_time)) context.addIssue({ code: "custom", path: ["proposedSlots", index, "start_time"], message: "Choose an exact date and time for this option." });
+    if (slot.end_time && Date.parse(slot.end_time) <= Date.parse(slot.start_time)) context.addIssue({ code: "custom", path: ["proposedSlots", index, "end_time"], message: "End time must follow the start time." });
+  }
 });
 
 export const respondInvitationSchema = z.object({
   expected_revision: z.number().int().min(1),
-  response_type: z.enum(["accepted", "counterproposed", "declined", "decide_later"]),
+  response_type: z.enum(["accepted", "availability", "counterproposed", "declined", "decide_later"]),
   chosen_slot: invitationSlotSchema.optional(),
   suggested_slot: invitationSlotSchema.optional(),
-  partner_tz: z.string().trim().max(100).optional(),
+  partner_tz: z.string().trim().max(100).refine(validTimeZone, "Choose a valid time zone.").optional(),
   partner_note_text: z.string().trim().max(1000).optional(),
+  activity_choices: z.array(z.string().trim().min(1).max(200)).max(6).default([]),
+  alternative_idea: z.string().trim().max(500).default(""),
+  available_slot_ids: z.array(z.string().trim().min(1).max(100)).max(6).default([]),
 }).superRefine((val, ctx) => {
+  if (val.response_type === "availability" && !val.available_slot_ids.length) {
+    ctx.addIssue({ code: "custom", path: ["available_slot_ids"], message: "Check at least one date that works for you." });
+  }
   if (val.response_type === "accepted" && !val.chosen_slot) {
     ctx.addIssue({ code: "custom", path: ["chosen_slot"], message: "Please select a date and time slot." });
   }
@@ -111,13 +128,17 @@ export const respondInvitationSchema = z.object({
 });
 
 export const manageInvitationSchema = z.object({
-  action_type: z.enum(["accept_counterproposal", "reschedule", "cancel", "update_notes"]),
+  action_type: z.enum(["confirm_slot", "accept_counterproposal", "reschedule", "cancel", "update_notes"]),
+  selected_slot_id: z.string().trim().min(1).max(100).optional(),
+  expected_revision: z.number().int().min(1).optional(),
   new_slots: z.array(invitationSlotSchema).min(1).max(6).optional(),
   new_private_notes: z.string().trim().max(2000).optional(),
+}).superRefine((value, context) => {
+  if (value.action_type === "confirm_slot" && (!value.selected_slot_id || !value.expected_revision)) context.addIssue({ code: "custom", message: "Choose a receiver’s available date and refresh the invitation before confirming." });
 });
 
 export const pollOptionSchema = z.object({
-  id: z.string().trim().max(100),
+  id: z.string().trim().min(1).max(100),
   text: z.string().trim().min(1).max(200),
   image_url: z.string().trim().max(1000).optional(),
   icon: z.string().trim().max(50).optional(),
@@ -133,7 +154,8 @@ export const pollToolSchema = z.object({
   allowMultiple: z.boolean().default(false),
   allowCustomSuggestion: z.boolean().default(true),
   closingTime: z.string().trim().max(100).optional(),
-  options: z.array(pollOptionSchema).min(2).max(6),
+  options: z.array(pollOptionSchema).min(2).max(6).refine(options => new Set(options.map(option => option.id)).size === options.length, "Each poll option needs a unique ID."),
+  senderOptionIds: z.array(z.string().trim().min(1).max(100)).max(6).optional(),
 });
 
 export const votePollSchema = z.object({
@@ -159,6 +181,8 @@ export const questionItemSchema = z.object({
   skippable: z.boolean().default(true),
   sender_answer: z.string().trim().max(1000).optional().nullable(),
   reveal_mode: z.enum(["always", "after_partner_answers", "hidden"]).default("after_partner_answers"),
+}).superRefine((question, context) => {
+  if (question.type === "choice" && (!question.options || question.options.length < 2)) context.addIssue({ code: "custom", message: "Choice questions need at least two options." });
 });
 
 export const questionToolSchema = z.object({
@@ -167,7 +191,7 @@ export const questionToolSchema = z.object({
   enabled: z.boolean().default(true),
   title: z.string().trim().min(1).max(100).default("A few questions for you"),
   description: z.string().trim().max(500).optional().default(""),
-  questions: z.array(questionItemSchema).min(1).max(5),
+  questions: z.array(questionItemSchema).min(1).max(5).refine(questions => new Set(questions.map(question => question.id)).size === questions.length, "Each question needs a unique ID."),
 });
 
 export const questionAnswerItemSchema = z.object({
@@ -200,8 +224,9 @@ export const revealToolSchema = z.object({
   enabled: z.boolean().default(true),
   prompt: z.string().trim().min(1).max(250),
   description: z.string().trim().max(500).optional().default(""),
-  questions: z.array(revealQuestionItemSchema).max(5).optional().default([]),
+  questions: z.array(revealQuestionItemSchema).max(5).refine(questions => new Set(questions.map(question => question.id)).size === questions.length, "Each secret question needs a unique ID.").optional().default([]),
   countdownSeconds: z.number().int().min(1).max(10).optional().default(3),
+  senderAnswers: z.record(z.string(),z.string().trim().max(2000)).optional(),
 });
 
 export const saveRevealDraftSchema = z.object({
@@ -226,6 +251,7 @@ export const confirmRevealSchema = z.object({
   is_creator: z.boolean().default(false),
 });
 
+const surpriseMediaReference = z.string().trim().max(1000).refine(value => !value || mediaReference.safeParse(value).success || !!venueLink(value), "Use a valid uploaded photo or complete http/https media link.");
 export const scratchRevealToolSchema = z.object({
   id: z.literal("scratch_t07"),
   type: z.literal("scratch_reveal"),
@@ -234,7 +260,7 @@ export const scratchRevealToolSchema = z.object({
   coverInstruction: z.string().trim().max(200).optional().default("Scratch with your finger or mouse to reveal"),
   contentType: z.enum(["message", "photo", "invitation"]).default("message"),
   hiddenMessage: z.string().trim().max(1000).optional(),
-  hiddenPhotoUrl: z.string().trim().max(1000).optional(),
+  hiddenPhotoUrl: surpriseMediaReference.optional(),
   invitationRefId: z.string().trim().max(100).optional(),
 }).superRefine((val, ctx) => {
   if (val.contentType === "message" && (!val.hiddenMessage || val.hiddenMessage.trim().length === 0)) {
@@ -251,14 +277,14 @@ export const couponToolSchema = z.object({
   enabled: z.boolean().default(true),
   title: z.string().trim().min(1).max(100),
   description: z.string().trim().max(500).default(""),
-  expiresAt: z.string().trim().max(100).nullable().optional(),
+  expiresAt: z.string().trim().max(100).refine(value => !value || validInvitationInstant(value), "Use a valid coupon expiry date and time.").nullable().optional(),
   enableScheduling: z.boolean().default(false),
 });
 
 export const requestCouponSchema = z.object({
   expected_revision: z.number().int().min(1),
   request_note: z.string().trim().max(500).optional(),
-  preferred_date: z.string().trim().max(100).optional(),
+  preferred_date: z.string().trim().max(100).refine(value => validInvitationInstant(value), "Choose a date and time with a time zone.").optional(),
 });
 
 export const manageCouponSchema = z.object({
@@ -271,7 +297,7 @@ export const openWhenEnvelopeSchema = z.object({
   id: z.string().trim().min(1).max(50),
   occasion: z.string().trim().min(1).max(100),
   message: z.string().trim().min(1).max(2000),
-  mediaUrl: z.string().trim().max(1000).optional(),
+  mediaUrl: surpriseMediaReference.optional(),
   mediaType: z.enum(["image", "video"]).optional(),
 });
 
@@ -282,7 +308,7 @@ export const openWhenToolSchema = z.object({
   title: z.string().trim().min(1).max(100).default("Open When Letters"),
   description: z.string().trim().max(500).default("These envelopes open whenever you choose — for comfort, love, and sweet memories."),
   attachReply: z.boolean().default(true),
-  envelopes: z.array(openWhenEnvelopeSchema).min(1).max(3),
+  envelopes: z.array(openWhenEnvelopeSchema).min(1).max(3).refine(envelopes => new Set(envelopes.map(envelope => envelope.id)).size === envelopes.length, "Each letter needs a unique ID."),
 });
 
 export const openEnvelopeSchema = z.object({
@@ -291,7 +317,7 @@ export const openEnvelopeSchema = z.object({
 
 export const storyCardSchema = z.object({
   id: z.string().trim().min(1).max(50),
-  photo_url: z.string().trim().min(1).max(1000),
+  photo_url: surpriseMediaReference.refine(value => !!value, "Add a photo."),
   caption: z.string().trim().min(1).max(500),
   date: z.string().trim().max(100).optional().nullable(),
   order: z.number().int().min(0).max(10),
@@ -303,13 +329,13 @@ export const ourStoryToolSchema = z.object({
   enabled: z.boolean().default(true),
   title: z.string().trim().min(1).max(100).default("Our Story Memories"),
   description: z.string().trim().max(500).default("A journey through our favorite moments together."),
-  cards: z.array(storyCardSchema).min(3, "Please provide at least 3 story cards.").max(5, "You can add at most 5 story cards."),
+  cards: z.array(storyCardSchema).min(3, "Please provide at least 3 story cards.").max(5, "You can add at most 5 story cards.").refine(cards => new Set(cards.map(card=>card.id)).size===cards.length,"Each memory needs a unique ID."),
 });
 
 export const submitPartnerSideSchema = z.object({
   author_name: z.string().trim().max(50).optional(),
   caption: z.string().trim().min(1, "Please enter a caption for your photo.").max(500),
-  photo_url: z.string().trim().min(1, "Please provide a photo for your side of the story.").max(1000),
+  photo_url: surpriseMediaReference.refine(value => !!value, "Please provide a photo for your side of the story."),
   date: z.string().trim().max(100).optional().nullable(),
   asset_id: uuid.optional().nullable(),
 });
@@ -325,7 +351,7 @@ export const bucketListItemSchema = z.object({
   partner_interested: z.boolean().optional().default(false),
   planning_started_at: z.string().nullable().optional(),
   completed_at: z.string().nullable().optional(),
-  memory_photo_url: z.string().trim().max(1000).optional().nullable(),
+  memory_photo_url: surpriseMediaReference.optional().nullable(),
   memory_note: z.string().trim().max(500).optional().nullable(),
 });
 
@@ -335,7 +361,7 @@ export const bucketListToolSchema = z.object({
   enabled: z.boolean().default(true),
   title: z.string().trim().min(1).max(100).default("Mini Couple Bucket List"),
   description: z.string().trim().max(500).default("Adventures and dreams we want to experience together."),
-  items: z.array(bucketListItemSchema).min(1, "Please provide at least 1 bucket list idea.").max(5, "You can start with up to 5 bucket list ideas."),
+  items: z.array(bucketListItemSchema).min(1, "Please provide at least 1 bucket list idea.").max(5, "You can start with up to 5 bucket list ideas.").refine(items=>new Set(items.map(item=>item.id)).size===items.length,"Each idea needs a unique ID."),
 });
 
 export const mutateBucketListSchema = z.object({
@@ -345,9 +371,11 @@ export const mutateBucketListSchema = z.object({
     title: z.string().trim().min(1).max(120).optional(),
     note: z.string().trim().max(500).optional().nullable(),
     status: z.enum(["wished", "planning", "completed"]).optional(),
-    memory_photo_url: z.string().trim().max(1000).optional().nullable(),
+    memory_photo_url: surpriseMediaReference.optional().nullable(),
     memory_note: z.string().trim().max(500).optional().nullable(),
     asset_id: uuid.optional().nullable(),
+    expected_revision: z.number().int().positive().optional(),
+    interested: z.boolean().optional(),
   }).optional().default({}),
 });
 

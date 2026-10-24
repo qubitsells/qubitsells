@@ -122,6 +122,16 @@
 .mediaWell { background: var(--brand-surface); padding: 12px; border: 1px solid var(--brand-border); border-radius: 7px; margin-top: 14px; color: #16232d; }
 .replyReaction { display: inline-flex; align-items: center; justify-content: center; min-width: 29px; padding: 3px 6px; background: var(--brand-surface); border: 1px solid var(--brand-border); border-radius: 5px; font-size: 15px; }
 .receiverDetails { display: grid; gap: 14px; }
+.responseSubheading { padding: 20px 0 13px; }
+.responseSubheading h4 { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; }
+.responseSubheading p { color: var(--creator-muted); font-size: 12px; line-height: 1.8; margin-top: 5px; }
+.rsvpActivities { list-style: none; display: grid; gap: 8px; padding: 0; font-size: 13px; line-height: 1.8; }
+.rsvpActivities li { display: flex; align-items: center; gap: 8px; }
+.rsvpActivities svg { color: var(--brand-accent); flex-shrink: 0; }
+.rsvpMarker { display: grid; place-items: center; width: 19px; height: 19px; flex-shrink: 0; border: 1px solid var(--brand-border-strong); border-radius: 4px; margin-top: 2px; color: var(--brand-accent); background: #fff; }
+.confirmDate { display: inline-flex; justify-content: center; align-items: center; min-height: 44px; margin-top: 13px; padding: 11px 16px; border: 1px solid var(--brand-accent); border-radius: 6px; background: var(--brand-accent); color: var(--brand-on-accent); font-size: 12px; font-weight: 600; cursor: pointer; }
+.confirmDate:disabled { opacity: .6; cursor: default; }
+.rsvpPending { margin-top: 18px; padding: 14px 16px; background: var(--brand-surface); border-left: 2px solid var(--brand-accent); font-size: 12px; line-height: 1.9; color: #3c505c; }
 .receiverDetails:not(:empty) { margin-top: 16px; }
 .receiverBlock { min-width: 0; padding: 20px; border: 1px solid var(--brand-border); border-radius: 8px; background: #fff; }
 .receiverBlockHeading { display: flex; align-items: flex-start; gap: 11px; }
@@ -361,3 +371,7 @@
   .endnote > svg { margin-top: 1px; }
   .error { flex-direction: column; align-items: flex-start; gap: 5px; }
 }
+.receiverHistory { margin: 20px 0; border-top: 1px solid var(--brand-border); padding-top: 15px; font-size: 12px; line-height: 1.8; }
+.receiverHistory summary { cursor: pointer; min-height: 35px; font-weight: 600; }
+.receiverHistory ol { list-style: none; padding: 0; }
+.receiverHistory li { padding: 15px 0; border-bottom: 1px solid var(--brand-border); }

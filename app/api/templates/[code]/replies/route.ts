@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { createHash } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
+import { replyReceipt } from "@/lib/template-reply";
+import type { TemplateReply } from "@/lib/supabase/coupleTemplates";
 import { adminClient, apiError, currentUser, HttpError, rateLimit } from "@/lib/server/security";
 import { templateCode } from "@/lib/security/validation";
 
@@ -29,7 +31,8 @@ export async function GET(request: Request, context: Context) {
     // Check partner receipt token: cookie or header
     const partnerCookie = jar.get(`bonded_reply_${code}`)?.value;
     const headerPartner = request.headers.get("x-reply-token");
-    const partnerToken = headerPartner || partnerCookie;
+    const partnerToken = headerPartner || partnerCookie || randomBytes(32).toString("hex");
+    if (!partnerCookie && !headerPartner) jar.set(`bonded_reply_${code}`, partnerToken, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict", path: "/", maxAge: 60 * 60 * 24 * 30 });
 
     const partnerHash = partnerToken && /^[a-f0-9]{64}$/.test(partnerToken)
       ? createHash("sha256").update(partnerToken).digest("hex")
@@ -45,22 +48,11 @@ export async function GET(request: Request, context: Context) {
     if (error) {
       throw new HttpError(503, "Could not load replies.");
     }
+    if (!data?.success) throw new HttpError(410, data?.error || "This template is no longer available.");
 
     const replies = Array.isArray(data?.replies) ? data.replies : [];
     // Ensure media items have accessible proxy URLs
-    const formattedReplies = replies.map((r: Record<string, unknown>) => {
-      const media = Array.isArray(r.media_items) ? r.media_items : [];
-      const formattedMedia = media.map((m: Record<string, unknown>) => ({
-        ...m,
-        url: typeof m.url === "string" && m.url.startsWith("/api/media/")
-          ? `${m.url}?template=${code}`
-          : m.url,
-      }));
-      return {
-        ...r,
-        media_items: formattedMedia,
-      };
-    });
+    const formattedReplies = replies.map((reply: TemplateReply) => replyReceipt(reply, code)).sort((a: TemplateReply, b: TemplateReply) => Date.parse(b.created_at) - Date.parse(a.created_at));
 
     return NextResponse.json({
       success: true,

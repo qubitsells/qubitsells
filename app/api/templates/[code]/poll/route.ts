@@ -117,7 +117,7 @@ async function handlePOST(request: Request, context: Context) {
     const { data, error } = await adminClient().rpc("bonded_vote_template_poll", {
       link_code: code,
       expected_revision: input.expected_revision,
-      selected_option_ids: JSON.stringify(input.selected_option_ids),
+      selected_option_ids: input.selected_option_ids,
       is_creator_vote: input.is_creator_vote,
       manage_token_hash: manageHash,
       partner_token_hash: partnerHashToUse,

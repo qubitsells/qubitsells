@@ -213,7 +213,7 @@
 .previewDialog::backdrop { background: #16232d99; }
 .previewHeading { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 9px 20px; font-size: 12px; }
 .previewArtwork { position: relative; aspect-ratio: 16/9; }
-.previewArtwork img { object-fit: cover; }
+.previewVideo { display: block; position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #160b10; }
 .previewDetails { padding: 25px; display: flex; align-items: center; gap: 30px; justify-content: space-between; }
 .previewDetails h2 { font-family: var(--font-playfair), Georgia, serif; font-size: 25px; }
 .previewDetails p { font-size: 13px; line-height: 1.8; color: #4f6270; margin-top: 10px; }

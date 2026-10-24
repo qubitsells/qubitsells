@@ -57,3 +57,19 @@ test("previously submitted answers remain visible when the current question list
   assert.ok(html.includes("Our first trip"));
   assert.ok(html.includes("Coffee"));
 });
+
+test("My Creations shows checked and unchecked dates, activity choices, alternative ideas and sender confirmation", () => {
+  const options = [{ id: "yes", start_time: "2027-11-05T15:00:00Z", label: "Dinner after work" }, { id: "no", start_time: "2027-11-06T15:00:00Z", label: "Saturday evening" }];
+  const html = render({ ...fixture, invitation: { ...fixture.invitation!, status: "awaiting_confirmation", partner_response_status: "availability", confirmed_slot: null, counter_proposal_slot: null, proposed_slots: options, available_slots: [options[0]], recipient_activities: ["Dinner", "A walk"], recipient_idea: "Maybe a picnic", revision: 2 } });
+  for (const text of ["Needs your confirmation", "Dinner after work", "Saturday evening", "Works for Sam", "Not selected", "Dinner", "A walk", "Maybe a picnic", "Confirm this date", "No date is confirmed yet"]) assert.ok(html.includes(text), text);
+  assert.equal((html.match(/Confirm this date/g) || []).length, 1);
+});
+
+test("My Creations renders bucket memory attribution and earlier activity independently of the latest note",()=>{
+ const html=render({...fixture,bucket_list:{...fixture.bucket_list!,items:[{...fixture.bucket_list!.items[0],memory_by:"partner",memory_saved_at:"2026-10-20T12:00:00Z",history:[{action:"attach_memory",by:"creator",at:"2026-10-20T11:00:00Z",status:"completed",note:"An earlier note",photo_url:"/api/media/earlier?template=display-code"}]}]}});
+ for(const value of ["Memory shared by","Memory shared","An earlier note","We finally went","1 of 1 enjoyed","api/media/earlier","Open shared list"])assert.ok(html.includes(value),value);
+});
+
+test("authored story date labels are displayed without inventing a day or hiding the original text",()=>{
+ for(const date of ["Summer 2026","October 2026"]){const html=render({...fixture,our_story:{...fixture.our_story!,partner_memory_date:date}});assert.ok(html.includes(date));}
+});

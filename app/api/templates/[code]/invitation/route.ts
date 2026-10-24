@@ -83,10 +83,13 @@ async function handlePOST(request: Request, context: Context) {
       link_code: code,
       expected_revision: input.expected_revision,
       response_type: input.response_type,
-      chosen_slot: input.chosen_slot ? JSON.stringify(input.chosen_slot) : null,
-      suggested_slot: input.suggested_slot ? JSON.stringify(input.suggested_slot) : null,
+      chosen_slot: input.chosen_slot || null,
+      suggested_slot: input.suggested_slot || null,
       partner_tz: input.partner_tz || null,
       partner_note_text: input.partner_note_text || null,
+      activity_choices: [...new Set(input.activity_choices)],
+      alternative_idea: input.alternative_idea || null,
+      available_slot_ids: [...new Set(input.available_slot_ids)],
     });
 
     if (error) {
@@ -100,6 +103,7 @@ async function handlePOST(request: Request, context: Context) {
       success: true,
       status: data?.status,
       revision: data?.revision,
+      invitation: data?.invitation,
     });
   } catch (error) {
     return apiError(error);
@@ -131,12 +135,14 @@ async function handlePATCH(request: Request, context: Context) {
       action_type: input.action_type,
       manage_token_hash: manageHash,
       actor_id: actorId,
-      new_slots: input.new_slots ? JSON.stringify(input.new_slots) : null,
+      new_slots: input.new_slots || null,
       new_private_notes: input.new_private_notes || null,
+      selected_slot_id: input.selected_slot_id || null,
+      expected_revision: input.expected_revision || null,
     });
 
     if (error) {
-      throw new HttpError(error.code === "42501" ? 403 : 400, error.message || "Failed to update invitation.");
+      throw new HttpError(error.code === "40001" ? 409 : error.code === "42501" ? 403 : 400, error.message || "Failed to update invitation.");
     }
 
     return NextResponse.json({

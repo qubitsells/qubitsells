@@ -1,35 +1,14 @@
 "use client";
 
+import StoryStartButton from "./StoryStartButton";
+import VenueDetails from "@/components/tools/VenueDetails";
+import type { VenueToolConfig } from "@/lib/supabase/coupleTemplates";
+import { InvitationTool } from "@/components/tools/InvitationTool";
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Heart,
-  Play,
-  Pause,
-  RotateCcw,
-  SkipForward,
-  ChevronLeft,
-  ChevronRight,
-  Volume2,
-  VolumeX,
-  MessageSquare,
-  Sparkles,
-  CheckCircle2,
-  Send,
-  X,
-  Share2,
-  Quote,
-  Film,
-  ArrowDown,
-  Maximize2,
-  Moon,
-  Compass,
-  Mail,
-  Calendar,
-  Clock,
-} from "lucide-react";
+import { Heart, Play, Pause, RotateCcw, SkipForward, ChevronLeft, ChevronRight, Volume2, VolumeX, MessageSquare, Sparkles, CheckCircle2, X, Share2, Quote, Film, ArrowDown, Maximize2, Mail } from "lucide-react";
 import type {
   AnimeTemplate,
   InvitationToolConfig,
@@ -43,12 +22,7 @@ import type {
   OurStoryToolConfig,
   BucketListToolConfig,
 } from "@/lib/supabase/coupleTemplates";
-import {
-  STARLIT_STORY_SCENES,
-  STARLIT_STORY_CONFIG,
-  STARLIT_STORY_PALETTE,
-  DEFAULT_STARLIT_STORY_GALLERY_ITEMS,
-} from "@/lib/constants/starlitStoryTemplate";
+import { STARLIT_STORY_SCENES, STARLIT_STORY_CONFIG, STARLIT_STORY_PALETTE } from "@/lib/constants/starlitStoryTemplate";
 import { ReplyTool } from "@/components/tools/ReplyTool";
 import { ScratchRevealTool } from "@/components/tools/ScratchRevealTool";
 import { LoveCouponTool } from "@/components/tools/LoveCouponTool";
@@ -68,18 +42,6 @@ interface StarlitStoryViewerProps {
   code: string;
 }
 
-function getStarlitOptionIcon(optId: string) {
-  switch (optId) {
-    case "opt_stargazing":
-      return Moon;
-    case "opt_drive":
-      return Compass;
-    case "opt_rooftop":
-    default:
-      return Sparkles;
-  }
-}
-
 export default function StarlitStoryViewer({
   template,
   code,
@@ -87,8 +49,6 @@ export default function StarlitStoryViewer({
   const [currentScene, setCurrentScene] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasOpened, setHasOpened] = useState(false);
-  const [isAudioMuted, setIsAudioMuted] = useState(false);
-  const [audioReady, setAudioReady] = useState(false);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
@@ -115,74 +75,6 @@ export default function StarlitStoryViewer({
     };
   }, [isCinematicMode]);
 
-  // Automatic transition from cinematic title sequence to Scene 1 playing automatically
-  useEffect(() => {
-    if (!isCinematicMode) {
-      setIsIntroActive(false);
-      setHasOpened(true);
-      return;
-    }
-
-    // Display the cinematic title sequence for 3.8s, then automatically start story scenes playing
-    const introTimer = setTimeout(() => {
-      setIsIntroActive(false);
-      setHasOpened(true);
-      setIsPlaying(true);
-      if (audioRef.current && !isUserMutedRef.current) {
-        audioRef.current.muted = false;
-        audioRef.current
-          .play()
-          .then(() => setIsAudioPlaying(true))
-          .catch(() => {});
-      }
-    }, 3800);
-
-    return () => clearTimeout(introTimer);
-  }, [isCinematicMode]);
-
-  // Unlock audio on any user gesture — browsers block autoplay until a real interaction.
-  useEffect(() => {
-    const ytTrack =
-      template.music_track?.type === "youtube" ||
-      Boolean(template.music_track?.youtubeId);
-    if (ytTrack) return; // YouTube iframe handles its own autoplay
-
-    const unlock = () => {
-      if (!audioRef.current || isAudioPlaying || isUserMutedRef.current) return;
-      const startSec = template.music_track?.startAt || 0;
-      if (startSec > 0 && audioRef.current.currentTime < 1) {
-        try {
-          audioRef.current.currentTime = startSec;
-        } catch {}
-      }
-      audioRef.current.muted = false;
-      audioRef.current
-        .play()
-        .then(() => {
-          setIsAudioPlaying(true);
-          document.removeEventListener("click", unlock, { capture: true });
-          document.removeEventListener("touchstart", unlock, { capture: true });
-          document.removeEventListener("keydown", unlock, { capture: true });
-          document.removeEventListener("scroll", unlock, { capture: true });
-          document.removeEventListener("mousemove", unlock, { capture: true });
-        })
-        .catch(() => {});
-    };
-
-    document.addEventListener("click", unlock, { capture: true });
-    document.addEventListener("touchstart", unlock, { capture: true });
-    document.addEventListener("keydown", unlock, { capture: true });
-    document.addEventListener("scroll", unlock, { capture: true });
-    document.addEventListener("mousemove", unlock, { capture: true });
-
-    return () => {
-      document.removeEventListener("click", unlock, { capture: true });
-      document.removeEventListener("touchstart", unlock, { capture: true });
-      document.removeEventListener("keydown", unlock, { capture: true });
-      document.removeEventListener("scroll", unlock, { capture: true });
-      document.removeEventListener("mousemove", unlock, { capture: true });
-    };
-  }, [isAudioPlaying, template.music_track]);
 
   // Story segment fill progress
   useEffect(() => {
@@ -203,15 +95,8 @@ export default function StarlitStoryViewer({
     return () => clearInterval(interval);
   }, [isPlaying, currentScene]);
 
-  // Date selection state
-  const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
-  const [customIdea, setCustomIdea] = useState("");
-  const [showCustomInput, setShowCustomInput] = useState(false);
-  const [selectedSlotId, setSelectedSlotId] = useState<string>("");
-  const [partnerNote, setPartnerNote] = useState("");
-  const [isSubmittingRsvp, setIsSubmittingRsvp] = useState(false);
-  const [rsvpSubmitted, setRsvpSubmitted] = useState(false);
-  const [rsvpStatusText, setRsvpStatusText] = useState("");
+  // Interactive tools
+
   const [activeDrawer, setActiveDrawer] = useState<"reply" | null>(null);
   const [copiedShare, setCopiedShare] = useState(false);
 
@@ -219,32 +104,33 @@ export default function StarlitStoryViewer({
   const invitationConfig = template.tools?.find(
     (t): t is InvitationToolConfig => t.type === "invitation"
   );
+  const venueConfig = template.tools?.find((tool): tool is VenueToolConfig => tool.type === "venue" && tool.enabled);
   const replyConfig = template.tools?.find(
     (t): t is ReplyToolConfig => t.type === "reply"
   );
   const pollConfig = template.tools?.find(
-    (t): t is PollToolConfig => t.type === "poll"
+    (t): t is PollToolConfig => t.type === "poll" && t.enabled
   );
   const questionConfig = template.tools?.find(
-    (t): t is QuestionToolConfig => t.type === "question"
+    (t): t is QuestionToolConfig => t.type === "question" && t.enabled
   );
   const revealConfig = template.tools?.find(
-    (t): t is RevealToolConfig => t.type === "private_reveal"
+    (t): t is RevealToolConfig => t.type === "private_reveal" && t.enabled
   );
   const scratchConfig = template.tools?.find(
-    (t): t is ScratchRevealToolConfig => t.type === "scratch_reveal"
+    (t): t is ScratchRevealToolConfig => t.type === "scratch_reveal" && t.enabled
   );
   const couponConfig = template.tools?.find(
-    (t): t is CouponToolConfig => t.type === "coupon"
+    (t): t is CouponToolConfig => t.type === "coupon" && t.enabled
   );
   const openWhenConfig = template.tools?.find(
-    (t): t is OpenWhenToolConfig => t.type === "open_when"
+    (t): t is OpenWhenToolConfig => t.type === "open_when" && t.enabled
   );
   const ourStoryConfig = template.tools?.find(
-    (t): t is OurStoryToolConfig => t.type === "our_story"
+    (t): t is OurStoryToolConfig => t.type === "our_story" && t.enabled !== false
   );
   const bucketListConfig = template.tools?.find(
-    (t): t is BucketListToolConfig => t.type === "bucket_list"
+    (t): t is BucketListToolConfig => t.type === "bucket_list" && t.enabled !== false
   );
   const floatingGalleryConfig = (template.tools as unknown[] | undefined)?.find(
     (t): t is {
@@ -280,11 +166,6 @@ export default function StarlitStoryViewer({
     (isYouTube && template.music_track?.id?.replace(/^yt-/, "")) ||
     null;
 
-  useEffect(() => {
-    if (isYouTube && ytVideoId) {
-      setIsAudioPlaying(true);
-    }
-  }, [isYouTube, ytVideoId]);
 
   // Audio play/pause toggle
   const toggleAudio = useCallback(
@@ -296,7 +177,7 @@ export default function StarlitStoryViewer({
         setIsAudioPlaying((prev) => {
           const next = !prev;
           isUserMutedRef.current = !next;
-          setIsAudioMuted(!next);
+
           return next;
         });
         return;
@@ -306,12 +187,12 @@ export default function StarlitStoryViewer({
 
       if (isAudioPlaying) {
         isUserMutedRef.current = true;
-        setIsAudioMuted(true);
+
         setIsAudioPlaying(false);
         audioRef.current.pause();
       } else {
         isUserMutedRef.current = false;
-        setIsAudioMuted(false);
+
         const startSec = template.music_track?.startAt || 0;
         if (startSec > 0 && audioRef.current.currentTime < 1) {
           try {
@@ -393,7 +274,6 @@ export default function StarlitStoryViewer({
     [isYouTube, template.music_track]
   );
 
-  const handleStartStory = handleSkipIntro;
 
   const handlePlayPause = () => {
     setIsPlaying((prev) => !prev);
@@ -412,6 +292,8 @@ export default function StarlitStoryViewer({
   };
 
   const handleExitCinematic = () => {
+    setIsIntroActive(false);
+    setHasOpened(true);
     setIsCinematicMode(false);
     setHasCompletedAllScenes(true);
     setTimeout(() => {
@@ -420,73 +302,6 @@ export default function StarlitStoryViewer({
         el.scrollIntoView({ behavior: "smooth" });
       }
     }, 150);
-  };
-
-  // Submit Date RSVP
-  const handleRsvpSubmit = async () => {
-    if (!selectedChoice) return;
-    setIsSubmittingRsvp(true);
-
-    try {
-      const choiceLabel =
-        showCustomInput && customIdea.trim() ? customIdea.trim() : selectedChoice;
-      const isDeclined = choiceLabel === "Maybe another time";
-
-      try {
-        await fetch(`/api/templates/${encodeURIComponent(code)}/invitation`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            expected_revision: 1,
-            response_type: isDeclined ? "declined" : "accepted",
-            chosen_slot: selectedSlotId
-              ? invitationConfig?.proposedSlots?.find((s) => s.id === selectedSlotId) || {
-                  id: "slot_default",
-                  start_time: new Date().toISOString(),
-                  label: choiceLabel,
-                }
-              : {
-                  id: "slot_default",
-                  start_time: new Date().toISOString(),
-                  label: choiceLabel,
-                },
-            partner_note_text: `Choice: ${choiceLabel}${
-              partnerNote ? ` — Note: ${partnerNote}` : ""
-            }`,
-          }),
-        });
-      } catch {}
-
-      try {
-        await fetch(`/api/templates/${encodeURIComponent(code)}/reply`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            client_id: crypto.randomUUID(),
-            author_name: template.partner_name || "My Love",
-            message: `✨ Starlit Date Choice: ${choiceLabel}${
-              partnerNote ? `\n"${partnerNote}"` : ""
-            }`,
-            reaction: isDeclined ? "🤍" : "🌟",
-            media_items: [],
-          }),
-        });
-      } catch {}
-
-      setRsvpSubmitted(true);
-      setRsvpStatusText(
-        isDeclined
-          ? "Understood, my love. We'll watch the stars whenever your heart wishes. 🤍"
-          : `It's a starlit date! Can't wait for our ${choiceLabel}. ✨🌙`
-      );
-    } catch {
-      setRsvpSubmitted(true);
-      setRsvpStatusText(
-        "Response saved! I can't wait for our magical evening together. ✨🌙"
-      );
-    } finally {
-      setIsSubmittingRsvp(false);
-    }
   };
 
   const handleCopyShareLink = () => {
@@ -511,6 +326,7 @@ export default function StarlitStoryViewer({
     glow: STARLIT_STORY_PALETTE.gold,
     text: STARLIT_STORY_PALETTE.text,
     dark: STARLIT_STORY_PALETTE.background,
+    card: "#FFFFFF",
   };
 
   return (
@@ -524,20 +340,9 @@ export default function StarlitStoryViewer({
       {/* Hidden MP3 audio element */}
       {template.music_track?.mp3Url && !isYouTube && (
         <audio
-          ref={(el) => {
-            if (el && el !== audioRef.current) {
-              audioRef.current = el;
-              el.currentTime = template.music_track?.startAt || 0;
-              if (!isUserMutedRef.current) {
-                el.play()
-                  .then(() => setIsAudioPlaying(true))
-                  .catch(() => {});
-              }
-            }
-          }}
+          ref={audioRef}
           src={template.music_track.mp3Url}
           loop
-          autoPlay
           muted={false}
           preload="auto"
           style={{ display: "none" }}
@@ -546,7 +351,7 @@ export default function StarlitStoryViewer({
             if (!isUserMutedRef.current) return;
             setIsAudioPlaying(false);
           }}
-          onCanPlay={() => setAudioReady(true)}
+
         />
       )}
 
@@ -743,7 +548,7 @@ export default function StarlitStoryViewer({
                     filter: "blur(14px)",
                     transition: { duration: 0.85, ease: [0.4, 0, 0.2, 1] },
                   }}
-                  className="absolute inset-0 z-40 flex flex-col items-center justify-center p-6 text-center pointer-events-none select-none"
+                  className="absolute inset-0 z-40 flex flex-col items-center justify-center overflow-y-auto p-6 text-center select-none"
                 >
                   <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] pointer-events-none" />
 
@@ -793,6 +598,7 @@ export default function StarlitStoryViewer({
                           A 6-scene story created with love by {senderName}
                         </p>
                       </motion.div>
+                    <StoryStartButton onClick={handleSkipIntro} hasMusic={!!template.music_track} accent="#FAD4A8" onAccent="#171018" />
                     </motion.div>
                   </div>
                 </motion.div>
@@ -1016,7 +822,7 @@ export default function StarlitStoryViewer({
               </button>
             )}
 
-            {replyConfig?.enabled !== false && (
+            {replyConfig?.enabled && (
               <button
                 type="button"
                 onClick={() => setActiveDrawer("reply")}
@@ -1260,193 +1066,17 @@ export default function StarlitStoryViewer({
         </main>
 
         {/* ─────────────────────────────────────────────
-            DATE PROPOSAL & RSVP SECTION (Dual-posting)
+            DATE NIGHT & RSVP: receiver availability, sender confirmation
         ───────────────────────────────────────────── */}
-        <section className="w-full max-w-4xl mx-auto my-8 px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 25 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="rounded-3xl p-6 sm:p-10 bg-white border-2 border-[#F0D5C9] shadow-sm space-y-6"
-          >
-            <div className="text-center space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FFF0EB] border border-[#F0D5C9] text-xs font-bold text-[#C26D7A]">
-                <Moon className="w-3.5 h-3.5 text-[#D99443]" />
-                <span>Our Next Adventure</span>
-              </div>
-              <h2 className="text-2xl sm:text-4xl font-starlit text-[#3A231C]">
-                {STARLIT_STORY_CONFIG.finalQuestion}
-              </h2>
-              <p className="text-xs sm:text-sm text-[#75564C]">
-                Pick your dream evening plan below so I can prepare everything perfectly for us ✨
-              </p>
-            </div>
-
-            {/* Date Options */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-              {STARLIT_STORY_CONFIG.dateOptions.map((opt) => {
-                const IconComponent = getStarlitOptionIcon(opt.id);
-                const isSelected = selectedChoice === opt.label && !showCustomInput;
-                return (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedChoice(opt.label);
-                      setShowCustomInput(false);
-                    }}
-                    className={`p-5 rounded-2xl border-2 text-left space-y-3 transition-all cursor-pointer flex flex-col justify-between ${
-                      isSelected
-                        ? "border-[#C26D7A] bg-[#FFF0EB] shadow-xs scale-102"
-                        : "border-[#F0D5C9] bg-[#FFF8F4] hover:border-[#C26D7A] hover:bg-[#FFF0EB]/60"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="w-10 h-10 rounded-xl bg-white border border-[#F0D5C9] flex items-center justify-center text-[#C26D7A] shadow-2xs">
-                        <IconComponent className="w-5 h-5" />
-                      </div>
-                      {isSelected && (
-                        <CheckCircle2 className="w-5 h-5 text-[#C26D7A]" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-extrabold text-sm sm:text-base text-[#3A231C]">
-                        {opt.label}
-                      </p>
-                      <p className="text-xs text-[#75564C] mt-1 leading-snug">
-                        {opt.description}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Custom Option Button / Input */}
-            <div className="pt-1">
-              {!showCustomInput ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCustomInput(true);
-                    setSelectedChoice(customIdea || "Custom idea");
-                  }}
-                  className="text-xs font-bold text-[#C26D7A] hover:text-[#B55D6B] hover:underline flex items-center gap-1 mx-auto cursor-pointer"
-                >
-                  <span>✨ Have another starlit date in mind? Propose your own idea</span>
-                </button>
-              ) : (
-                <div className="space-y-2 p-4 rounded-2xl bg-[#FFF8F4] border border-[#F0D5C9]">
-                  <label className="text-xs font-bold text-[#C26D7A] flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-[#D99443]" />
-                    <span>Your Custom Date Idea:</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={customIdea}
-                    onChange={(e) => {
-                      setCustomIdea(e.target.value);
-                      setSelectedChoice(e.target.value);
-                    }}
-                    placeholder="e.g., Midnight beach bonfire with acoustic music..."
-                    className="w-full px-4 py-2.5 rounded-xl bg-white border border-[#F0D5C9] text-sm text-[#3A231C] placeholder-[#9C7C72] focus:outline-hidden focus:border-[#C26D7A]"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Proposed Time Slots if Creator added them */}
-            {invitationConfig?.proposedSlots &&
-              invitationConfig.proposedSlots.length > 0 && (
-                <div className="space-y-3 pt-3 border-t border-[#F0D5C9]">
-                  <p className="text-xs font-bold text-[#C26D7A] uppercase tracking-wider flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>Choose a Preferred Time:</span>
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    {invitationConfig.proposedSlots.map((slot) => {
-                      const isSlotSelected = selectedSlotId === slot.id;
-                      return (
-                        <button
-                          key={slot.id}
-                          type="button"
-                          onClick={() => setSelectedSlotId(slot.id)}
-                          className={`p-3 rounded-xl border text-left text-xs font-semibold transition-all cursor-pointer flex items-center justify-between ${
-                            isSlotSelected
-                              ? "border-[#C26D7A] bg-[#FFF0EB] text-[#3A231C] shadow-2xs"
-                              : "border-[#F0D5C9] bg-[#FFF8F4] text-[#75564C] hover:border-[#C26D7A]"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-3.5 h-3.5 text-[#C26D7A]" />
-                            <span>{slot.label}</span>
-                          </div>
-                          {isSlotSelected && (
-                            <CheckCircle2 className="w-4 h-4 text-[#C26D7A]" />
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-            {/* Note Input */}
-            <div className="space-y-2 pt-2">
-              <label className="text-xs font-bold text-[#C26D7A] flex items-center gap-1.5">
-                <MessageSquare className="w-3.5 h-3.5" />
-                <span>Sweet Note back to {senderName} (optional):</span>
-              </label>
-              <textarea
-                value={partnerNote}
-                onChange={(e) => setPartnerNote(e.target.value)}
-                placeholder="Can't wait to see you beneath the fairy lights..."
-                rows={2}
-                className="w-full px-4 py-2.5 rounded-xl bg-[#FFF8F4] border border-[#F0D5C9] text-sm text-[#3A231C] placeholder-[#9C7C72] focus:outline-hidden focus:border-[#C26D7A]"
-              />
-            </div>
-
-            {/* Submit Button */}
-            <div className="pt-2 text-center space-y-3">
-              {rsvpSubmitted ? (
-                <motion.div
-                  initial={{ scale: 0.95, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  className="p-4 rounded-2xl bg-[#FFF0EB] border border-[#F0D5C9] text-[#3A231C] space-y-1 shadow-xs"
-                >
-                  <p className="font-extrabold text-sm flex items-center justify-center gap-1.5 text-[#C26D7A]">
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>RSVP Sent Directly to {senderName}!</span>
-                  </p>
-                  <p className="text-xs text-[#75564C]">{rsvpStatusText}</p>
-                </motion.div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleRsvpSubmit}
-                  disabled={!selectedChoice || isSubmittingRsvp}
-                  className="w-full sm:w-auto px-10 py-3.5 rounded-full bg-[#C26D7A] hover:bg-[#B55D6B] text-white font-black text-sm uppercase tracking-wider shadow-md disabled:opacity-40 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2 mx-auto"
-                >
-                  {isSubmittingRsvp ? (
-                    <span>Sending your choice... ✨</span>
-                  ) : (
-                    <>
-                      <span>Lock In Our Starlit Date</span>
-                      <Send className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
-              )}
-            </div>
-          </motion.div>
-        </section>
+        {venueConfig && !invitationConfig?.enabled && <VenueDetails venue={venueConfig} palette={STARLIT_STORY_PALETTE} />}
+        {invitationConfig?.enabled && <InvitationTool templateCode={code} partnerName={partnerName} senderName={senderName} config={invitationConfig} palette={STARLIT_STORY_PALETTE} activities={STARLIT_STORY_CONFIG.dateOptions} />}
 
         {/* ─────────────────────────────────────────────
             INTERACTIVE RECIPIENT TOOLS SECTION
         ───────────────────────────────────────────── */}
         <section className="w-full max-w-4xl mx-auto my-6 px-4 space-y-6">
           {/* Quick Reply Tool */}
-          {replyConfig?.enabled !== false && (
+          {replyConfig?.enabled && (
             <div className="rounded-3xl p-5 sm:p-7 bg-white border border-[#F0D5C9] shadow-xs">
               <ReplyTool
                 templateCode={code}
@@ -1643,7 +1273,7 @@ export default function StarlitStoryViewer({
           REPLY TOOL SLIDE-OVER DRAWER MODAL
       ───────────────────────────────────────────── */}
       <AnimatePresence>
-        {activeDrawer === "reply" && replyConfig?.enabled !== false && (
+        {activeDrawer === "reply" && replyConfig?.enabled && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -1666,7 +1296,7 @@ export default function StarlitStoryViewer({
                 config={replyConfig}
                 palette={customPalette}
                 onReplySubmitted={() => {
-                  setTimeout(() => setActiveDrawer(null), 1500);
+                  // Keep the saved receipt visible until the receiver closes it.
                 }}
               />
             </motion.div>

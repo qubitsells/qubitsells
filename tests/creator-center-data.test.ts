@@ -19,7 +19,8 @@ function fixtures(): Record<string, Row[]> {
     template_invitations: [{ template_id: "gift", id: "inv", activity: "Dinner", invitation_message: "Join me", format: "in_person", duration_minutes: 90,
       status: "counterproposed", selected_slot: { id: "slot", start_time: date(8640000), end_time: date(9000000), label: "After work" },
       counterproposal_slot: { id: "counter", start_time: date(9500000), label: "A later dinner" }, recipient_note: "Can we meet later?", recipient_timezone: "Asia/Karachi",
-      recipient_response: "counterproposed", responded_at: date(-1000), sender_timezone: "Europe/London", date_mode: "slots" }],
+      recipient_response: "counterproposed", responded_at: date(-1000), sender_timezone: "Europe/London", date_mode: "slots", revision: 2,
+      recipient_activities: ["Dinner", "A walk"], recipient_idea: "A picnic", proposed_slots: [{ id: "slot", start_time: date(8640000), label: "After work" }], available_slots: [{ id: "slot", start_time: date(8640000), label: "After work" }], meeting_url: "https://meet.example/date", reservation_url: "https://venue.example/info" }],
     template_polls: [{ template_id: "gift", id: "poll", question: "Where shall we go?", selection_mode: "both_vote", status: "resolved", options: [{ id: "one", text: "The park", image_url: "/api/media/park" }],
       partner_votes: ["custom"], creator_votes: ["custom"], resolved_option_id: "custom", custom_suggestions: [{ id: "custom", text: "The beach", suggested_by: "partner", created_at: date(-1000) }] }],
     template_question_cards: [{ id: "questions", template_id: "gift", tool_id: "question_t05", title: "Tell me more", questions: [{ id: "q", prompt: "Your favourite memory?", type: "long" }] }],
@@ -63,6 +64,12 @@ test("creator collection returns every saved receiver field with readable contex
   assert.equal(gift.invitation?.recipient_timezone, "Asia/Karachi");
   assert.equal(gift.invitation?.partner_counter_note, "Can we meet later?");
   assert.equal(gift.invitation?.responded_at, date(-1000));
+  assert.deepEqual(gift.invitation?.recipient_activities, ["Dinner", "A walk"]);
+  assert.equal(gift.invitation?.recipient_idea, "A picnic");
+  assert.equal(gift.invitation?.available_slots?.[0].label, "After work");
+  assert.equal(gift.invitation?.proposed_slots?.[0].id, "slot");
+  assert.equal(gift.invitation?.revision, 2);
+  assert.equal(gift.invitation?.meeting_url, "https://meet.example/date");
   assert.equal(gift.questions?.partner_submission?.answers.q.answer_text, "Our first trip");
   assert.equal(gift.poll?.custom_suggestions?.[0].text, "The beach");
   assert.deepEqual(gift.poll?.partner_votes, ["custom"]);
@@ -96,6 +103,14 @@ test("receiver drafts and unrevealed answers never leave the server", async () =
   assert.equal(gift.reveal?.partner_answer, null);
   assert.equal(gift.questions?.partner_submission, undefined);
   assert.ok(!JSON.stringify(gift).includes("SECRET"));
+});
+
+test("submitted question snapshots keep the original prompts after a sender edits a card", async () => {
+  const rows=fixtures();
+  rows.template_question_submissions[0].question_snapshot=[{id:"q",prompt:"Original prompt",type:"long",skippable:false}];
+  const {client}=database(rows);
+  const gifts=await loadCreatorCenter(client,actor,[]);
+  assert.equal(gifts[0].questions?.questions[0].prompt,"Original prompt");
 });
 
 test("expired and deleting gifts omit every receiver interaction and skip response queries", async () => {
@@ -139,4 +154,18 @@ test("all saved replies are paged, including more than the provider's default pa
   assert.equal(gift.replies.length, 1205);
   assert.ok(gift.replies.some(reply => reply.message === "Message 1204"));
   assert.equal(requests.filter(url => url.pathname.endsWith("template_replies")).length, 3);
+});
+
+test("scratch records, coupon history and original opened letters reach the creator collection", async()=>{
+ const rows=fixtures();
+ rows.template_scratch_reveals=[{id:"scratch",template_id:"gift",opened_at:date(-1000),method:"scratch",config_snapshot:{id:"scratch_t07",type:"scratch_reveal",enabled:true,coverTitle:"A surprise",hiddenMessage:"A picnic for you",contentType:"message"}}];
+ rows.template_coupons[0].history=[{action:"request_declined",status:"available",at:date(-1000),request_note:"The first request",cancel_reason:"Try next week"}];
+ rows.template_open_when_letters[0].opened_envelopes={letter:{opened_at:date(-1000),envelope:{id:"letter",occasion:"Original occasion",message:"The original opened letter"}},removed:{opened_at:date(-500),envelope:{id:"removed",occasion:"An earlier letter",message:"Keep this too"}}};
+ const {client}=database(rows),[gift]=await loadCreatorCenter(client,actor,[],now);
+ assert.equal(gift.scratch?.config.hiddenMessage,"A picnic for you");assert.equal(gift.scratch?.method,"scratch");assert.equal(gift.coupon?.history?.[0].request_note,"The first request");assert.equal(gift.open_when?.envelopes[0].label,"Original occasion");assert.equal(gift.open_when?.envelopes[0].message,"The original opened letter");assert.ok(gift.open_when?.envelopes.some(letter=>letter.message==="Keep this too"));
+});
+
+test("bucket list keeps earlier memory notes, author and dates, and grants photo access for history",async()=>{
+ const rows=fixtures();rows.template_bucket_list[0].items=[{id:"sea",title:"See the sea",status:"completed",created_by:"partner",memory_by:"creator",memory_saved_at:date(-1000),memory_note:"The latest memory",history:[{action:"attach_memory",by:"partner",at:date(-2000),status:"completed",note:"An earlier memory",photo_url:"/api/media/earlier-photo"}]}];
+ const [gift]=await loadCreatorCenter(database(rows).client,actor,[],now);const entry=gift.bucket_list!.items[0];assert.equal(entry.memory_by,"creator");assert.equal(entry.memory_saved_at,date(-1000));assert.equal(entry.history?.[0].note,"An earlier memory");assert.equal(entry.history?.[0].photo_url,"/api/media/earlier-photo?template=gift-code");
 });

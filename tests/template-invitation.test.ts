@@ -3,6 +3,9 @@ import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import { createHash, randomBytes } from "node:crypto";
 import { PGlite } from "@electric-sql/pglite";
+import { PRODUCTS } from "../lib/storefront";
+import type { TemplateInvitation } from "../lib/supabase/coupleTemplates";
+import { invitationCalendar, invitationDate, invitationLocalInstant } from "../lib/invitation";
 import {
   invitationSlotSchema,
   invitationToolSchema,
@@ -134,7 +137,31 @@ test("respondInvitationSchema validates required slot for acceptance and counter
   assert.equal(validDecline.success, true);
 });
 
-test("T02/T03 invitation lifecycle: sync trigger, secrecy of private notes, immediate slot confirmation, counterproposal & rescheduling", async () => {
+test("RSVP validation requires actual dates, a valid zone, and at least one checked availability option", () => {
+  assert.equal(invitationSlotSchema.safeParse({ id: "one", start_time: "Friday evening" }).success, false);
+  assert.equal(invitationSlotSchema.safeParse({ id: "one", start_time: "2026-02-30" }).success, false);
+  assert.equal(respondInvitationSchema.safeParse({ expected_revision: 1, response_type: "availability", available_slot_ids: [] }).success, false);
+  assert.equal(respondInvitationSchema.safeParse({ expected_revision: 1, response_type: "availability", available_slot_ids: ["one", "two"], activity_choices: ["Dinner", "A walk"], alternative_idea: "A picnic", partner_tz: "Asia/Karachi" }).success, true);
+  assert.equal(respondInvitationSchema.safeParse({ expected_revision: 1, response_type: "declined", partner_tz: "invalid-zone" }).success, false);
+  assert.equal(manageInvitationSchema.safeParse({ action_type: "confirm_slot", selected_slot_id: "one" }).success, false);
+});
+
+test("suggested times follow the displayed zone and calendar exports preserve dates without exposing private notes", () => {
+  assert.equal(invitationLocalInstant("2026-11-05T20:00", "Asia/Karachi"), "2026-11-05T15:00:00.000Z");
+  assert.equal(invitationLocalInstant("2026-07-05T20:00", "America/New_York"), "2026-07-06T00:00:00.000Z");
+  assert.throws(() => invitationLocalInstant("2026-03-08T02:30", "America/New_York"), /clock change/);
+  assert.throws(() => invitationLocalInstant("2026-02-30T19:00", "UTC"), /valid date/);
+  assert.equal(invitationDate("2026-11-05T00:00:00Z", "America/Los_Angeles", true), "Thu, Nov 5, 2026");
+  const invitation = { id: "fixture", date_mode: "date_only", activity: "Dinner\nBEGIN:VEVENT", duration_minutes: 120, invitation_message: "Join me", sender_private_notes: "PRIVATE SURPRISE", recipient_note: "See you there", format: "in_person" } as TemplateInvitation;
+  const calendar = invitationCalendar(invitation, { id: "one", start_time: "2026-11-05" });
+  assert.ok(calendar.includes("DTSTART;VALUE=DATE:20261105\r\nDTEND;VALUE=DATE:20261106"));
+  assert.ok(calendar.includes("UID:qubitsells-fixture@qubitsells.com"));
+  assert.equal(calendar.match(/\r\nBEGIN:VEVENT/g)?.length, 1);
+  assert.ok(!calendar.includes("PRIVATE SURPRISE"));
+  assert.throws(() => invitationCalendar(invitation, { id: "legacy", start_time: "Friday evening" }), /exact date/);
+});
+
+test("T02/T03 invitation lifecycle: private notes, sender confirmation, counterproposal and rescheduling", async () => {
   const proposedSlots = [
     { id: "slot_1", start_time: "2026-10-24T19:00:00Z", label: "Option 1" },
     { id: "slot_2", start_time: "2026-10-25T18:00:00Z", label: "Option 2" },
@@ -227,7 +254,7 @@ test("T02/T03 invitation lifecycle: sync trigger, secrecy of private notes, imme
     /Selected slot was not offered by sender/
   );
 
-  // 6. Partner accepts offered slot -> Immediately Confirmed!
+  // 6. Legacy single-date responses also require the sender's confirmation.
   const acceptRes = await db.query<{ res: { success: boolean; status: string; revision: number } }>(`
     SELECT public.bonded_respond_template_invitation(
       $1, 1, 'accepted', $2::jsonb, NULL, 'America/Chicago', 'I would love to!'
@@ -235,12 +262,15 @@ test("T02/T03 invitation lifecycle: sync trigger, secrecy of private notes, imme
   `, [testCode, JSON.stringify(proposedSlots[0])]);
   const acceptData = acceptRes.rows[0].res;
   assert.equal(acceptData.success, true);
-  assert.equal(acceptData.status, "confirmed");
+  assert.equal(acceptData.status, "awaiting_confirmation");
+  assert.equal(acceptData.revision, 2);
+
+  await db.query(`SELECT public.bonded_manage_template_invitation($1,'confirm_slot',$2,NULL,NULL,NULL,'slot_1',2)`, [testCode, deletionHash]);
 
   // Verify DB state
   const confirmedDb = await db.query<DbInvitationRow>("SELECT * FROM public.template_invitations WHERE tool_id = 'invitation_t02'");
   assert.equal(confirmedDb.rows[0].status, "confirmed");
-  assert.equal(confirmedDb.rows[0].agreed_revision, 1);
+  assert.equal(confirmedDb.rows[0].agreed_revision, 3);
   assert.equal(confirmedDb.rows[0].recipient_response, "accepted");
   assert.equal(confirmedDb.rows[0].recipient_note, "I would love to!");
 
@@ -258,7 +288,7 @@ test("T02/T03 invitation lifecycle: sync trigger, secrecy of private notes, imme
 
   const rescheduledDb = await db.query<DbInvitationRow>("SELECT * FROM public.template_invitations WHERE tool_id = 'invitation_t02'");
   assert.equal(rescheduledDb.rows[0].status, "proposed");
-  assert.equal(rescheduledDb.rows[0].revision, 2);
+  assert.equal(rescheduledDb.rows[0].revision, 4);
   assert.equal(rescheduledDb.rows[0].agreed_revision, null); // Earlier acceptance invalidated!
   assert.equal(rescheduledDb.rows[0].selected_slot, null);
 
@@ -266,16 +296,16 @@ test("T02/T03 invitation lifecycle: sync trigger, secrecy of private notes, imme
   const counterSlot = { id: "counter_custom", start_time: "2026-11-05T20:00:00Z", label: "Thursday 8 PM" };
   const counterRes = await db.query<{ res: { success: boolean; status: string; revision: number } }>(`
     SELECT public.bonded_respond_template_invitation(
-      $1, 2, 'counterproposed', NULL, $2::jsonb, 'America/New_York', 'How about Thursday evening instead?'
+      $1, 4, 'counterproposed', NULL, $2::jsonb, 'America/New_York', 'How about Thursday evening instead?'
     ) as res
   `, [testCode, JSON.stringify(counterSlot)]);
   assert.equal(counterRes.rows[0].res.success, true);
   assert.equal(counterRes.rows[0].res.status, "counterproposed");
 
-  // Counterproposal remains pending (NOT confirmed) and revision increments to 3
+  // A counterproposal also waits for creator approval.
   const counterDb = await db.query<DbInvitationRow>("SELECT * FROM public.template_invitations WHERE tool_id = 'invitation_t02'");
   assert.equal(counterDb.rows[0].status, "counterproposed");
-  assert.equal(counterDb.rows[0].revision, 3);
+  assert.equal(counterDb.rows[0].revision, 5);
   assert.equal(counterDb.rows[0].agreed_revision, null);
   assert.equal(counterDb.rows[0].selected_slot, null);
 
@@ -289,13 +319,13 @@ test("T02/T03 invitation lifecycle: sync trigger, secrecy of private notes, imme
 
   const finalConfirmedDb = await db.query<DbInvitationRow>("SELECT * FROM public.template_invitations WHERE tool_id = 'invitation_t02'");
   assert.equal(finalConfirmedDb.rows[0].status, "confirmed");
-  assert.equal(finalConfirmedDb.rows[0].agreed_revision, 3);
+  assert.equal(finalConfirmedDb.rows[0].agreed_revision, 6);
   assert.equal(finalConfirmedDb.rows[0].selected_slot?.id, "counter_custom");
 
   // 10. Partner declines politely -> Status is declined, no event created
   const declineRes = await db.query<{ res: { success: boolean; status: string } }>(`
     SELECT public.bonded_respond_template_invitation(
-      $1, 3, 'declined', NULL, NULL, NULL, 'Something came up'
+      $1, 6, 'declined', NULL, NULL, NULL, 'Something came up'
     ) as res
   `, [testCode]);
   assert.equal(declineRes.rows[0].res.status, "declined");
@@ -304,4 +334,49 @@ test("T02/T03 invitation lifecycle: sync trigger, secrecy of private notes, imme
   assert.equal(declinedDb.rows[0].status, "declined");
   assert.equal(declinedDb.rows[0].agreed_revision, null);
   assert.equal(declinedDb.rows[0].selected_slot, null);
+});
+
+test("all six template themes save multiple available dates and every reply detail, then only the creator confirms one", async () => {
+  for (const [index, product] of PRODUCTS.entries()) {
+    const code = `rsvptest${index}fixture`;
+    const slots = [1, 2, 3].map(day => ({ id: `day-${day}`, start_time: `2027-11-0${day}T15:00:00Z`, label: `Option ${day}` }));
+    const tool = { id: "invitation_t02", type: "invitation", enabled: true, activity: product.name, invitationMessage: "Join me?", format: "in_person", dateMode: "slots", durationMinutes: 120, senderTimezone: "Asia/Karachi", proposedSlots: slots, allowCounterproposal: true, senderPrivateNotes: "PRIVATE SURPRISE" };
+    await db.query(`INSERT INTO public.couple_templates(owner_id,short_code,theme,scene_index,partner_name,partner_from,message,has_media,media_items,expires_at,deletion_hash,tools) VALUES ($1,$2,$3,0,'Sam','Alex','For you',false,'[]',now()+interval '7 days',$4,$5::jsonb)`, [creatorId, code, product.slug, deletionHash, JSON.stringify([tool])]);
+    const saved = await db.query<{ value: { status: string; revision: number; invitation: TemplateInvitation } }>(`SELECT public.bonded_respond_template_invitation($1,1,'availability',NULL,NULL,'Asia/Karachi','After work please',ARRAY['Dinner','A walk'],'Maybe a picnic',ARRAY['day-1','day-3']) AS value`, [code]);
+    const value = saved.rows[0].value;
+    assert.equal(value.status, "awaiting_confirmation", product.slug);
+    assert.equal(value.invitation.selected_slot, null);
+    assert.equal(value.invitation.recipient_note, "After work please");
+    assert.deepEqual(value.invitation.recipient_activities, ["Dinner", "A walk"]);
+    assert.equal(value.invitation.recipient_idea, "Maybe a picnic");
+    assert.deepEqual(value.invitation.available_slots?.map(slot => slot.id), ["day-1", "day-3"]);
+    assert.equal(value.invitation.recipient_timezone, "Asia/Karachi");
+    assert.ok(!JSON.stringify(value).includes("PRIVATE SURPRISE"));
+    await assert.rejects(db.query(`SELECT public.bonded_respond_template_invitation($1,1,'availability',NULL,NULL,NULL,NULL,'{}',NULL,ARRAY['day-1'])`, [code]), /Stale invitation revision/);
+    await assert.rejects(db.query(`SELECT public.bonded_manage_template_invitation($1,'confirm_slot',NULL,$2,NULL,NULL,'day-1',2)`, [code, strangerId]), /Not authorized/);
+    await assert.rejects(db.query(`SELECT public.bonded_manage_template_invitation($1,'confirm_slot',NULL,$2,NULL,NULL,'day-2',2)`, [code, creatorId]), /receiver marked available/);
+    const confirmed = await db.query<{ value: { invitation: TemplateInvitation } }>(`SELECT public.bonded_manage_template_invitation($1,'confirm_slot',NULL,$2,NULL,NULL,'day-3',2) AS value`, [code, creatorId]);
+    assert.equal(confirmed.rows[0].value.invitation.status, "confirmed");
+    assert.deepEqual(confirmed.rows[0].value.invitation.selected_slot, slots[2]);
+    // A date with a legitimate ID cannot replace the sender's canonical date/label.
+    const forged = await db.query<{ value: { invitation: TemplateInvitation } }>(`SELECT public.bonded_respond_template_invitation($1,3,'accepted',$2::jsonb) AS value`, [code, JSON.stringify({ id: "day-1", start_time: "2099-01-01", label: "Forged label" })]);
+    assert.equal(forged.rows[0].value.invitation.selected_slot, null);
+    assert.equal(forged.rows[0].value.invitation.status, "awaiting_confirmation");
+    assert.deepEqual(forged.rows[0].value.invitation.available_slots, [slots[0]]);
+    await db.query(`SELECT public.bonded_manage_template_invitation($1,'cancel',NULL,$2)`, [code, creatorId]);
+    await assert.rejects(db.query(`SELECT public.bonded_respond_template_invitation($1,5,'availability',NULL,NULL,NULL,NULL,'{}',NULL,ARRAY['day-1'])`, [code]), /cancelled/);
+  }
+});
+
+test("RSVP functions remain service-only invokers and expired gifts cannot receive responses", async () => {
+  const functions = await db.query<{ proname: string; prosecdef: boolean; anon_access: boolean; user_access: boolean; server_access: boolean }>(`SELECT proname,prosecdef,has_function_privilege('anon',oid,'EXECUTE') AS anon_access,has_function_privilege('authenticated',oid,'EXECUTE') AS user_access,has_function_privilege('service_role',oid,'EXECUTE') AS server_access FROM pg_proc WHERE proname IN ('bonded_get_template_invitation','bonded_respond_template_invitation','bonded_manage_template_invitation')`);
+  assert.equal(functions.rows.length, 3, "no old overloaded functions remain callable");
+  for (const entry of functions.rows) {
+    assert.equal(entry.prosecdef, false, entry.proname);
+    assert.equal(entry.anon_access, false, entry.proname);
+    assert.equal(entry.user_access, false, entry.proname);
+    assert.equal(entry.server_access, true, entry.proname);
+  }
+  await db.query(`UPDATE public.couple_templates SET expires_at=now()-interval '1 second' WHERE short_code=$1`, [testCode]);
+  await assert.rejects(db.query(`SELECT public.bonded_respond_template_invitation($1,7,'decide_later')`, [testCode]), /unavailable or has expired/);
 });

@@ -1,5 +1,10 @@
 "use client";
 
+import { SenderAnswerField, SenderPollChoices } from "@/components/tools/SenderSetupFields";
+import VenueEditor from "@/components/tools/VenueEditor";
+import { buildVenue } from "@/lib/template-venue";
+import DateSlotEditor from "@/components/tools/DateSlotEditor";
+import type { InvitationSlot } from "@/lib/supabase/coupleTemplates";
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -68,19 +73,20 @@ export default function PumpkinMoonStudio() {
 
   // 2. T02 Date Invitation & Proposed Slots
   const [dateToolEnabled, setDateToolEnabled] = useState(true);
-  const [dateSlots, setDateSlots] = useState([
-    { id: "slot_1", start_time: "Halloween Evening, 7:00 PM", label: "Halloween Evening (7:00 PM)" },
-    { id: "slot_2", start_time: "Moonlit Picnic, 9:30 PM", label: "Moonlit Picnic (9:30 PM)" },
-  ]);
-  const [newSlotInput, setNewSlotInput] = useState("");
+  const [dateSlots, setDateSlots] = useState<InvitationSlot[]>([]);
 
   // 3. T03 Date Location & Venue Map
   const [locationToolEnabled, setLocationToolEnabled] = useState(false);
   const [dateFormat, setDateFormat] = useState<"in_person" | "online">("in_person");
+  const [meetingUrl, setMeetingUrl] = useState("");
+  const [reservationUrl, setReservationUrl] = useState("");
   const [dateLocation, setDateLocation] = useState("Under the Harvest Moon Porch");
 
   // 4. T04 Vibe Check & Choice Polls
   const [pollToolEnabled, setPollToolEnabled] = useState(false);
+  const [senderPollChoices,setSenderPollChoices]=useState<string[]>([]);
+  const [senderQuestionAnswer,setSenderQuestionAnswer]=useState("");
+  const [senderSecretAnswer,setSenderSecretAnswer]=useState("");
   const [pollQuestion, setPollQuestion] = useState("What sounds sweetest for our Halloween date?");
   const [pollOptions, setPollOptions] = useState([
     "Carving Jack-o'-Lanterns & Spiced Cider",
@@ -357,23 +363,6 @@ export default function PumpkinMoonStudio() {
     }
   };
 
-  const handleAddSlot = () => {
-    if (!newSlotInput.trim()) return;
-    setDateSlots((prev) => [
-      ...prev,
-      {
-        id: `slot_${Date.now()}`,
-        start_time: newSlotInput.trim(),
-        label: newSlotInput.trim(),
-      },
-    ]);
-    setNewSlotInput("");
-  };
-
-  const handleRemoveSlot = (id: string) => {
-    setDateSlots((prev) => prev.filter((s) => s.id !== id));
-  };
-
   const handleAddPollOption = () => {
     if (!newPollOption.trim()) return;
     setPollOptions((prev) => [...prev, newPollOption.trim()]);
@@ -381,6 +370,7 @@ export default function PumpkinMoonStudio() {
   };
 
   const handleRemovePollOption = (index: number) => {
+    setSenderPollChoices([]);
     setPollOptions((prev) => prev.filter((_, i) => i !== index));
   };
 
@@ -443,8 +433,13 @@ export default function PumpkinMoonStudio() {
     setGalleryItems(DEFAULT_PUMPKIN_MOON_GALLERY_ITEMS);
   };
 
+  const senderSetupError = pollToolEnabled && !senderPollChoices.some(id=>pollOptions.some((_,index)=>id===`opt_${index+1}`)) ? "Choose your own answer in Vibe Check & Poll." : questionToolEnabled && !senderQuestionAnswer.trim() ? "Write your answer in Heart-to-Heart Q&A." : revealToolEnabled && !senderSecretAnswer.trim() ? "Write your private answer in Synchronized Secret." : "";
+
   const buildToolsPayload = (): TemplateTool[] => {
+    if(senderSetupError)throw new Error(senderSetupError);
     const tools: TemplateTool[] = [];
+    const venue = locationToolEnabled ? buildVenue(dateFormat, dateLocation, meetingUrl, reservationUrl) : null;
+    if (venue) tools.push(venue);
 
     // 1. T01: Reply Tool
     if (replyToolEnabled) {
@@ -468,14 +463,17 @@ export default function PumpkinMoonStudio() {
 
     // 2 & 3. T02 & T03: Date Invitation & Location
     if (dateToolEnabled) {
+      if (!dateSlots.length) throw new Error("Add at least one exact date in Date Night & RSVP, or turn that tool off.");
       tools.push({
         id: "invitation_t02",
         type: "invitation",
         enabled: true,
         activity: "Our Pumpkin Moon Date",
         invitationMessage: PUMPKIN_MOON_CONFIG.finalQuestion,
-        format: locationToolEnabled ? dateFormat : "in_person",
-        location: locationToolEnabled ? dateLocation.trim() || "Under the Harvest Moon Porch" : undefined,
+        format: venue?.format || "in_person",
+        location: venue?.location,
+        meetingUrl: venue?.meetingUrl,
+        reservationUrl: venue?.reservationUrl,
         dateMode: "slots",
         durationMinutes: 120,
         senderTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
@@ -497,6 +495,7 @@ export default function PumpkinMoonStudio() {
         question: pollQuestion.trim() || "What sounds sweetest for our Halloween date?",
         description: "Vote for your favorite idea!",
         selectionMode: "both_vote",
+        senderOptionIds: senderPollChoices,
         allowMultiple: false,
         allowCustomSuggestion: true,
         options: pollOptions.map((opt, i) => ({
@@ -521,6 +520,7 @@ export default function PumpkinMoonStudio() {
             type: "short",
             skippable: true,
             reveal_mode: "after_partner_answers",
+            sender_answer: senderQuestionAnswer.trim(),
           },
         ],
       });
@@ -535,6 +535,7 @@ export default function PumpkinMoonStudio() {
         prompt: revealPrompt.trim() || "A sweet secret confession waiting to be unlocked by both of us...",
         description: "Locked surprise unlocked together.",
         countdownSeconds: 3,
+        senderAnswers: {main:senderSecretAnswer.trim()},
       });
     }
 
@@ -1037,45 +1038,7 @@ export default function PumpkinMoonStudio() {
                   </div>
 
                   {dateToolEnabled && (
-                    <div className="pt-2 border-t border-[#2A180C] space-y-2">
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-bold text-[#FFD166] block">
-                          Proposed Time Slots ({dateSlots.length}):
-                        </span>
-                        {dateSlots.map((slot) => (
-                          <div
-                            key={slot.id}
-                            className="flex items-center justify-between text-xs p-1.5 rounded-lg bg-[#0F0A06] text-[#FFF3E3]"
-                          >
-                            <span className="truncate">{slot.label}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveSlot(slot.id)}
-                              className="text-rose-400 hover:text-rose-300 ml-2"
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="flex gap-1.5">
-                        <input
-                          type="text"
-                          value={newSlotInput}
-                          onChange={(e) => setNewSlotInput(e.target.value)}
-                          placeholder="E.g., Oct 31, 8:00 PM"
-                          className="w-full px-2.5 py-1 text-xs rounded-lg bg-[#0F0A06] border border-[#542D14] text-[#FFF3E3] focus:outline-none"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleAddSlot}
-                          className="px-2.5 py-1 text-xs rounded-lg bg-[#2A180C] text-[#FFD166] font-bold cursor-pointer"
-                        >
-                          Add
-                        </button>
-                      </div>
-                    </div>
+                    <DateSlotEditor value={dateSlots} onChange={setDateSlots} palette={PUMPKIN_MOON_PALETTE} />
                   )}
                 </div>
               </div>
@@ -1120,38 +1083,7 @@ export default function PumpkinMoonStudio() {
                   </div>
 
                   {locationToolEnabled && (
-                    <div className="pt-2 border-t border-[#2A180C] space-y-2">
-                      <div className="flex gap-2 text-xs">
-                        <label className="flex items-center gap-1 cursor-pointer">
-                          <input
-                            type="radio"
-                            name="format"
-                            checked={dateFormat === "in_person"}
-                            onChange={() => setDateFormat("in_person")}
-                            className="text-[#FF7518]"
-                          />
-                          <span>In-Person</span>
-                        </label>
-                        <label className="flex items-center gap-1 cursor-pointer">
-                          <input
-                            type="radio"
-                            name="format"
-                            checked={dateFormat === "online"}
-                            onChange={() => setDateFormat("online")}
-                            className="text-[#FF7518]"
-                          />
-                          <span>Online Call</span>
-                        </label>
-                      </div>
-
-                      <input
-                        type="text"
-                        value={dateLocation}
-                        onChange={(e) => setDateLocation(e.target.value)}
-                        placeholder="Under the Harvest Moon Porch"
-                        className="w-full px-2.5 py-1 text-xs rounded-lg bg-[#0F0A06] border border-[#542D14] text-[#FFF3E3] focus:outline-none"
-                      />
-                    </div>
+                    <VenueEditor format={dateFormat} onFormat={setDateFormat} location={dateLocation} onLocation={setDateLocation} meetingUrl={meetingUrl} onMeetingUrl={setMeetingUrl} reservationUrl={reservationUrl} onReservationUrl={setReservationUrl} palette={PUMPKIN_MOON_PALETTE} />
                   )}
                 </div>
               </div>
@@ -1237,6 +1169,7 @@ export default function PumpkinMoonStudio() {
                           +
                         </button>
                       </div>
+                      <SenderPollChoices options={pollOptions} value={senderPollChoices} onChange={setSenderPollChoices} palette={PUMPKIN_MOON_PALETTE} />
                     </div>
                   )}
                 </div>
@@ -1277,7 +1210,7 @@ export default function PumpkinMoonStudio() {
                       Heartfelt Question
                     </h4>
                     <p className="text-[11px] text-[#C49A76] mt-0.5">
-                      A deep prompt to discover your partner&#39;s sweetest thoughts.
+                      Add your answer now, then discover your partner&#39;s thoughts.
                     </p>
                   </div>
 
@@ -1290,6 +1223,7 @@ export default function PumpkinMoonStudio() {
                         placeholder="What is your favorite memory of us in the autumn?"
                         className="w-full px-2.5 py-1.5 text-xs rounded-lg bg-[#0F0A06] border border-[#542D14] text-[#FFF3E3] focus:outline-none resize-none"
                       />
+                      <SenderAnswerField kind="question" value={senderQuestionAnswer} onChange={setSenderQuestionAnswer} palette={PUMPKIN_MOON_PALETTE} />
                     </div>
                   )}
                 </div>
@@ -1330,7 +1264,7 @@ export default function PumpkinMoonStudio() {
                       Synchronized Reveal
                     </h4>
                     <p className="text-[11px] text-[#C49A76] mt-0.5">
-                      A locked secret that unlocks simultaneously when you both tap.
+                      Lock your answer now. Your partner adds theirs to reveal both.
                     </p>
                   </div>
 
@@ -1343,6 +1277,7 @@ export default function PumpkinMoonStudio() {
                         placeholder="Secret prompt..."
                         className="w-full px-2.5 py-1.5 text-xs rounded-lg bg-[#0F0A06] border border-[#542D14] text-[#FFF3E3] focus:outline-none resize-none"
                       />
+                      <SenderAnswerField kind="secret" value={senderSecretAnswer} onChange={setSenderSecretAnswer} palette={PUMPKIN_MOON_PALETTE} />
                     </div>
                   )}
                 </div>
@@ -1655,6 +1590,7 @@ export default function PumpkinMoonStudio() {
               </div>
             </div>
 
+            {senderSetupError && <p className="text-sm leading-relaxed" role="status">{senderSetupError} Complete your side before continuing.</p>}
             {/* Stepper Navigation */}
             <div className="flex justify-between items-center pt-4">
               <button
@@ -1669,6 +1605,8 @@ export default function PumpkinMoonStudio() {
               <button
                 type="button"
                 onClick={() => setStep(2)}
+                disabled={!!senderSetupError}
+                title={senderSetupError || undefined}
                 className="px-7 py-3 rounded-full text-[#0F0A06] font-bold text-xs shadow-md hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer bg-gradient-to-r from-[#FF7518] to-[#FF8C38]"
               >
                 <span>Continue to Floating Gallery</span>

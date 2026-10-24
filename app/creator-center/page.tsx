@@ -17,9 +17,15 @@ type Filter = "all" | "active" | "expired";
 async function loadCreations(signal?: AbortSignal): Promise<CreatorTemplateItem[]> {
   let storedCodes: string[] = [];
   let storedTokens: string[] = [];
+  const storedAccess = new Map<string, string>();
   try {
     const saved = JSON.parse(localStorage.getItem("bonded_creator_templates") || "[]");
     if (Array.isArray(saved)) {
+      for (const item of saved) {
+        const code = item?.code || item?.short_code;
+        const token = item?.token || item?.manage_token;
+        if (typeof code === "string" && typeof token === "string" && /^[a-f0-9]{64}$/.test(token)) storedAccess.set(code, token);
+      }
       storedCodes = saved.map(item => item?.code || item?.short_code).filter(value => typeof value === "string");
       storedTokens = saved.map(item => item?.token || item?.manage_token).filter(value => typeof value === "string");
     }
@@ -31,7 +37,7 @@ async function loadCreations(signal?: AbortSignal): Promise<CreatorTemplateItem[
   if (!response.ok) throw new Error("Unable to load creations");
   const data = await response.json();
   if (!data.success || !Array.isArray(data.templates)) throw new Error("Invalid response");
-  return data.templates;
+  return data.templates.map((item: CreatorTemplateItem) => ({ ...item, manage_token: item.manage_token || storedAccess.get(item.short_code) || null }));
 }
 
 export default function CreatorCenterPage() {
@@ -162,7 +168,7 @@ export default function CreatorCenterPage() {
               <p>{isFiltered ? "Try another name or code, or browse all your creations." : "Choose a design, add your own words and photos, and send a link they’ll love opening."}</p>
               {isFiltered ? <button type="button" className={`${styles.button} ${styles.secondary}`} onClick={() => { setSearchQuery(""); setFilterTab("all"); }}>Show all gifts <ArrowRight size={16} aria-hidden="true" /></button> : <Link href="/templates" className={`${styles.button} ${styles.primary}`}>Find your first design <span className={styles.buttonIcon}><ArrowUpRight size={18} aria-hidden="true" /></span></Link>}
               {!isFiltered && <span className={styles.emptyFootnote}>Already made a gift? Open this page in the browser you used to create it.</span>}
-            </div> : <div className={styles.cardList}>{filteredTemplates.map((item, index) => <CreationCard key={item.id} item={item} now={now} defaultExpanded={index === 0} copied={copiedCode === item.short_code} deleting={deletingCode === item.short_code} onCopy={handleCopy} onDelete={handleDelete} />)}</div>}
+            </div> : <div className={styles.cardList}>{filteredTemplates.map((item, index) => <CreationCard key={item.id} item={item} now={now} defaultExpanded={index === 0} copied={copiedCode === item.short_code} deleting={deletingCode === item.short_code} onCopy={handleCopy} onDelete={handleDelete} onUpdated={refreshTemplates} />)}</div>}
           {!loading && templates.length > 0 && <p className={styles.resultsNote}>{filteredTemplates.length} of {templates.length} gifts shown<span>Responses update when you refresh.</span></p>}
         </section>
         <aside className={styles.sidebar} aria-label="Ideas and collection help">

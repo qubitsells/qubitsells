@@ -1,0 +1,25 @@
+.root { animation: enter .25s ease both; }
+.intro { margin: 12px 0 20px; font-size: 13px; line-height: 1.85; color: var(--invite-muted); white-space: pre-wrap; }
+.choices { border: 0; padding: 0; margin: 20px 0; }
+.choices legend { font-size: 12px; color: var(--invite-muted); line-height: 1.7; }
+.choiceImage { display: block; width: 100%; max-height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; }
+.picked { margin-top: 8px; font-size: 11px; color: var(--invite-accent); line-height: 1.8; }
+.answer { padding: 17px; margin-top: 14px; border: 1px solid var(--invite-line); border-radius: 12px; background: color-mix(in srgb, var(--invite-accent) 5%, var(--invite-card)); }
+.answer h4 { font-size: 14px; font-weight: 600; line-height: 1.7; }
+.answer p, .answer blockquote { margin-top: 9px; font-size: 13px; line-height: 1.9; white-space: pre-wrap; }
+.answer small { display: block; margin-top: 9px; font-size: 11px; color: var(--invite-muted); }
+.progress { width: 100%; height: 4px; accent-color: var(--invite-accent); display: block; margin: 18px 0 22px; border: 0; border-radius: 4px; overflow: hidden; appearance: none; background: var(--invite-line); }
+.progress::-webkit-progress-bar { background: var(--invite-line); }
+.progress::-webkit-progress-value { background: var(--invite-accent); }
+.progress::-moz-progress-bar { background: var(--invite-accent); }
+.meta { display: flex; gap: 9px; flex-wrap: wrap; align-items: center; font-size: 11px; line-height: 1.8; color: var(--invite-muted); }
+.countdown { margin: 25px auto; font-family: Georgia, serif; font-size: 65px; line-height: 1; text-align: center; color: var(--invite-accent); }
+.lockStatus { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 22px; }
+.lockStatus > div { display: flex; align-items: flex-start; gap: 9px; padding: 15px; border: 1px solid var(--invite-line); border-radius: 12px; font-size: 12px; line-height: 1.8; }
+.lockStatus svg { flex: 0 0 auto; margin-top: 3px; color: var(--invite-accent); }
+.lockStatus strong, .lockStatus small { display: block; }
+.lockStatus small { font-size: 11px; color: var(--invite-muted); }
+.error button { margin-top: 10px; }
+@keyframes enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@media(max-width:550px) { .lockStatus { grid-template-columns: 1fr; } }
+@media(prefers-reduced-motion:reduce) { .root { animation: none; } }

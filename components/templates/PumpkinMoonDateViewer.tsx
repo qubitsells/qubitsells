@@ -1,32 +1,14 @@
 "use client";
 
+import StoryStartButton from "./StoryStartButton";
+import VenueDetails from "@/components/tools/VenueDetails";
+import type { VenueToolConfig } from "@/lib/supabase/coupleTemplates";
+import { InvitationTool } from "@/components/tools/InvitationTool";
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Heart,
-  Play,
-  Pause,
-  RotateCcw,
-  SkipForward,
-  ChevronLeft,
-  ChevronRight,
-  Volume2,
-  VolumeX,
-  MessageSquare,
-  Sparkles,
-  CheckCircle2,
-  Send,
-  X,
-  Share2,
-  Quote,
-  Film,
-  ArrowDown,
-  Maximize2,
-  Moon,
-  Flame,
-} from "lucide-react";
+import { Heart, Play, Pause, RotateCcw, SkipForward, ChevronLeft, ChevronRight, Volume2, VolumeX, MessageSquare, Sparkles, X, Quote, Film, ArrowDown, Maximize2 } from "lucide-react";
 import type {
   AnimeTemplate,
   InvitationToolConfig,
@@ -64,19 +46,6 @@ interface PumpkinMoonDateViewerProps {
   code: string;
 }
 
-function getPumpkinMoonOptionIcon(optId: string) {
-  switch (optId) {
-    case "opt_movie":
-      return Film;
-    case "opt_picnic":
-      return Sparkles;
-    case "opt_walk":
-      return Moon;
-    default:
-      return Flame;
-  }
-}
-
 export default function PumpkinMoonDateViewer({
   template,
   code,
@@ -84,8 +53,6 @@ export default function PumpkinMoonDateViewer({
   const [currentScene, setCurrentScene] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasOpened, setHasOpened] = useState(false);
-  const [isAudioMuted, setIsAudioMuted] = useState(false);
-  const [audioReady, setAudioReady] = useState(false);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
@@ -111,74 +78,6 @@ export default function PumpkinMoonDateViewer({
     };
   }, [isCinematicMode]);
 
-  // Automatic transition from cinematic title sequence to Scene 1 playing automatically
-  useEffect(() => {
-    if (!isCinematicMode) {
-      setIsIntroActive(false);
-      setHasOpened(true);
-      return;
-    }
-
-    // Display the cinematic title sequence for 3.8s, then start story scenes playing
-    const introTimer = setTimeout(() => {
-      setIsIntroActive(false);
-      setHasOpened(true);
-      setIsPlaying(true);
-      if (audioRef.current && !isUserMutedRef.current) {
-        audioRef.current.muted = false;
-        audioRef.current
-          .play()
-          .then(() => setIsAudioPlaying(true))
-          .catch(() => {});
-      }
-    }, 3800);
-
-    return () => clearTimeout(introTimer);
-  }, [isCinematicMode]);
-
-  // Unlock audio on any user gesture — browsers block autoplay until a real interaction.
-  useEffect(() => {
-    const ytTrack =
-      template.music_track?.type === "youtube" ||
-      Boolean(template.music_track?.youtubeId);
-    if (ytTrack) return; // YouTube iframe handles its own autoplay
-
-    const unlock = () => {
-      if (!audioRef.current || isAudioPlaying || isUserMutedRef.current) return;
-      const startSec = template.music_track?.startAt || 0;
-      if (startSec > 0 && audioRef.current.currentTime < 1) {
-        try {
-          audioRef.current.currentTime = startSec;
-        } catch {}
-      }
-      audioRef.current.muted = false;
-      audioRef.current
-        .play()
-        .then(() => {
-          setIsAudioPlaying(true);
-          document.removeEventListener("click", unlock, { capture: true });
-          document.removeEventListener("touchstart", unlock, { capture: true });
-          document.removeEventListener("keydown", unlock, { capture: true });
-          document.removeEventListener("scroll", unlock, { capture: true });
-          document.removeEventListener("mousemove", unlock, { capture: true });
-        })
-        .catch(() => {});
-    };
-
-    document.addEventListener("click", unlock, { capture: true });
-    document.addEventListener("touchstart", unlock, { capture: true });
-    document.addEventListener("keydown", unlock, { capture: true });
-    document.addEventListener("scroll", unlock, { capture: true });
-    document.addEventListener("mousemove", unlock, { capture: true });
-
-    return () => {
-      document.removeEventListener("click", unlock, { capture: true });
-      document.removeEventListener("touchstart", unlock, { capture: true });
-      document.removeEventListener("keydown", unlock, { capture: true });
-      document.removeEventListener("scroll", unlock, { capture: true });
-      document.removeEventListener("mousemove", unlock, { capture: true });
-    };
-  }, [isAudioPlaying, template.music_track]);
 
   // Story segment fill progress
   useEffect(() => {
@@ -199,15 +98,8 @@ export default function PumpkinMoonDateViewer({
     return () => clearInterval(interval);
   }, [isPlaying, currentScene]);
 
-  // Date selection state
-  const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
-  const [customIdea, setCustomIdea] = useState("");
-  const [showCustomInput, setShowCustomInput] = useState(false);
-  const [selectedSlotId, setSelectedSlotId] = useState<string>("");
-  const [partnerNote, setPartnerNote] = useState("");
-  const [isSubmittingRsvp, setIsSubmittingRsvp] = useState(false);
-  const [rsvpSubmitted, setRsvpSubmitted] = useState(false);
-  const [rsvpStatusText, setRsvpStatusText] = useState("");
+  // Interactive tools
+
   const [activeDrawer, setActiveDrawer] = useState<"reply" | null>(null);
   const [copiedShare, setCopiedShare] = useState(false);
 
@@ -215,32 +107,33 @@ export default function PumpkinMoonDateViewer({
   const invitationConfig = template.tools?.find(
     (t): t is InvitationToolConfig => t.type === "invitation"
   );
+  const venueConfig = template.tools?.find((tool): tool is VenueToolConfig => tool.type === "venue" && tool.enabled);
   const replyConfig = template.tools?.find(
     (t): t is ReplyToolConfig => t.type === "reply"
   );
   const pollConfig = template.tools?.find(
-    (t): t is PollToolConfig => t.type === "poll"
+    (t): t is PollToolConfig => t.type === "poll" && t.enabled
   );
   const questionConfig = template.tools?.find(
-    (t): t is QuestionToolConfig => t.type === "question"
+    (t): t is QuestionToolConfig => t.type === "question" && t.enabled
   );
   const revealConfig = template.tools?.find(
-    (t): t is RevealToolConfig => t.type === "private_reveal"
+    (t): t is RevealToolConfig => t.type === "private_reveal" && t.enabled
   );
   const scratchConfig = template.tools?.find(
-    (t): t is ScratchRevealToolConfig => t.type === "scratch_reveal"
+    (t): t is ScratchRevealToolConfig => t.type === "scratch_reveal" && t.enabled
   );
   const couponConfig = template.tools?.find(
-    (t): t is CouponToolConfig => t.type === "coupon"
+    (t): t is CouponToolConfig => t.type === "coupon" && t.enabled
   );
   const openWhenConfig = template.tools?.find(
-    (t): t is OpenWhenToolConfig => t.type === "open_when"
+    (t): t is OpenWhenToolConfig => t.type === "open_when" && t.enabled
   );
   const ourStoryConfig = template.tools?.find(
-    (t): t is OurStoryToolConfig => t.type === "our_story"
+    (t): t is OurStoryToolConfig => t.type === "our_story" && t.enabled !== false
   );
   const bucketListConfig = template.tools?.find(
-    (t): t is BucketListToolConfig => t.type === "bucket_list"
+    (t): t is BucketListToolConfig => t.type === "bucket_list" && t.enabled !== false
   );
   const floatingGalleryConfig = (template.tools as unknown[] | undefined)?.find(
     (t): t is {
@@ -276,11 +169,6 @@ export default function PumpkinMoonDateViewer({
     (isYouTube && template.music_track?.id?.replace(/^yt-/, "")) ||
     null;
 
-  useEffect(() => {
-    if (isYouTube && ytVideoId) {
-      setIsAudioPlaying(true);
-    }
-  }, [isYouTube, ytVideoId]);
 
   // Audio play/pause toggle
   const toggleAudio = useCallback(
@@ -292,7 +180,7 @@ export default function PumpkinMoonDateViewer({
         setIsAudioPlaying((prev) => {
           const next = !prev;
           isUserMutedRef.current = !next;
-          setIsAudioMuted(!next);
+
           return next;
         });
         return;
@@ -302,12 +190,12 @@ export default function PumpkinMoonDateViewer({
 
       if (isAudioPlaying) {
         isUserMutedRef.current = true;
-        setIsAudioMuted(true);
+
         setIsAudioPlaying(false);
         audioRef.current.pause();
       } else {
         isUserMutedRef.current = false;
-        setIsAudioMuted(false);
+
         const startSec = template.music_track?.startAt || 0;
         if (startSec > 0 && audioRef.current.currentTime < 1) {
           try {
@@ -406,6 +294,8 @@ export default function PumpkinMoonDateViewer({
   };
 
   const handleExitCinematic = () => {
+    setIsIntroActive(false);
+    setHasOpened(true);
     setIsCinematicMode(false);
     setHasCompletedAllScenes(true);
     setTimeout(() => {
@@ -414,63 +304,6 @@ export default function PumpkinMoonDateViewer({
         el.scrollIntoView({ behavior: "smooth" });
       }
     }, 100);
-  };
-
-  // Submit Date RSVP
-  const handleRsvpSubmit = async () => {
-    if (!selectedChoice) return;
-    setIsSubmittingRsvp(true);
-
-    try {
-      const choiceLabel =
-        showCustomInput && customIdea.trim() ? customIdea.trim() : selectedChoice;
-      const isDeclined = choiceLabel === "Maybe later";
-
-      try {
-        await fetch(`/api/templates/${encodeURIComponent(code)}/invitation`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            expected_revision: 1,
-            response_type: isDeclined ? "declined" : "accepted",
-            chosen_slot: selectedSlotId
-              ? invitationConfig?.proposedSlots?.find((s) => s.id === selectedSlotId) || {
-                  id: "slot_default",
-                  start_time: new Date().toISOString(),
-                  label: choiceLabel,
-                }
-              : {
-                  id: "slot_default",
-                  start_time: new Date().toISOString(),
-                  label: choiceLabel,
-                },
-            chosen_option: choiceLabel,
-            note: partnerNote.trim() || undefined,
-            user_timezone:
-              Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
-          }),
-        });
-      } catch (err) {
-        console.warn("Backend RSVP endpoint warning (proceeding with local confirmation):", err);
-      }
-
-      setRsvpSubmitted(true);
-      setRsvpStatusText(
-        isDeclined
-          ? `You let ${template.partner_from || "your partner"} know you might need a little more time. 🎃`
-          : `Yay! Your answer ("${choiceLabel}") has been shared with ${
-              template.partner_from || "your partner"
-            }! 🌙✨`
-      );
-    } catch (e: unknown) {
-      console.error("RSVP error:", e);
-      setRsvpSubmitted(true);
-      setRsvpStatusText(
-        `Your choice "${selectedChoice}" has been noted! Happy Halloween!`
-      );
-    } finally {
-      setIsSubmittingRsvp(false);
-    }
   };
 
   const handleCopyLink = () => {
@@ -500,20 +333,9 @@ export default function PumpkinMoonDateViewer({
       {/* Hidden MP3 audio element */}
       {template.music_track?.mp3Url && !isYouTube && (
         <audio
-          ref={(el) => {
-            if (el && el !== audioRef.current) {
-              audioRef.current = el;
-              el.currentTime = template.music_track?.startAt || 0;
-              if (!isUserMutedRef.current) {
-                el.play()
-                  .then(() => setIsAudioPlaying(true))
-                  .catch(() => {});
-              }
-            }
-          }}
+          ref={audioRef}
           src={template.music_track.mp3Url}
           loop
-          autoPlay
           muted={false}
           preload="auto"
           style={{ display: "none" }}
@@ -522,7 +344,7 @@ export default function PumpkinMoonDateViewer({
             if (!isUserMutedRef.current) return;
             setIsAudioPlaying(false);
           }}
-          onCanPlay={() => setAudioReady(true)}
+
         />
       )}
 
@@ -712,7 +534,7 @@ export default function PumpkinMoonDateViewer({
                     filter: "blur(14px)",
                     transition: { duration: 0.85, ease: [0.4, 0, 0.2, 1] },
                   }}
-                  className="absolute inset-0 z-40 flex flex-col items-center justify-center p-6 text-center pointer-events-none select-none"
+                  className="absolute inset-0 z-40 flex flex-col items-center justify-center overflow-y-auto p-6 text-center select-none"
                 >
                   <div className="absolute inset-0 bg-black/65 backdrop-blur-[2px] pointer-events-none" />
 
@@ -762,6 +584,7 @@ export default function PumpkinMoonDateViewer({
                           A 6-scene autumn story created with love by {senderName}
                         </p>
                       </motion.div>
+                    <StoryStartButton onClick={handleSkipIntro} hasMusic={!!template.music_track} accent="#FF7518" onAccent="#171018" />
                     </motion.div>
                   </div>
                 </motion.div>
@@ -1210,192 +1033,8 @@ export default function PumpkinMoonDateViewer({
           {/* ─────────────────────────────────────────────
               FINAL INTERACTION CARD: "Will you be my Halloween date?"
           ───────────────────────────────────────────── */}
-          <div className="w-full max-w-3xl mt-6 p-6 sm:p-8 rounded-3xl bg-[#1C1109] border border-[#542D14] shadow-lg space-y-5 text-center">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#FFD166] block">
-                Final Question for {partnerName}
-              </span>
-              <h2 className="text-xl sm:text-2xl font-halloween text-[#FFF3E3] tracking-wide">
-                {PUMPKIN_MOON_CONFIG.finalQuestion}
-              </h2>
-              <p className="text-xs text-[#C49A76] font-medium">
-                Choose what sounds most cozy and fun to you, and let&#39;s make our Halloween unforgettable.
-              </p>
-            </div>
-
-            {!rsvpSubmitted ? (
-              <div className="space-y-4">
-                {/* Date choices pills / cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {PUMPKIN_MOON_CONFIG.dateOptions.map((opt) => {
-                    const isChosen =
-                      selectedChoice === opt.label && !showCustomInput;
-                    const OptionIcon = getPumpkinMoonOptionIcon(opt.id);
-                    return (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedChoice(opt.label);
-                          setShowCustomInput(false);
-                        }}
-                        className={`p-4 rounded-2xl text-left border-2 transition-all cursor-pointer flex flex-col justify-between group ${
-                          isChosen
-                            ? "bg-[#2A180C] border-[#FF7518] shadow-md scale-[1.02]"
-                            : "bg-[#0F0A06] border-[#542D14] hover:border-[#8C441B]"
-                        }`}
-                      >
-                        <div
-                          className={`w-10 h-10 rounded-2xl flex items-center justify-center mb-3 transition-colors ${
-                            isChosen
-                              ? "bg-[#FF7518] text-[#0F0A06] shadow-xs"
-                              : "bg-[#2A180C] text-[#FF7518] group-hover:bg-[#542D14]"
-                          }`}
-                        >
-                          <OptionIcon className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <h4 className="text-xs sm:text-sm font-bold text-[#FFF3E3]">
-                            {opt.label}
-                          </h4>
-                          <p className="text-[11px] text-[#C49A76] mt-0.5 leading-snug">
-                            {opt.description}
-                          </p>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Alternative choice options */}
-                <div className="flex flex-wrap items-center justify-center gap-2 pt-1 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowCustomInput(true);
-                      setSelectedChoice("Our own plan");
-                    }}
-                    className={`px-3 py-1.5 rounded-xl border font-bold transition-all cursor-pointer ${
-                      showCustomInput
-                        ? "bg-[#2A180C] border-[#FF7518] text-[#FFD166]"
-                        : "bg-[#0F0A06] border-[#542D14] text-[#C49A76] hover:bg-[#2A180C]"
-                    }`}
-                  >
-                    Suggest Another Plan
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowCustomInput(false);
-                      setSelectedChoice("Maybe later");
-                    }}
-                    className={`px-3 py-1.5 rounded-xl border font-bold transition-all cursor-pointer ${
-                      selectedChoice === "Maybe later"
-                        ? "bg-[#2A180C] border-[#FF7518] text-[#FFF3E3]"
-                        : "bg-[#0F0A06] border-[#542D14] text-[#C49A76] hover:bg-[#2A180C]"
-                    }`}
-                  >
-                    Maybe later
-                  </button>
-                </div>
-
-                {/* Custom idea input */}
-                {showCustomInput && (
-                  <div className="max-w-md mx-auto pt-2">
-                    <input
-                      type="text"
-                      value={customIdea}
-                      onChange={(e) => setCustomIdea(e.target.value)}
-                      placeholder="E.g., Spiced cider & pumpkin carving, corn maze adventure..."
-                      className="w-full px-4 py-2.5 rounded-xl bg-[#0F0A06] border border-[#8C441B] text-xs font-semibold text-[#FFF3E3] placeholder:text-[#C49A76] focus:outline-none focus:border-[#FF7518]"
-                    />
-                  </div>
-                )}
-
-                {/* Optional Slot selection */}
-                {invitationConfig?.proposedSlots &&
-                  invitationConfig.proposedSlots.length > 0 &&
-                  selectedChoice !== "Maybe later" && (
-                    <div className="p-3.5 rounded-2xl bg-[#0F0A06] border border-[#542D14] max-w-md mx-auto text-left space-y-2">
-                      <label className="text-[11px] font-bold text-[#FFD166] block">
-                        Choose preferred time:
-                      </label>
-                      <div className="space-y-1.5">
-                        {invitationConfig.proposedSlots.map((slot) => (
-                          <label
-                            key={slot.id}
-                            className="flex items-center gap-2 p-2 rounded-xl bg-[#1C1109] border border-[#542D14] hover:border-[#8C441B] text-xs font-semibold text-[#FFF3E3] cursor-pointer"
-                          >
-                            <input
-                              type="radio"
-                              name="invitation_slot"
-                              checked={selectedSlotId === slot.id}
-                              onChange={() => setSelectedSlotId(slot.id)}
-                              className="text-[#FF7518] focus:ring-[#FF7518]"
-                            />
-                            <span>{slot.label || slot.start_time}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                {/* Optional partner note */}
-                <div className="max-w-md mx-auto pt-1">
-                  <input
-                    type="text"
-                    value={partnerNote}
-                    onChange={(e) => setPartnerNote(e.target.value)}
-                    placeholder="Add a sweet Halloween note or message for them (optional)..."
-                    className="w-full px-4 py-2 rounded-xl bg-[#0F0A06] border border-[#542D14] text-xs text-[#FFF3E3] placeholder:text-[#C49A76]/70 focus:outline-none focus:border-[#FF7518]"
-                  />
-                </div>
-
-                {/* Confirm Button */}
-                <div className="pt-2">
-                  <button
-                    type="button"
-                    onClick={handleRsvpSubmit}
-                    disabled={!selectedChoice || isSubmittingRsvp}
-                    className="px-8 py-3 rounded-full text-[#0F0A06] font-bold text-sm shadow-md hover:scale-105 active:scale-95 disabled:opacity-40 disabled:hover:scale-100 transition-all cursor-pointer flex items-center justify-center gap-2 mx-auto bg-gradient-to-r from-[#FF7518] to-[#FF8C38]"
-                  >
-                    <Send className="w-4 h-4" />
-                    <span>
-                      {isSubmittingRsvp
-                        ? "Sending response..."
-                        : `Send Response to ${senderName}`}
-                    </span>
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="p-6 rounded-2xl bg-[#0F0A06] border border-[#FF7518]/50 space-y-3"
-              >
-                <div className="w-12 h-12 mx-auto rounded-full bg-[#2A180C] flex items-center justify-center text-emerald-400 shadow-xs">
-                  <CheckCircle2 className="w-6 h-6 text-emerald-400" />
-                </div>
-                <h3 className="text-base font-bold text-[#FFF3E3]">
-                  Response Sent to {senderName}!
-                </h3>
-                <p className="text-xs text-[#C49A76] font-medium max-w-md mx-auto leading-relaxed">
-                  {rsvpStatusText}
-                </p>
-                <div className="pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setRsvpSubmitted(false)}
-                    className="text-xs font-bold text-[#FF7518] underline cursor-pointer"
-                  >
-                    Change your answer
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </div>
+          {venueConfig && !invitationConfig?.enabled && <VenueDetails venue={venueConfig} palette={PUMPKIN_MOON_PALETTE} />}
+        {invitationConfig?.enabled && <InvitationTool templateCode={code} partnerName={partnerName} senderName={senderName} config={invitationConfig} palette={PUMPKIN_MOON_PALETTE} activities={PUMPKIN_MOON_CONFIG.dateOptions} />}
 
           {/* ─────────────────────────────────────────────
               ADDITIONAL INTERACTIVE QUBITSELLS TOOLS
@@ -1603,7 +1242,7 @@ export default function PumpkinMoonDateViewer({
                     card: PUMPKIN_MOON_PALETTE.card,
                   }}
                   onReplySubmitted={() => {
-                    setTimeout(() => setActiveDrawer(null), 1500);
+                    // Keep the saved receipt visible until the receiver closes it.
                   }}
                 />
               </motion.div>

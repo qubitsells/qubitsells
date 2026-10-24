@@ -1,5 +1,10 @@
 "use client";
 
+import { SenderAnswerField, SenderPollChoices } from "@/components/tools/SenderSetupFields";
+import VenueEditor from "@/components/tools/VenueEditor";
+import { buildVenue } from "@/lib/template-venue";
+import DateSlotEditor from "@/components/tools/DateSlotEditor";
+import type { InvitationSlot } from "@/lib/supabase/coupleTemplates";
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -88,29 +93,22 @@ export default function AnimeStormAndFlameStudio() {
 
   // 2. T02 Date Invitation & Proposed Slots
   const [dateToolEnabled, setDateToolEnabled] = useState(true);
-  const [dateSlots, setDateSlots] = useState([
-    {
-      id: "slot_1",
-      start_time: "Friday Night, 8:00 PM",
-      label: "Anime Night & Cozy Blankets (8:00 PM)",
-    },
-    {
-      id: "slot_2",
-      start_time: "Saturday Evening, 7:00 PM",
-      label: "Dinner Date & Starlight Stroll (7:00 PM)",
-    },
-  ]);
-  const [newSlotInput, setNewSlotInput] = useState("");
+  const [dateSlots, setDateSlots] = useState<InvitationSlot[]>([]);
 
   // 3. T03 Date Location & Venue Map
   const [locationToolEnabled, setLocationToolEnabled] = useState(false);
   const [dateFormat, setDateFormat] = useState<"in_person" | "online">("in_person");
+  const [meetingUrl, setMeetingUrl] = useState("");
+  const [reservationUrl, setReservationUrl] = useState("");
   const [dateLocation, setDateLocation] = useState(
     "Under the Neon City Lights & Ramen Bar"
   );
 
   // 4. T04 Vibe Check & Choice Polls
   const [pollToolEnabled, setPollToolEnabled] = useState(false);
+  const [senderPollChoices,setSenderPollChoices]=useState<string[]>([]);
+  const [senderQuestionAnswer,setSenderQuestionAnswer]=useState("");
+  const [senderSecretAnswer,setSenderSecretAnswer]=useState("");
   const [pollQuestion, setPollQuestion] = useState(
     "What anime world or date shall we explore next?"
   );
@@ -429,23 +427,6 @@ export default function AnimeStormAndFlameStudio() {
     }
   };
 
-  const handleAddSlot = () => {
-    if (!newSlotInput.trim()) return;
-    setDateSlots((prev) => [
-      ...prev,
-      {
-        id: `slot_${Date.now()}`,
-        start_time: newSlotInput.trim(),
-        label: newSlotInput.trim(),
-      },
-    ]);
-    setNewSlotInput("");
-  };
-
-  const handleRemoveSlot = (id: string) => {
-    setDateSlots((prev) => prev.filter((s) => s.id !== id));
-  };
-
   const handleAddPollOption = () => {
     if (!newPollOption.trim()) return;
     setPollOptions((prev) => [...prev, newPollOption.trim()]);
@@ -453,6 +434,7 @@ export default function AnimeStormAndFlameStudio() {
   };
 
   const handleRemovePollOption = (index: number) => {
+    setSenderPollChoices([]);
     setPollOptions((prev) => prev.filter((_, i) => i !== index));
   };
 
@@ -545,8 +527,13 @@ export default function AnimeStormAndFlameStudio() {
   };
 
   // Compile all tools into valid payload
+  const senderSetupError = pollToolEnabled && !senderPollChoices.some(id=>pollOptions.some((_,index)=>id===`opt_${index+1}`)) ? "Choose your own answer in Vibe Check & Poll." : questionToolEnabled && !senderQuestionAnswer.trim() ? "Write your answer in Heart-to-Heart Q&A." : revealToolEnabled && !senderSecretAnswer.trim() ? "Write your private answer in Synchronized Secret." : "";
+
   const buildToolsPayload = (): TemplateTool[] => {
+    if(senderSetupError)throw new Error(senderSetupError);
     const tools: TemplateTool[] = [];
+    const venue = locationToolEnabled ? buildVenue(dateFormat, dateLocation, meetingUrl, reservationUrl) : null;
+    if (venue) tools.push(venue);
 
     // 1. T01: Reply Tool
     if (replyToolEnabled) {
@@ -572,16 +559,17 @@ export default function AnimeStormAndFlameStudio() {
 
     // 2 & 3. T02 & T03: Date Invitation & Location
     if (dateToolEnabled) {
+      if (!dateSlots.length) throw new Error("Add at least one exact date in Date Night & RSVP, or turn that tool off.");
       tools.push({
         id: "invitation_t02",
         type: "invitation",
         enabled: true,
         activity: "Our Next Adventure",
         invitationMessage: STORM_AND_FLAME_CONFIG.finalQuestion,
-        format: locationToolEnabled ? dateFormat : "in_person",
-        location: locationToolEnabled
-          ? dateLocation.trim() || "Under the Neon City Lights & Ramen Bar"
-          : undefined,
+        format: venue?.format || "in_person",
+        location: venue?.location,
+        meetingUrl: venue?.meetingUrl,
+        reservationUrl: venue?.reservationUrl,
         dateMode: "slots",
         durationMinutes: 120,
         senderTimezone:
@@ -605,6 +593,7 @@ export default function AnimeStormAndFlameStudio() {
           pollQuestion.trim() || "What anime world or date shall we explore next?",
         description: "Cast your vote for our next adventure!",
         selectionMode: "both_vote",
+        senderOptionIds: senderPollChoices,
         allowMultiple: false,
         allowCustomSuggestion: true,
         options: pollOptions.map((opt, i) => ({
@@ -631,6 +620,7 @@ export default function AnimeStormAndFlameStudio() {
             type: "short",
             skippable: true,
             reveal_mode: "after_partner_answers",
+            sender_answer: senderQuestionAnswer.trim(),
           },
         ],
       });
@@ -647,6 +637,7 @@ export default function AnimeStormAndFlameStudio() {
           "A secret confession of my love, unlocked only when both our fingers touch under the lightning...",
         description: "Locked surprise unlocked together.",
         countdownSeconds: 3,
+        senderAnswers: {main:senderSecretAnswer.trim()},
       });
     }
 
@@ -1190,47 +1181,7 @@ export default function AnimeStormAndFlameStudio() {
                   </div>
 
                   {dateToolEnabled && (
-                    <div className="pt-2 space-y-2 border-t border-[#273B5E]">
-                      <div className="text-[11px] font-bold text-[#00E5FF]">
-                        Proposed Slots:
-                      </div>
-                      <div className="space-y-1 max-h-24 overflow-y-auto">
-                        {dateSlots.map((slot) => (
-                          <div
-                            key={slot.id}
-                            className="flex items-center justify-between px-2.5 py-1 rounded-xl bg-[#070F1E] border border-[#273B5E] text-xs text-[#EFF7FF]"
-                          >
-                            <span className="truncate">{slot.label}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveSlot(slot.id)}
-                              className="text-[#738CA8] hover:text-red-400 p-0.5 shrink-0 transition-colors"
-                              title="Delete slot"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="flex gap-1.5 pt-0.5">
-                        <input
-                          type="text"
-                          value={newSlotInput}
-                          onChange={(e) => setNewSlotInput(e.target.value)}
-                          onKeyDown={(e) => e.key === "Enter" && handleAddSlot()}
-                          placeholder="Add slot (e.g. Sunday 7:00 PM)..."
-                          className="flex-1 px-3 py-1.5 rounded-xl bg-[#070F1E] border border-[#273B5E] text-xs text-[#EFF7FF] placeholder:text-[#738CA8] focus:outline-none focus:border-[#00E5FF]"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleAddSlot}
-                          className="px-3 py-1.5 rounded-xl bg-[#18253E] border border-[#273B5E] text-[#00E5FF] text-xs font-bold hover:bg-[#273B5E] transition-all shadow-xs"
-                        >
-                          Add
-                        </button>
-                      </div>
-                    </div>
+                    <DateSlotEditor value={dateSlots} onChange={setDateSlots} palette={STORM_AND_FLAME_PALETTE} />
                   )}
                 </div>
               </div>
@@ -1275,40 +1226,7 @@ export default function AnimeStormAndFlameStudio() {
                   </div>
 
                   {locationToolEnabled && (
-                    <div className="pt-2 space-y-2 border-t border-[#273B5E]">
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setDateFormat("in_person")}
-                          className={`flex-1 py-1 rounded-xl text-xs font-bold transition-all ${
-                            dateFormat === "in_person"
-                              ? "bg-[#00E5FF] text-[#050B16] shadow-xs"
-                              : "bg-[#070F1E] text-[#B9CBDF] border border-[#273B5E]"
-                          }`}
-                        >
-                          In Person
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setDateFormat("online")}
-                          className={`flex-1 py-1 rounded-xl text-xs font-bold transition-all ${
-                            dateFormat === "online"
-                              ? "bg-[#00E5FF] text-[#050B16] shadow-xs"
-                              : "bg-[#070F1E] text-[#B9CBDF] border border-[#273B5E]"
-                          }`}
-                        >
-                          Virtual / Call
-                        </button>
-                      </div>
-
-                      <input
-                        type="text"
-                        value={dateLocation}
-                        onChange={(e) => setDateLocation(e.target.value)}
-                        placeholder="E.g. Under the Neon City Lights & Ramen Bar..."
-                        className="w-full px-3 py-1.5 rounded-xl bg-[#070F1E] border border-[#273B5E] text-xs text-[#EFF7FF] placeholder:text-[#738CA8] focus:outline-none focus:border-[#00E5FF]"
-                      />
-                    </div>
+                    <VenueEditor format={dateFormat} onFormat={setDateFormat} location={dateLocation} onLocation={setDateLocation} meetingUrl={meetingUrl} onMeetingUrl={setMeetingUrl} reservationUrl={reservationUrl} onReservationUrl={setReservationUrl} palette={STORM_AND_FLAME_PALETTE} />
                   )}
                 </div>
               </div>
@@ -1398,6 +1316,7 @@ export default function AnimeStormAndFlameStudio() {
                           Add
                         </button>
                       </div>
+                      <SenderPollChoices options={pollOptions} value={senderPollChoices} onChange={setSenderPollChoices} palette={STORM_AND_FLAME_PALETTE} />
                     </div>
                   )}
                 </div>
@@ -1454,6 +1373,7 @@ export default function AnimeStormAndFlameStudio() {
                         placeholder="When was the moment you felt our hearts unite?..."
                         className="w-full px-3 py-1.5 rounded-xl bg-[#070F1E] border border-[#273B5E] text-xs text-[#EFF7FF] placeholder:text-[#738CA8] leading-relaxed focus:outline-none focus:border-[#00E5FF] resize-none"
                       />
+                      <SenderAnswerField kind="question" value={senderQuestionAnswer} onChange={setSenderQuestionAnswer} palette={STORM_AND_FLAME_PALETTE} />
                     </div>
                   )}
                 </div>
@@ -1510,6 +1430,7 @@ export default function AnimeStormAndFlameStudio() {
                         placeholder="A secret confession of my love, unlocked together..."
                         className="w-full px-3 py-1.5 rounded-xl bg-[#070F1E] border border-[#273B5E] text-xs text-[#EFF7FF] placeholder:text-[#738CA8] leading-relaxed focus:outline-none focus:border-[#00E5FF] resize-none"
                       />
+                      <SenderAnswerField kind="secret" value={senderSecretAnswer} onChange={setSenderSecretAnswer} palette={STORM_AND_FLAME_PALETTE} />
                     </div>
                   )}
                 </div>
@@ -1881,6 +1802,7 @@ export default function AnimeStormAndFlameStudio() {
               </div>
             </div>
 
+            {senderSetupError && <p className="text-sm leading-relaxed" role="status">{senderSetupError} Complete your side before continuing.</p>}
             {/* Stepper Navigation */}
             <div className="pt-4 flex items-center justify-between">
               <button
@@ -1894,6 +1816,8 @@ export default function AnimeStormAndFlameStudio() {
               <button
                 type="button"
                 onClick={() => setStep(2)}
+                disabled={!!senderSetupError}
+                title={senderSetupError || undefined}
                 className="px-7 py-3 rounded-full text-[#050B16] font-bold text-xs shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-2 bg-gradient-to-r from-[#00E5FF] to-[#38BDF8]"
               >
                 <span>Continue to Floating Gallery</span>

@@ -6,6 +6,7 @@ import { adminClient, apiError, currentUser, guestIdentity, HttpError, jsonBody,
 import { mediaIds, submitReplySchema, templateCode, uuid } from "@/lib/security/validation";
 import { runOpportunisticCleanup } from "@/lib/cloudinaryCleanup";
 import type { ReplyToolConfig } from "@/lib/supabase/coupleTemplates";
+import { replyReceipt } from "@/lib/template-reply";
 
 type Context = { params: Promise<{ code: string }> };
 
@@ -34,6 +35,7 @@ async function handlePOST(request: Request, context: Context) {
 
     const tools = Array.isArray(tmpl.tools) ? tmpl.tools : [];
     const replyTool = tools.find((t: Record<string, unknown>) => t.type === "reply" || t.id === "reply_t01") as ReplyToolConfig | undefined;
+    if (replyTool?.enabled === false) throw new HttpError(400, "Replies are not enabled for this template.");
 
     // Default configuration if not explicitly configured in template
     const maxChars = replyTool?.maxChars ?? 2000;
@@ -89,7 +91,7 @@ async function handlePOST(request: Request, context: Context) {
     });
 
     if (error) {
-      throw new HttpError(error.code === "42501" ? 403 : 503, error.message || "Failed to submit reply.");
+      throw new HttpError(error.code === "42501" ? 403 : error.code === "22023" ? 400 : 503, error.message || "Failed to submit reply.");
     }
 
     // Set partner receipt cookie
@@ -106,7 +108,7 @@ async function handlePOST(request: Request, context: Context) {
     return NextResponse.json({
       success: true,
       idempotent: data.idempotent,
-      receipt: data.reply,
+      receipt: replyReceipt(data.reply, code),
       receipt_token: partnerToken,
       deletion_policy: DELETION_POLICY_NOTICE,
     });

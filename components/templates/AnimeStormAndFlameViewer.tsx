@@ -1,36 +1,14 @@
 "use client";
 
+import StoryStartButton from "./StoryStartButton";
+import VenueDetails from "@/components/tools/VenueDetails";
+import type { VenueToolConfig } from "@/lib/supabase/coupleTemplates";
+import { InvitationTool } from "@/components/tools/InvitationTool";
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Heart,
-  Play,
-  Pause,
-  RotateCcw,
-  SkipForward,
-  ChevronLeft,
-  ChevronRight,
-  Volume2,
-  VolumeX,
-  MessageSquare,
-  Sparkles,
-  CheckCircle2,
-  Send,
-  X,
-  Share2,
-  Quote,
-  Film,
-  ArrowDown,
-  Maximize2,
-  Zap,
-  Flame,
-  Shield,
-  Scroll,
-  Clock,
-  Compass,
-} from "lucide-react";
+import { Play, Pause, RotateCcw, ChevronLeft, ChevronRight, Volume2, VolumeX, X, Share2, ArrowDown, Maximize2, Zap, Flame, Scroll } from "lucide-react";
 import type {
   AnimeTemplate,
   InvitationToolConfig,
@@ -68,19 +46,6 @@ interface AnimeStormAndFlameViewerProps {
   code: string;
 }
 
-function getStormAndFlameOptionIcon(optId: string) {
-  switch (optId) {
-    case "opt_anime":
-      return Film;
-    case "opt_date":
-      return Sparkles;
-    case "opt_promise":
-      return Scroll;
-    default:
-      return Zap;
-  }
-}
-
 export default function AnimeStormAndFlameViewer({
   template,
   code,
@@ -88,8 +53,6 @@ export default function AnimeStormAndFlameViewer({
   const [currentScene, setCurrentScene] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasOpened, setHasOpened] = useState(false);
-  const [isAudioMuted, setIsAudioMuted] = useState(false);
-  const [audioReady, setAudioReady] = useState(false);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
@@ -168,34 +131,6 @@ export default function AnimeStormAndFlameViewer({
     };
   }, [isCinematicMode]);
 
-  // If not in cinematic mode, skip the title intro sequence
-  useEffect(() => {
-    if (!isCinematicMode) {
-      setIsIntroActive(false);
-      setHasOpened(true);
-    }
-  }, [isCinematicMode]);
-
-  // Universal user-gesture unlock: allows sound to immediately begin on the very first touch/click in Chrome
-  useEffect(() => {
-    const handleGestureUnlock = () => {
-      if (isUserMutedRef.current) return;
-      if (isAudioPlaying && !autoplayBlocked) return;
-      void attemptPlay();
-    };
-
-    window.addEventListener("pointerdown", handleGestureUnlock, { capture: true, passive: true });
-    window.addEventListener("click", handleGestureUnlock, { capture: true, passive: true });
-    window.addEventListener("touchstart", handleGestureUnlock, { capture: true, passive: true });
-    window.addEventListener("keydown", handleGestureUnlock, { capture: true, passive: true });
-
-    return () => {
-      window.removeEventListener("pointerdown", handleGestureUnlock, { capture: true });
-      window.removeEventListener("click", handleGestureUnlock, { capture: true });
-      window.removeEventListener("touchstart", handleGestureUnlock, { capture: true });
-      window.removeEventListener("keydown", handleGestureUnlock, { capture: true });
-    };
-  }, [isAudioPlaying, autoplayBlocked, attemptPlay]);
 
   // Smooth per-second progress ticker for the 5-second scene indicator bar
   useEffect(() => {
@@ -219,15 +154,8 @@ export default function AnimeStormAndFlameViewer({
     return () => clearInterval(interval);
   }, [isPlaying, currentScene]);
 
-  // Date selection state
-  const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
-  const [customIdea, setCustomIdea] = useState("");
-  const [showCustomInput, setShowCustomInput] = useState(false);
-  const [selectedSlotId, setSelectedSlotId] = useState<string>("");
-  const [partnerNote, setPartnerNote] = useState("");
-  const [isSubmittingRsvp, setIsSubmittingRsvp] = useState(false);
-  const [rsvpSubmitted, setRsvpSubmitted] = useState(false);
-  const [rsvpStatusText, setRsvpStatusText] = useState("");
+  // Interactive tools
+
   const [activeDrawer, setActiveDrawer] = useState<"reply" | null>(null);
   const [copiedShare, setCopiedShare] = useState(false);
 
@@ -235,32 +163,33 @@ export default function AnimeStormAndFlameViewer({
   const invitationConfig = template.tools?.find(
     (t): t is InvitationToolConfig => t.type === "invitation"
   );
+  const venueConfig = template.tools?.find((tool): tool is VenueToolConfig => tool.type === "venue" && tool.enabled);
   const replyConfig = template.tools?.find(
     (t): t is ReplyToolConfig => t.type === "reply"
   );
   const pollConfig = template.tools?.find(
-    (t): t is PollToolConfig => t.type === "poll"
+    (t): t is PollToolConfig => t.type === "poll" && t.enabled
   );
   const questionConfig = template.tools?.find(
-    (t): t is QuestionToolConfig => t.type === "question"
+    (t): t is QuestionToolConfig => t.type === "question" && t.enabled
   );
   const revealConfig = template.tools?.find(
-    (t): t is RevealToolConfig => t.type === "private_reveal"
+    (t): t is RevealToolConfig => t.type === "private_reveal" && t.enabled
   );
   const scratchConfig = template.tools?.find(
-    (t): t is ScratchRevealToolConfig => t.type === "scratch_reveal"
+    (t): t is ScratchRevealToolConfig => t.type === "scratch_reveal" && t.enabled
   );
   const couponConfig = template.tools?.find(
-    (t): t is CouponToolConfig => t.type === "coupon"
+    (t): t is CouponToolConfig => t.type === "coupon" && t.enabled
   );
   const openWhenConfig = template.tools?.find(
-    (t): t is OpenWhenToolConfig => t.type === "open_when"
+    (t): t is OpenWhenToolConfig => t.type === "open_when" && t.enabled
   );
   const ourStoryConfig = template.tools?.find(
-    (t): t is OurStoryToolConfig => t.type === "our_story"
+    (t): t is OurStoryToolConfig => t.type === "our_story" && t.enabled !== false
   );
   const bucketListConfig = template.tools?.find(
-    (t): t is BucketListToolConfig => t.type === "bucket_list"
+    (t): t is BucketListToolConfig => t.type === "bucket_list" && t.enabled !== false
   );
   const floatingGalleryConfig = (template.tools as unknown[] | undefined)?.find(
     (t): t is {
@@ -307,7 +236,7 @@ export default function AnimeStormAndFlameViewer({
         setIsAudioPlaying((prev) => {
           const next = !prev;
           isUserMutedRef.current = !next;
-          setIsAudioMuted(!next);
+
           if (next) {
             postYtMessage("playVideo");
             setAutoplayBlocked(false);
@@ -323,12 +252,12 @@ export default function AnimeStormAndFlameViewer({
 
       if (isAudioPlaying) {
         isUserMutedRef.current = true;
-        setIsAudioMuted(true);
+
         setIsAudioPlaying(false);
         audioRef.current.pause();
       } else {
         isUserMutedRef.current = false;
-        setIsAudioMuted(false);
+
         void attemptPlay();
       }
     },
@@ -376,7 +305,7 @@ export default function AnimeStormAndFlameViewer({
       setIsPlaying(true);
       setIsCinematicMode(true);
       isUserMutedRef.current = false;
-      setIsAudioMuted(false);
+
       void attemptPlay();
     },
     [attemptPlay]
@@ -399,6 +328,8 @@ export default function AnimeStormAndFlameViewer({
   };
 
   const handleExitCinematic = () => {
+    setIsIntroActive(false);
+    setHasOpened(true);
     setIsCinematicMode(false);
     setHasCompletedAllScenes(true);
     setTimeout(() => {
@@ -407,55 +338,6 @@ export default function AnimeStormAndFlameViewer({
         el.scrollIntoView({ behavior: "smooth" });
       }
     }, 100);
-  };
-
-  // Submit Date RSVP
-  const handleRsvpSubmit = async () => {
-    if (!selectedChoice) return;
-    setIsSubmittingRsvp(true);
-
-    try {
-      const choiceLabel =
-        showCustomInput && customIdea.trim() ? customIdea.trim() : selectedChoice;
-      const isDeclined = choiceLabel === "Maybe later";
-
-      try {
-        await fetch(`/api/templates/${encodeURIComponent(code)}/invitation`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            expected_revision: 1,
-            response_type: isDeclined ? "declined" : "accepted",
-            chosen_slot: selectedSlotId
-              ? invitationConfig?.proposedSlots?.find((s) => s.id === selectedSlotId) || {
-                  id: "slot_default",
-                  start_time: new Date().toISOString(),
-                  label: choiceLabel,
-                }
-              : {
-                  id: "slot_default",
-                  start_time: new Date().toISOString(),
-                  label: choiceLabel,
-                },
-            partner_note_text: partnerNote.trim() || undefined,
-          }),
-        });
-      } catch {
-        // Fallback for standalone preview
-      }
-
-      setRsvpSubmitted(true);
-      setRsvpStatusText(
-        isDeclined
-          ? "You noted you'll decide later. Your partner has been informed!"
-          : `Awesome! You chose "${choiceLabel}". Your response has been saved!`
-      );
-    } catch {
-      setRsvpStatusText("Response saved! Thank you for choosing.");
-      setRsvpSubmitted(true);
-    } finally {
-      setIsSubmittingRsvp(false);
-    }
   };
 
   const partnerName = template.partner_name || "You";
@@ -498,12 +380,6 @@ export default function AnimeStormAndFlameViewer({
               } catch {}
             }
           }}
-          onCanPlay={() => {
-            setAudioReady(true);
-            if (!isUserMutedRef.current && !isAudioPlaying) {
-              void attemptPlay();
-            }
-          }}
           onPlay={() => {
             setIsAudioPlaying(true);
             setAutoplayBlocked(false);
@@ -517,7 +393,7 @@ export default function AnimeStormAndFlameViewer({
       )}
 
       {/* Hidden YouTube background audio iframe */}
-      {isYouTube && ytVideoId && (
+      {isYouTube && ytVideoId && isAudioPlaying && (
         <div
           className="fixed -bottom-96 -right-96 w-1 h-1 opacity-0 pointer-events-none overflow-hidden"
           tabIndex={-1}
@@ -547,13 +423,13 @@ export default function AnimeStormAndFlameViewer({
             onClick={(e) => {
               e.stopPropagation();
               isUserMutedRef.current = false;
-              setIsAudioMuted(false);
+
               void attemptPlay();
             }}
             className="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-full bg-[#0F1A2E]/95 border border-[#00E5FF] shadow-[0_0_25px_rgba(0,229,255,0.45)] backdrop-blur-xl flex items-center gap-2.5 text-xs text-[#EFF7FF] font-bold cursor-pointer hover:scale-105 active:scale-95 transition-all select-none animate-pulse"
           >
             <Volume2 className="w-4 h-4 text-[#00E5FF] animate-bounce" />
-            <span>Tap anywhere to enable soundtrack 🎵</span>
+            <span>Tap to play music</span>
           </motion.button>
         )}
       </AnimatePresence>
@@ -622,8 +498,7 @@ export default function AnimeStormAndFlameViewer({
                   initial={{ opacity: 1 }}
                   exit={{ opacity: 0, scale: 1.05 }}
                   transition={{ duration: 0.9, ease: "easeInOut" }}
-                  onClick={handleSkipIntro}
-                  className="absolute inset-0 z-40 bg-[#050B16]/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center cursor-pointer"
+                  className="absolute inset-0 z-40 bg-[#050B16]/95 backdrop-blur-md flex flex-col items-center justify-center overflow-y-auto p-6 text-center cursor-pointer"
                 >
                   {/* Subtle lightning & flame energy auras */}
                   <div className="absolute w-96 h-96 rounded-full bg-[#00E5FF]/20 blur-3xl -top-20 -left-20 pointer-events-none animate-pulse" />
@@ -659,23 +534,8 @@ export default function AnimeStormAndFlameViewer({
                       </span>
                     </div>
 
-                    <div className="pt-6 flex flex-col items-center">
-                      <motion.button
-                        type="button"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={handleSkipIntro}
-                        className="group relative px-8 py-3.5 rounded-full text-xs sm:text-sm font-bold text-[#050B16] bg-gradient-to-r from-[#00E5FF] via-[#80F0FF] to-[#FF9900] shadow-[0_0_30px_rgba(0,229,255,0.55)] hover:shadow-[0_0_40px_rgba(255,153,0,0.8)] flex items-center gap-3 mx-auto cursor-pointer transition-all animate-pulse"
-                      >
-                        <div className="w-6 h-6 rounded-full bg-[#050B16] flex items-center justify-center flex-shrink-0">
-                          <Play className="w-3.5 h-3.5 fill-[#00E5FF] text-[#00E5FF] ml-0.5 group-hover:fill-[#FF9900] group-hover:text-[#FF9900] transition-colors" />
-                        </div>
-                        <span className="tracking-wide">Begin Our Story with Music ⚡</span>
-                      </motion.button>
-                      <span className="mt-2.5 text-[11px] text-[#738CA8]">
-                        Click to start soundtrack and watch anime story scenes
-                      </span>
-                    </div>
+                    <StoryStartButton onClick={handleSkipIntro} hasMusic={!!template.music_track} accent="#00E5FF" onAccent="#171018" />
+
                   </motion.div>
                 </motion.div>
               )}
@@ -1087,183 +947,8 @@ export default function AnimeStormAndFlameViewer({
         {/* ─────────────────────────────────────────────
             FINAL INTERACTION CARD: "What will our next adventure be?"
         ───────────────────────────────────────────── */}
-        <div className="w-full max-w-3xl p-6 sm:p-8 rounded-3xl bg-[#0F1A2E] border border-[#273B5E] shadow-xl space-y-6 text-center">
-          <div className="space-y-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#FF9900] block">
-              Final Question for {partnerName}
-            </span>
-            <h2 className="font-storm-flame text-2xl sm:text-3xl font-bold text-[#EFF7FF] tracking-wide">
-              {STORM_AND_FLAME_CONFIG.finalQuestion}
-            </h2>
-            <p className="text-xs text-[#B9CBDF] font-medium max-w-md mx-auto">
-              Choose an adventure or propose something special, and let&apos;s face the next chapter together.
-            </p>
-          </div>
-
-          {!rsvpSubmitted ? (
-            <div className="space-y-4">
-              {/* Date choices pills / cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {STORM_AND_FLAME_CONFIG.dateOptions.map((opt) => {
-                  const isChosen =
-                    selectedChoice === opt.label && !showCustomInput;
-                  const OptionIcon = getStormAndFlameOptionIcon(opt.id);
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedChoice(opt.label);
-                        setShowCustomInput(false);
-                      }}
-                      className={`p-4 rounded-2xl text-left border-2 transition-all cursor-pointer flex flex-col justify-between group ${
-                        isChosen
-                          ? "bg-[#18253E] border-[#00E5FF] shadow-lg scale-[1.02]"
-                          : "bg-[#070F1E] border-[#273B5E] hover:border-[#3B588C]"
-                      }`}
-                    >
-                      <div
-                        className={`w-10 h-10 rounded-2xl flex items-center justify-center mb-3 transition-colors ${
-                          isChosen
-                            ? "bg-[#00E5FF] text-[#050B16] shadow-sm"
-                            : "bg-[#18253E] text-[#00E5FF] group-hover:bg-[#273B5E]"
-                        }`}
-                      >
-                        <OptionIcon className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <h4 className="text-xs sm:text-sm font-bold text-[#EFF7FF]">
-                          {opt.label}
-                        </h4>
-                        <p className="text-[11px] text-[#738CA8] mt-0.5 leading-snug">
-                          {opt.description}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Alternative choice options */}
-              <div className="flex flex-wrap items-center justify-center gap-2 pt-1 text-xs">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCustomInput(true);
-                    setSelectedChoice("Suggest something else");
-                  }}
-                  className={`px-3 py-1.5 rounded-xl border font-bold transition-all cursor-pointer ${
-                    showCustomInput
-                      ? "bg-[#18253E] border-[#00E5FF] text-[#00E5FF]"
-                      : "bg-[#070F1E] border-[#273B5E] text-[#B9CBDF] hover:bg-[#18253E]"
-                  }`}
-                >
-                  Suggest something else
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCustomInput(false);
-                    setSelectedChoice("Maybe later");
-                  }}
-                  className={`px-3 py-1.5 rounded-xl border font-bold transition-all cursor-pointer ${
-                    selectedChoice === "Maybe later"
-                      ? "bg-[#18253E] border-[#FF9900] text-[#FF9900]"
-                      : "bg-[#070F1E] border-[#273B5E] text-[#B9CBDF] hover:bg-[#18253E]"
-                  }`}
-                >
-                  Decide later
-                </button>
-              </div>
-
-              {/* Custom idea input */}
-              {showCustomInput && (
-                <div className="max-w-md mx-auto pt-2">
-                  <input
-                    type="text"
-                    value={customIdea}
-                    onChange={(e) => setCustomIdea(e.target.value)}
-                    placeholder="E.g., Starlight stroll, cook ramen together, road trip..."
-                    className="w-full px-4 py-2.5 rounded-xl bg-[#070F1E] border border-[#273B5E] text-xs font-semibold text-[#EFF7FF] placeholder:text-[#738CA8] focus:outline-none focus:border-[#00E5FF]"
-                  />
-                </div>
-              )}
-
-              {/* Optional Slot selection */}
-              {invitationConfig?.proposedSlots &&
-                invitationConfig.proposedSlots.length > 0 &&
-                selectedChoice !== "Maybe later" && (
-                  <div className="p-3.5 rounded-2xl bg-[#070F1E] border border-[#273B5E] max-w-md mx-auto text-left space-y-2">
-                    <label className="text-[11px] font-bold text-[#00E5FF] block">
-                      Choose preferred time slot:
-                    </label>
-                    <div className="space-y-1.5">
-                      {invitationConfig.proposedSlots.map((slot) => (
-                        <label
-                          key={slot.id}
-                          className="flex items-center gap-2 p-2 rounded-xl bg-[#0F1A2E] border border-[#273B5E] hover:border-[#3B588C] text-xs font-semibold text-[#EFF7FF] cursor-pointer"
-                        >
-                          <input
-                            type="radio"
-                            name="storm_invitation_slot"
-                            checked={selectedSlotId === slot.id}
-                            onChange={() => setSelectedSlotId(slot.id)}
-                            className="text-[#00E5FF] focus:ring-[#00E5FF]"
-                          />
-                          <span>{slot.label || slot.start_time}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-              {/* Optional partner note */}
-              <div className="max-w-md mx-auto pt-1">
-                <input
-                  type="text"
-                  value={partnerNote}
-                  onChange={(e) => setPartnerNote(e.target.value)}
-                  placeholder="Add a personal reply or excitement note (optional)..."
-                  className="w-full px-4 py-2 rounded-xl bg-[#070F1E] border border-[#273B5E] text-xs text-[#EFF7FF] placeholder:text-[#738CA8] focus:outline-none focus:border-[#00E5FF]"
-                />
-              </div>
-
-              {/* Confirm Button */}
-              <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={handleRsvpSubmit}
-                  disabled={!selectedChoice || isSubmittingRsvp}
-                  className="px-8 py-3 rounded-full text-[#050B16] font-bold text-sm shadow-xl hover:scale-105 active:scale-95 disabled:opacity-40 disabled:hover:scale-100 transition-all cursor-pointer flex items-center justify-center gap-2 mx-auto bg-gradient-to-r from-[#00E5FF] to-[#38BDF8]"
-                >
-                  <Send className="w-4 h-4" />
-                  <span>
-                    {isSubmittingRsvp
-                      ? "Sending response..."
-                      : `Send Response to ${senderName}`}
-                  </span>
-                </button>
-              </div>
-            </div>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="p-6 rounded-2xl bg-[#070F1E] border border-[#00E5FF]/40 space-y-3"
-            >
-              <div className="w-12 h-12 mx-auto rounded-full bg-[#18253E] border border-[#273B5E] flex items-center justify-center text-emerald-400 shadow-sm">
-                <CheckCircle2 className="w-6 h-6 text-emerald-400" />
-              </div>
-              <h3 className="font-storm-flame text-lg font-bold text-[#EFF7FF]">
-                Response Sent to {senderName}!
-              </h3>
-              <p className="text-xs text-[#B9CBDF] font-medium max-w-md mx-auto leading-relaxed">
-                {rsvpStatusText}
-              </p>
-            </motion.div>
-          )}
-        </div>
+        {venueConfig && !invitationConfig?.enabled && <VenueDetails venue={venueConfig} palette={STORM_AND_FLAME_PALETTE} />}
+        {invitationConfig?.enabled && <InvitationTool templateCode={code} partnerName={partnerName} senderName={senderName} config={invitationConfig} palette={STORM_AND_FLAME_PALETTE} activities={STORM_AND_FLAME_CONFIG.dateOptions} />}
 
         {/* ─────────────────────────────────────────────
             EMBEDDED QUBITSELLS TOOLS SECTION

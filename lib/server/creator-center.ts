@@ -1,6 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { CreatorTemplateItem, InvitationSlot, PollCustomSuggestion, PollOption, QuestionAnswerItem, QuestionItem, RevealQuestionItem, TemplateReply, TemplateTool } from "@/lib/supabase/coupleTemplates";
+import type { CouponEvent, CreatorTemplateItem, InvitationSlot, PollCustomSuggestion, PollOption, QuestionAnswerItem, QuestionItem, RevealQuestionItem, ScratchRevealToolConfig, TemplateReply, TemplateTool } from "@/lib/supabase/coupleTemplates";
 
 type Row = Record<string, unknown>;
 const object = (value: unknown): Row => value && typeof value === "object" && !Array.isArray(value) ? value as Row : {};
@@ -20,12 +20,13 @@ function mediaUrl(value: unknown, code: string): string {
 // receipt hashes, drafts, or the raw table rows to the browser.
 const selections = {
   template_replies: "template_id,id,tool_id,author_name,message,reaction,media_items,created_at",
-  template_invitations: "template_id,id,activity,invitation_message,status,duration_minutes,format,location,deadline,date_mode,sender_timezone,recipient_timezone,selected_slot,counterproposal_slot,recipient_note,recipient_response,responded_at,updated_at",
+  template_invitations: "template_id,id,activity,invitation_message,status,duration_minutes,format,location,meeting_url,reservation_url,deadline,date_mode,sender_timezone,recipient_timezone,selected_slot,counterproposal_slot,recipient_note,recipient_response,recipient_activities,recipient_idea,available_slots,proposed_slots,revision,responded_at,updated_at",
   template_polls: "template_id,id,question,selection_mode,options,partner_votes,creator_votes,resolved_option_id,status,custom_suggestions,updated_at",
   template_question_cards: "template_id,id,tool_id,title,questions",
-  template_question_submissions: "template_id,tool_id,answers,is_draft,submitted_at,author_role",
+  template_question_submissions: "template_id,tool_id,answers,question_snapshot,is_draft,submitted_at,author_role",
   template_private_reveals: "template_id,id,prompt,questions,status,creator_locked_at,partner_locked_at,revealed_at,partner_answer",
-  template_coupons: "template_id,id,title,description,status,requested_at,accepted_at,fulfilled_at,request_note,preferred_date,cancelled_at,cancel_reason",
+  template_coupons: "template_id,id,title,description,status,expires_at,history,requested_at,accepted_at,fulfilled_at,request_note,preferred_date,cancelled_at,cancel_reason",
+  template_scratch_reveals: "template_id,id,opened_at,method,config_snapshot",
   template_open_when_letters: "template_id,id,title,envelopes,opened_envelopes",
   template_our_story: "template_id,id,title,cards,partner_contribution",
   template_bucket_list: "template_id,id,title,items",
@@ -79,13 +80,15 @@ export async function loadCreatorCenter(db: SupabaseClient, actorId: string | nu
       id, short_code: code, partner_name: text(row.partner_name), partner_from: text(row.partner_from), theme: text(row.theme),
       scene_index: Number(row.scene_index) || 0, created_at: text(row.created_at), expires_at: text(row.expires_at),
       view_count: Number(row.view_count) || 0, tools: list<TemplateTool>(row.tools), is_expired: expired, replies_purged: expired,
-      replies: [], invitation: null, poll: null, questions: null, reveal: null, coupon: null, open_when: null, our_story: null, bucket_list: null,
+      replies: [], invitation: null, poll: null, questions: null, reveal: null, coupon: null, open_when: null, scratch: null, our_story: null, bucket_list: null,
     };
     if (expired) return base;
     const first = (table: Table) => forTemplate(table, id)[0];
     const inv = first("template_invitations"), poll = first("template_polls"), questions = first("template_question_cards");
     const reveal = first("template_private_reveals"), coupon = first("template_coupons"), letters = first("template_open_when_letters");
     const story = first("template_our_story"), bucket = first("template_bucket_list");
+    const scratch = first("template_scratch_reveals");
+    const scratchConfig = (scratch?.config_snapshot || base.tools?.find(tool => tool.type === "scratch_reveal" && tool.enabled)) as ScratchRevealToolConfig | undefined;
     const submission = forTemplate("template_question_submissions", id)
       .filter(value => value.author_role === "partner" && value.is_draft === false && value.tool_id === questions?.tool_id)
       .sort((a, b) => text(b.submitted_at).localeCompare(text(a.submitted_at)))[0];
@@ -104,6 +107,8 @@ export async function loadCreatorCenter(db: SupabaseClient, actorId: string | nu
         counter_proposal_slot: inv.counterproposal_slot ? object(inv.counterproposal_slot) as unknown as InvitationSlot : null,
         date_mode: inv.date_mode as NonNullable<CreatorTemplateItem["invitation"]>["date_mode"], sender_timezone: optionalText(inv.sender_timezone),
         recipient_timezone: optionalText(inv.recipient_timezone), partner_counter_note: optionalText(inv.recipient_note),
+        recipient_activities: list<string>(inv.recipient_activities), recipient_idea: optionalText(inv.recipient_idea), available_slots: list<InvitationSlot>(inv.available_slots),
+        proposed_slots: list<InvitationSlot>(inv.proposed_slots), meeting_url: optionalText(inv.meeting_url), reservation_url: optionalText(inv.reservation_url), revision: Number(inv.revision) || 1,
         partner_response_status: optionalText(inv.recipient_response), responded_at: optionalText(inv.responded_at), updated_at: text(inv.updated_at),
       } : null,
       poll: poll ? {
@@ -113,7 +118,7 @@ export async function loadCreatorCenter(db: SupabaseClient, actorId: string | nu
         status: poll.status as NonNullable<CreatorTemplateItem["poll"]>["status"], custom_suggestions: list<PollCustomSuggestion>(poll.custom_suggestions), updated_at: text(poll.updated_at),
       } : null,
       questions: questions ? {
-        id: text(questions.id), title: text(questions.title), questions: list<QuestionItem>(questions.questions),
+        id: text(questions.id), title: text(questions.title), questions: list<QuestionItem>(submission?.question_snapshot || questions.questions),
         ...(submission ? { partner_submission: { answers: object(submission.answers) as Record<string, QuestionAnswerItem>, is_draft: false, submitted_at: optionalText(submission.submitted_at) } } : {}),
       } : null,
       reveal: reveal ? {
@@ -123,17 +128,20 @@ export async function loadCreatorCenter(db: SupabaseClient, actorId: string | nu
         partner_answer: reveal.status === "revealed" ? object(reveal.partner_answer) as Record<string, string> : null,
       } : null,
       coupon: coupon ? {
-        id: text(coupon.id), title: text(coupon.title), description: text(coupon.description), status: coupon.status as NonNullable<CreatorTemplateItem["coupon"]>["status"],
+        id: text(coupon.id), title: text(coupon.title), description: text(coupon.description), status: (['available','requested'].includes(text(coupon.status)) && coupon.expires_at && Date.parse(text(coupon.expires_at)) <= now ? 'expired' : coupon.status) as NonNullable<CreatorTemplateItem["coupon"]>["status"],
+        expires_at: optionalText(coupon.expires_at), history: list<CouponEvent>(coupon.history),
         requested_at: optionalText(coupon.requested_at), accepted_at: optionalText(coupon.accepted_at), fulfilled_at: optionalText(coupon.fulfilled_at),
         partner_request_note: optionalText(coupon.request_note), preferred_date: optionalText(coupon.preferred_date),
         cancelled_at: optionalText(coupon.cancelled_at), cancel_reason: optionalText(coupon.cancel_reason),
       } : null,
       open_when: letters ? {
-        id: text(letters.id), title: text(letters.title), envelopes: list<Row>(letters.envelopes).map(envelope => ({
-          id: text(envelope.id), label: text(envelope.occasion) || text(envelope.label),
-          opened_at: optionalText(object(object(letters.opened_envelopes)[text(envelope.id)]).opened_at),
-        })),
+        id: text(letters.id), title: text(letters.title), envelopes: [...list<Row>(letters.envelopes), ...Object.entries(object(letters.opened_envelopes)).filter(([key, value]) => object(value).envelope && !list<Row>(letters.envelopes).some(envelope => envelope.id === key)).map(([,value]) => object(object(value).envelope))].map(envelope => {
+          const opened = object(object(letters.opened_envelopes)[text(envelope.id)]), original = opened.envelope ? object(opened.envelope) : envelope;
+          return {id: text(envelope.id), label: text(original.occasion) || text(original.label), opened_at: optionalText(opened.opened_at),
+            message: optionalText(original.message), media_url: mediaUrl(original.mediaUrl, code) || undefined, media_type: original.mediaType as "image" | "video" | undefined};
+        }),
       } : null,
+      scratch: scratchConfig ? {config: scratchConfig, opened_at: optionalText(scratch?.opened_at), method: scratch?.method as "scratch" | "button" | "keyboard" | undefined} : null,
       our_story: story ? {
         id: text(story.id), title: text(story.title), cards_count: list(story.cards).length,
         partner_photo_url: mediaUrl(contribution.photo_url, code) || null, partner_caption: optionalText(contribution.caption),
@@ -142,7 +150,7 @@ export async function loadCreatorCenter(db: SupabaseClient, actorId: string | nu
       } : null,
       bucket_list: bucket ? {
         id: text(bucket.id), title: text(bucket.title), items: list<NonNullable<CreatorTemplateItem["bucket_list"]>["items"][number]>(bucket.items)
-          .map(entry => ({ ...entry, memory_photo_url: mediaUrl(entry.memory_photo_url, code) || null })),
+          .map(entry => ({ ...entry, memory_photo_url: mediaUrl(entry.memory_photo_url, code) || null, history: entry.history?.map(event => ({...event,photo_url:mediaUrl(event.photo_url,code)||null})) })),
       } : null,
     };
   });

@@ -1,38 +1,14 @@
 "use client";
 
+import StoryStartButton from "./StoryStartButton";
+import VenueDetails from "@/components/tools/VenueDetails";
+import type { VenueToolConfig } from "@/lib/supabase/coupleTemplates";
+import { InvitationTool } from "@/components/tools/InvitationTool";
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Heart,
-  Play,
-  Pause,
-  RotateCcw,
-  SkipForward,
-  ChevronLeft,
-  ChevronRight,
-  Volume2,
-  VolumeX,
-  Calendar,
-  MessageSquare,
-  Sparkles,
-  CheckCircle2,
-  Gift,
-  Mail,
-  Send,
-  X,
-  Share2,
-  Lock,
-  Quote,
-  Film,
-  ArrowDown,
-  Maximize2,
-  Minimize2,
-  CakeSlice,
-  Camera,
-  Coffee,
-} from "lucide-react";
+import { Heart, Play, Pause, RotateCcw, SkipForward, ChevronLeft, ChevronRight, Volume2, VolumeX, MessageSquare, X, Quote, Film, ArrowDown, Maximize2 } from "lucide-react";
 import type {
   AnimeTemplate,
   InvitationToolConfig,
@@ -63,25 +39,10 @@ interface OurLittlePinkDayViewerProps {
   code: string;
 }
 
-function getDateOptionIcon(optId: string) {
-  switch (optId) {
-    case "opt_dessert":
-      return CakeSlice;
-    case "opt_arcade":
-      return Camera;
-    case "opt_cozy":
-      return Coffee;
-    default:
-      return Heart;
-  }
-}
-
 export default function OurLittlePinkDayViewer({ template, code }: OurLittlePinkDayViewerProps) {
   const [currentScene, setCurrentScene] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasOpened, setHasOpened] = useState(false);
-  const [isAudioMuted, setIsAudioMuted] = useState(false);
-  const [audioReady, setAudioReady] = useState(false);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
@@ -107,73 +68,6 @@ export default function OurLittlePinkDayViewer({ template, code }: OurLittlePink
     };
   }, [isCinematicMode]);
 
-  // Automatic transition from cinematic title sequence to Scene 1 playing automatically
-  useEffect(() => {
-    if (!isCinematicMode) {
-      setIsIntroActive(false);
-      setHasOpened(true);
-      return;
-    }
-
-    // Display the cinematic title sequence for 3.8s, then automatically start story scenes playing
-    const introTimer = setTimeout(() => {
-      setIsIntroActive(false);
-      setHasOpened(true);
-      setIsPlaying(true);
-      if (audioRef.current && !isUserMutedRef.current) {
-        audioRef.current.muted = false;
-        audioRef.current
-          .play()
-          .then(() => setIsAudioPlaying(true))
-          .catch(() => {});
-      }
-    }, 3800);
-
-    return () => clearTimeout(introTimer);
-  }, [isCinematicMode]);
-
-  // Unlock audio on any user gesture — browsers block autoplay until a real interaction.
-  // We keep listening (not once:true) until the audio actually starts, then self-remove.
-  useEffect(() => {
-    const ytTrack = template.music_track?.type === "youtube" || Boolean(template.music_track?.youtubeId);
-    if (ytTrack) return; // YouTube iframe handles its own autoplay
-
-    const unlock = () => {
-      if (!audioRef.current || isAudioPlaying || isUserMutedRef.current) return;
-      const startSec = template.music_track?.startAt || 0;
-      if (startSec > 0 && audioRef.current.currentTime < 1) {
-        try { audioRef.current.currentTime = startSec; } catch {}
-      }
-      audioRef.current.muted = false;
-      audioRef.current
-        .play()
-        .then(() => {
-          setIsAudioPlaying(true);
-          // Successfully started — clean up all listeners
-          document.removeEventListener("click", unlock, { capture: true });
-          document.removeEventListener("touchstart", unlock, { capture: true });
-          document.removeEventListener("keydown", unlock, { capture: true });
-          document.removeEventListener("scroll", unlock, { capture: true });
-          document.removeEventListener("mousemove", unlock, { capture: true });
-        })
-        .catch(() => {}); // Will retry on next interaction
-    };
-
-    // Listen on every gesture type — fires repeatedly until audio plays
-    document.addEventListener("click", unlock, { capture: true });
-    document.addEventListener("touchstart", unlock, { capture: true });
-    document.addEventListener("keydown", unlock, { capture: true });
-    document.addEventListener("scroll", unlock, { capture: true });
-    document.addEventListener("mousemove", unlock, { capture: true });
-
-    return () => {
-      document.removeEventListener("click", unlock, { capture: true });
-      document.removeEventListener("touchstart", unlock, { capture: true });
-      document.removeEventListener("keydown", unlock, { capture: true });
-      document.removeEventListener("scroll", unlock, { capture: true });
-      document.removeEventListener("mousemove", unlock, { capture: true });
-    };
-  }, [isAudioPlaying, template.music_track]);
 
   // Story segment fill progress
   useEffect(() => {
@@ -194,46 +88,40 @@ export default function OurLittlePinkDayViewer({ template, code }: OurLittlePink
     return () => clearInterval(interval);
   }, [isPlaying, currentScene]);
 
-  // Date selection state
-  const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
-  const [customIdea, setCustomIdea] = useState("");
-  const [showCustomInput, setShowCustomInput] = useState(false);
-  const [selectedSlotId, setSelectedSlotId] = useState<string>("");
-  const [partnerNote, setPartnerNote] = useState("");
-  const [isSubmittingRsvp, setIsSubmittingRsvp] = useState(false);
-  const [rsvpSubmitted, setRsvpSubmitted] = useState(false);
-  const [rsvpStatusText, setRsvpStatusText] = useState("");
+  // Interactive tools
+
   const [activeDrawer, setActiveDrawer] = useState<"reply" | null>(null);
 
   const invitationConfig = template.tools?.find(
     (t): t is InvitationToolConfig => t.type === "invitation"
   );
+  const venueConfig = template.tools?.find((tool): tool is VenueToolConfig => tool.type === "venue" && tool.enabled);
   const replyConfig = template.tools?.find(
     (t): t is ReplyToolConfig => t.type === "reply"
   );
   const pollConfig = template.tools?.find(
-    (t): t is PollToolConfig => t.type === "poll"
+    (t): t is PollToolConfig => t.type === "poll" && t.enabled
   );
   const questionConfig = template.tools?.find(
-    (t): t is QuestionToolConfig => t.type === "question"
+    (t): t is QuestionToolConfig => t.type === "question" && t.enabled
   );
   const revealConfig = template.tools?.find(
-    (t): t is RevealToolConfig => t.type === "private_reveal"
+    (t): t is RevealToolConfig => t.type === "private_reveal" && t.enabled
   );
   const scratchConfig = template.tools?.find(
-    (t): t is ScratchRevealToolConfig => t.type === "scratch_reveal"
+    (t): t is ScratchRevealToolConfig => t.type === "scratch_reveal" && t.enabled
   );
   const couponConfig = template.tools?.find(
-    (t): t is CouponToolConfig => t.type === "coupon"
+    (t): t is CouponToolConfig => t.type === "coupon" && t.enabled
   );
   const openWhenConfig = template.tools?.find(
-    (t): t is OpenWhenToolConfig => t.type === "open_when"
+    (t): t is OpenWhenToolConfig => t.type === "open_when" && t.enabled
   );
   const ourStoryConfig = template.tools?.find(
-    (t): t is OurStoryToolConfig => t.type === "our_story"
+    (t): t is OurStoryToolConfig => t.type === "our_story" && t.enabled !== false
   );
   const bucketListConfig = template.tools?.find(
-    (t): t is BucketListToolConfig => t.type === "bucket_list"
+    (t): t is BucketListToolConfig => t.type === "bucket_list" && t.enabled !== false
   );
   const floatingGalleryConfig = (template.tools as unknown[] | undefined)?.find(
     (t): t is { id: string; type: "floating_gallery"; enabled?: boolean; title?: string; subtitle?: string; items?: FloatingGalleryItem[] } => {
@@ -259,13 +147,6 @@ export default function OurLittlePinkDayViewer({ template, code }: OurLittlePink
     (isYouTube && template.music_track?.id?.replace(/^yt-/, "")) ||
     null;
 
-  // Keep audioRef in sync with the rendered <audio> element's playing state
-  useEffect(() => {
-    if (isYouTube && ytVideoId) {
-      setIsAudioPlaying(true);
-    }
-  }, [isYouTube, ytVideoId]);
-
   // Audio play/pause handler (requires explicit user interaction)
   const toggleAudio = useCallback(
     (e?: React.MouseEvent) => {
@@ -276,7 +157,7 @@ export default function OurLittlePinkDayViewer({ template, code }: OurLittlePink
         setIsAudioPlaying((prev) => {
           const next = !prev;
           isUserMutedRef.current = !next;
-          setIsAudioMuted(!next);
+
           return next;
         });
         return;
@@ -287,13 +168,13 @@ export default function OurLittlePinkDayViewer({ template, code }: OurLittlePink
       if (isAudioPlaying) {
         // User is muting
         isUserMutedRef.current = true;
-        setIsAudioMuted(true);
+
         setIsAudioPlaying(false);
         audioRef.current.pause();
       } else {
         // User is unmuting
         isUserMutedRef.current = false;
-        setIsAudioMuted(false);
+
         const startSec = template.music_track?.startAt || 0;
         if (startSec > 0 && audioRef.current.currentTime < 1) {
           try { audioRef.current.currentTime = startSec; } catch {}
@@ -373,7 +254,6 @@ export default function OurLittlePinkDayViewer({ template, code }: OurLittlePink
     [isYouTube, template.music_track]
   );
 
-  const handleStartStory = handleSkipIntro;
 
   const handlePlayPause = () => {
     setIsPlaying((prev) => !prev);
@@ -392,6 +272,8 @@ export default function OurLittlePinkDayViewer({ template, code }: OurLittlePink
   };
 
   const handleExitCinematic = () => {
+    setIsIntroActive(false);
+    setHasOpened(true);
     setIsCinematicMode(false);
     setHasCompletedAllScenes(true);
     setTimeout(() => {
@@ -400,72 +282,6 @@ export default function OurLittlePinkDayViewer({ template, code }: OurLittlePink
         el.scrollIntoView({ behavior: "smooth" });
       }
     }, 100);
-  };
-
-  // Submit Date RSVP
-  const handleRsvpSubmit = async () => {
-    if (!selectedChoice) return;
-    setIsSubmittingRsvp(true);
-
-    try {
-      const choiceLabel = showCustomInput && customIdea.trim() ? customIdea.trim() : selectedChoice;
-      const isDeclined = choiceLabel === "Maybe later";
-
-      // 1. Submit to real invitation endpoint if available
-      try {
-        await fetch(`/api/templates/${encodeURIComponent(code)}/invitation`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            expected_revision: 1,
-            response_type: isDeclined ? "declined" : "accepted",
-            chosen_slot: selectedSlotId
-              ? invitationConfig?.proposedSlots?.find((s) => s.id === selectedSlotId) || {
-                  id: "slot_default",
-                  start_time: new Date().toISOString(),
-                  label: choiceLabel,
-                }
-              : {
-                  id: "slot_default",
-                  start_time: new Date().toISOString(),
-                  label: choiceLabel,
-                },
-            partner_note_text: `Choice: ${choiceLabel}${partnerNote ? ` — Note: ${partnerNote}` : ""}`,
-          }),
-        });
-      } catch {
-        // Fallback gracefully
-      }
-
-      // 2. Also send as note to ensure creator receives it in Creator Center
-      try {
-        await fetch(`/api/templates/${encodeURIComponent(code)}/reply`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            client_id: crypto.randomUUID(),
-            author_name: template.partner_name || "My Love",
-            message: `💌 Date RSVP Response: ${choiceLabel}${partnerNote ? `\n"${partnerNote}"` : ""}`,
-            reaction: isDeclined ? "🥺" : "🥰",
-            media_items: [],
-          }),
-        });
-      } catch {
-        // Safe fallback
-      }
-
-      setRsvpSubmitted(true);
-      setRsvpStatusText(
-        isDeclined
-          ? "Understood, my love. We can do it whenever you feel like it!"
-          : `Date saved! I can't wait for our ${choiceLabel}. ✨`
-      );
-    } catch {
-      setRsvpSubmitted(true);
-      setRsvpStatusText("Response saved! Can't wait for our next little moment. ❤️");
-    } finally {
-      setIsSubmittingRsvp(false);
-    }
   };
 
   const scene = PINK_DAY_SCENES[currentScene];
@@ -483,23 +299,12 @@ export default function OurLittlePinkDayViewer({ template, code }: OurLittlePink
         color: PINK_DAY_PALETTE.text,
       }}
     >
-      {/* Hidden MP3 audio element — autoPlay attribute is the most browser-compatible autoplay method */}
+      {/* Soundtrack is preloaded, and played directly from the Continue button */}
       {template.music_track?.mp3Url && !isYouTube && (
         <audio
-          ref={(el) => {
-            if (el && el !== audioRef.current) {
-              audioRef.current = el;
-              el.currentTime = template.music_track?.startAt || 0;
-              if (!isUserMutedRef.current) {
-                el.play()
-                  .then(() => setIsAudioPlaying(true))
-                  .catch(() => {});
-              }
-            }
-          }}
+          ref={audioRef}
           src={template.music_track.mp3Url}
           loop
-          autoPlay
           muted={false}
           preload="auto"
           style={{ display: "none" }}
@@ -508,7 +313,7 @@ export default function OurLittlePinkDayViewer({ template, code }: OurLittlePink
             if (!isUserMutedRef.current) return; // don't mark as not-playing if browser paused automatically
             setIsAudioPlaying(false);
           }}
-          onCanPlay={() => setAudioReady(true)}
+
         />
       )}
 
@@ -674,7 +479,7 @@ export default function OurLittlePinkDayViewer({ template, code }: OurLittlePink
               </div>
             </div>
 
-            {/* 3. CENTER: DRAMATIC CINEMATIC START TITLE SEQUENCE (PURE MOVIE TYPOGRAPHY, NO ALERT BOX) */}
+            {/* 3. CENTER: DRAMATIC CINEMATIC START TITLE SEQUENCE (TITLE AND USER-ACTIVATED START) */}
             <AnimatePresence>
               {isIntroActive && (
                 <motion.div
@@ -687,12 +492,12 @@ export default function OurLittlePinkDayViewer({ template, code }: OurLittlePink
                     filter: "blur(14px)",
                     transition: { duration: 0.85, ease: [0.4, 0, 0.2, 1] },
                   }}
-                  className="absolute inset-0 z-40 flex flex-col items-center justify-center p-6 text-center pointer-events-none select-none"
+                  className="absolute inset-0 z-40 flex flex-col items-center justify-center overflow-y-auto p-6 text-center select-none"
                 >
                   {/* Atmospheric soft overlay */}
                   <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] pointer-events-none" />
 
-                  {/* Pure Cinematic Typography (No Alert / No Box / No Card / No Click Prompts) */}
+                  {/* Cinematic typography and a clear start button */}
                   <div className="relative z-10 flex flex-col items-center max-w-3xl px-4 space-y-6">
                     {/* Dramatic Cinematic Text Coming smoothly from the distance */}
                     <motion.div
@@ -740,6 +545,7 @@ export default function OurLittlePinkDayViewer({ template, code }: OurLittlePink
                           A 6-scene story created with love by {senderName}
                         </p>
                       </motion.div>
+                    <StoryStartButton onClick={handleSkipIntro} hasMusic={!!template.music_track} accent="#FDA4AF" onAccent="#171018" />
                     </motion.div>
                   </div>
                 </motion.div>
@@ -1156,186 +962,8 @@ export default function OurLittlePinkDayViewer({ template, code }: OurLittlePink
             Always visible on final scene (or when scrolled), connecting
             to the real saved response flow!
         ───────────────────────────────────────────── */}
-        <div className="w-full max-w-3xl mt-6 p-6 sm:p-8 rounded-3xl bg-white border border-[#F7BFD5] shadow-lg space-y-5 text-center">
-          <div className="space-y-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#A43F66] block">
-              Final Question for {partnerName}
-            </span>
-            <h2 className="text-xl sm:text-2xl font-black text-[#51253E]">
-              {PINK_DAY_CONFIG.finalQuestion}
-            </h2>
-            <p className="text-xs text-[#79566C] font-medium">
-              Choose what sounds sweetest to you, and let&#39;s make our next memory together.
-            </p>
-          </div>
-
-          {!rsvpSubmitted ? (
-            <div className="space-y-4">
-              {/* Date choices pills / cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {PINK_DAY_CONFIG.dateOptions.map((opt) => {
-                  const isChosen = selectedChoice === opt.label && !showCustomInput;
-                  const OptionIcon = getDateOptionIcon(opt.id);
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedChoice(opt.label);
-                        setShowCustomInput(false);
-                      }}
-                      className={`p-4 rounded-2xl text-left border-2 transition-all cursor-pointer flex flex-col justify-between group ${
-                        isChosen
-                          ? "bg-[#FFE9F1] border-[#A43F66] shadow-md scale-[1.02]"
-                          : "bg-[#FFF8FC] border-rose-100 hover:border-rose-300"
-                      }`}
-                    >
-                      <div
-                        className={`w-10 h-10 rounded-2xl flex items-center justify-center mb-3 transition-colors ${
-                          isChosen
-                            ? "bg-white text-[#A43F66] shadow-xs"
-                            : "bg-[#FFE9F1] text-[#A43F66] group-hover:bg-[#FCD8E6]"
-                        }`}
-                      >
-                        <OptionIcon className="w-5 h-5 text-[#A43F66]" />
-                      </div>
-                      <div>
-                        <h4 className="text-xs sm:text-sm font-bold text-[#51253E]">
-                          {opt.label}
-                        </h4>
-                        <p className="text-[11px] text-[#79566C] mt-0.5 leading-snug">
-                          {opt.description}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Alternative choice options */}
-              <div className="flex flex-wrap items-center justify-center gap-2 pt-1 text-xs">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCustomInput(true);
-                    setSelectedChoice("Your idea");
-                  }}
-                  className={`px-3 py-1.5 rounded-xl border font-bold transition-all cursor-pointer ${
-                    showCustomInput
-                      ? "bg-[#FFE9F1] border-[#A43F66] text-[#A43F66]"
-                      : "bg-white border-rose-200 text-[#79566C] hover:bg-rose-50"
-                  }`}
-                >
-                  Propose Your Idea
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCustomInput(false);
-                    setSelectedChoice("Maybe later");
-                  }}
-                  className={`px-3 py-1.5 rounded-xl border font-bold transition-all cursor-pointer ${
-                    selectedChoice === "Maybe later"
-                      ? "bg-rose-100 border-[#A43F66] text-[#51253E]"
-                      : "bg-white border-rose-200 text-[#79566C] hover:bg-rose-50"
-                  }`}
-                >
-                  Maybe later
-                </button>
-              </div>
-
-              {/* Custom idea input */}
-              {showCustomInput && (
-                <div className="max-w-md mx-auto pt-2">
-                  <input
-                    type="text"
-                    value={customIdea}
-                    onChange={(e) => setCustomIdea(e.target.value)}
-                    placeholder="E.g., Sunset picnic at the park, boba date..."
-                    className="w-full px-4 py-2.5 rounded-xl bg-[#FFF8FC] border border-[#F7BFD5] text-xs font-semibold text-[#51253E] focus:outline-none focus:border-[#A43F66]"
-                  />
-                </div>
-              )}
-
-              {/* Optional Slot selection if creator provided proposed slots */}
-              {invitationConfig?.proposedSlots && invitationConfig.proposedSlots.length > 0 && selectedChoice !== "Maybe later" && (
-                <div className="p-3.5 rounded-2xl bg-[#FFF8FC] border border-[#F7BFD5] max-w-md mx-auto text-left space-y-2">
-                  <label className="text-[11px] font-bold text-[#A43F66] block">
-                    Choose preferred time:
-                  </label>
-                  <div className="space-y-1.5">
-                    {invitationConfig.proposedSlots.map((slot) => (
-                      <label
-                        key={slot.id}
-                        className="flex items-center gap-2 p-2 rounded-xl bg-white border border-rose-100 hover:border-rose-300 text-xs font-semibold cursor-pointer"
-                      >
-                        <input
-                          type="radio"
-                          name="invitation_slot"
-                          checked={selectedSlotId === slot.id}
-                          onChange={() => setSelectedSlotId(slot.id)}
-                          className="text-[#A43F66] focus:ring-[#A43F66]"
-                        />
-                        <span>{slot.label || slot.start_time}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Optional note from partner */}
-              <div className="max-w-md mx-auto pt-1">
-                <input
-                  type="text"
-                  value={partnerNote}
-                  onChange={(e) => setPartnerNote(e.target.value)}
-                  placeholder="Add a sweet note or message for them (optional)..."
-                  className="w-full px-4 py-2 rounded-xl bg-[#FFF8FC] border border-[#F7BFD5] text-xs text-[#51253E] placeholder:text-[#79566C]/70 focus:outline-none focus:border-[#A43F66]"
-                />
-              </div>
-
-              {/* Confirm / Send Response Button */}
-              <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={handleRsvpSubmit}
-                  disabled={!selectedChoice || isSubmittingRsvp}
-                  className="px-8 py-3 rounded-full text-white font-bold text-sm shadow-md hover:scale-105 active:scale-95 disabled:opacity-40 disabled:hover:scale-100 transition-all cursor-pointer flex items-center justify-center gap-2 mx-auto"
-                  style={{ backgroundColor: PINK_DAY_PALETTE.accent }}
-                >
-                  <Send className="w-4 h-4" />
-                  <span>{isSubmittingRsvp ? "Sending response..." : "Send Response to " + senderName}</span>
-                </button>
-              </div>
-            </div>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="p-6 rounded-2xl bg-[#FFE9F1] border border-[#F7BFD5] space-y-3"
-            >
-              <div className="w-12 h-12 mx-auto rounded-full bg-white flex items-center justify-center text-emerald-600 shadow-xs">
-                <CheckCircle2 className="w-6 h-6 text-emerald-600" />
-              </div>
-              <h3 className="text-base font-bold text-[#51253E]">
-                Response Sent to {senderName}!
-              </h3>
-              <p className="text-xs text-[#79566C] font-medium max-w-md mx-auto leading-relaxed">
-                {rsvpStatusText}
-              </p>
-              <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={() => setRsvpSubmitted(false)}
-                  className="text-xs font-bold text-[#A43F66] underline cursor-pointer"
-                >
-                  Change your answer
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </div>
+        {venueConfig && !invitationConfig?.enabled && <VenueDetails venue={venueConfig} palette={PINK_DAY_PALETTE} />}
+        {invitationConfig?.enabled && <InvitationTool templateCode={code} partnerName={partnerName} senderName={senderName} config={invitationConfig} palette={PINK_DAY_PALETTE} activities={PINK_DAY_CONFIG.dateOptions} />}
 
         {/* ─────────────────────────────────────────────
             ADDITIONAL INTERACTIVE QUBITSELLS TOOLS
@@ -1542,7 +1170,7 @@ export default function OurLittlePinkDayViewer({ template, code }: OurLittlePink
                   card: PINK_DAY_PALETTE.surface,
                 }}
                 onReplySubmitted={() => {
-                  setTimeout(() => setActiveDrawer(null), 1500);
+                  // Keep the saved receipt visible until the receiver closes it.
                 }}
               />
             </motion.div>
